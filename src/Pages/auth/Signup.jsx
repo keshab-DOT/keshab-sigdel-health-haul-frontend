@@ -1,162 +1,135 @@
-import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import api from "../../api/axios";
 
-const Signup = () => {
+export default function Signup() {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    password: "",
-    role: "customer", // default role
-  });
-  const [showPass, setShowPass] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
 
-  const handleChange = (e) =>
+  const [formData, setFormData] = useState({
+    name: "", email: "", password: "", confirmPassword: "", role: "user"
+  });
+
+  const [error, setError] = useState("");
+  
+  // Track visibility for each field separately
+  const [visibleFields, setVisibleFields] = useState({
+    pass: false,
+    confirm: false
+  });
+
+  const handleChange = e =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
 
-  const handleSubmit = async (e) => {
+  // Toggle function for a specific field
+  const toggleVisibility = (field) => {
+    setVisibleFields(prev => ({
+      ...prev,
+      [field]: !prev[field]
+    }));
+  };
+
+  const submit = async e => {
     e.preventDefault();
     setError("");
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
     try {
-      setLoading(true);
-      await api.post("/auth/signup", formData);
-      navigate("/verify"); // navigate to verification page
+      await api.post("/auth/register", formData);
+      navigate("/verify", { state: { email: formData.email } });
     } catch (err) {
-      setError(err.response?.data?.message || "Signup failed. Please try again.");
-    } finally {
-      setLoading(false);
+      setError(err.response?.data?.message || "Signup failed");
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col">
-
-      {/* Navbar */}
-      <nav className="flex justify-between items-center px-8 py-4 bg-white shadow-sm">
-        <h1 className="font-bold text-lg">Health Haul Nepal</h1>
-        <div className="flex gap-6 text-sm">
-          <Link to="/" className="hover:text-green-500 transition">Home</Link>
-          <Link to="/login" className="hover:text-green-500 transition">Login</Link>
+    <div className="flex flex-col min-h-screen">
+      <nav className="flex justify-between px-8 py-4 shadow bg-white items-center">
+        <h1 className="font-bold text-green-600 text-xl">HealthHaul Nepal</h1>
+        <div className="flex gap-5 font-medium text-gray-600">
+          <Link to="/" className="hover:text-green-600">Home</Link>
+          <Link to="/Login" className="hover:text-green-600">Login</Link>
         </div>
       </nav>
 
-      {/* Main container */}
-      <div className="flex flex-1 justify-center items-center p-6 mt-8">
+      <div className="flex-grow flex justify-center items-center bg-gray-100 p-6">
         <div className="flex bg-white shadow-xl rounded-xl overflow-hidden max-w-5xl w-full">
-
-          {/* Left Image Panel */}
+          
           <div className="hidden md:block w-1/2 relative">
-            <img
-              src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&q=80&w=1000"
-              alt="Healthcare"
-              className="absolute inset-0 w-full h-full object-cover"
+            <img 
+              src="https://imgs.search.brave.com/Q4Q92jJcbHPRHX8NHFkZi4Wb1HiewM_gKDxR3niImgk/rs:fit:500:0:1:0/g:ce/aHR0cHM6Ly9tZWRp/YS5nZXR0eWltYWdl/cy5jb20vaWQvMTIw/Njc3NDYwOC9waG90/by90YWJsZXQtcGls/bHMtbWVkaWNpbmUt/Y2Fwc3VsZXMtcGxh/Y2Utb24tbWlycm9y/LXRhYmxlLmpwZz9z/PTYxMng2MTImdz0w/Jms9MjAmYz11bmVO/V2R3amp0VDFndzNK/UXR1WVRhQ3hfbDhX/N1ZJVGhUUXl1YnNR/SDl3PQ"
+              className="absolute inset-0 w-full h-full object-cover" 
+              alt="Pharmacy"
             />
-            <div className="absolute inset-0 bg-black/40 flex flex-col justify-end p-10 text-white">
-              <h2 className="text-3xl font-bold mb-3">Join Health Haul Nepal</h2>
-              <p className="text-sm">Get your medicines delivered safely to your doorstep.</p>
-            </div>
           </div>
 
-          {/* Right Signup Form */}
           <div className="w-full md:w-1/2 p-10">
-            <h2 className="text-2xl font-bold mb-2">Create Account</h2>
-            <p className="text-gray-500 mb-8 text-sm">Enter your details to register.</p>
+            <h2 className="text-2xl font-bold mb-6 text-gray-800">Create Account</h2>
 
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form onSubmit={submit} className="space-y-4">
+              <input name="name" placeholder="Full Name" onChange={handleChange} required
+                className="border p-3 w-full rounded focus:outline-green-500" />
 
-              {/* Name */}
-              <div>
-                <label className="text-sm font-semibold">Name</label>
+              <input name="email" type="email" placeholder="Email" onChange={handleChange} required 
+                className="border p-3 w-full rounded focus:outline-green-500" />
+
+              {/* Password Field */}
+              <div className="relative">
                 <input
-                  type="text"
-                  name="name"
-                  placeholder="Full Name"
+                  name="password"
+                  type={visibleFields.pass ? "text" : "password"}
+                  placeholder="Password"
                   onChange={handleChange}
                   required
-                  className="w-full border p-3 rounded-lg mt-1"
+                  className="border p-3 w-full rounded pr-14 focus:outline-green-500"
                 />
-              </div>
-
-              {/* Role Selector */}
-              <div>
-                <label className="text-sm font-semibold">Account Role</label>
-                <select
-                  name="role"
-                  value={formData.role}
-                  onChange={handleChange}
-                  required
-                  className="w-full border p-3 rounded-lg mt-1"
+                <button
+                  type="button"
+                  onClick={() => toggleVisibility('pass')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs font-semibold uppercase hover:text-green-600"
                 >
-                  <option value="customer">Customer</option>
-                  <option value="pharmacy">Pharmacy</option>
-                </select>
+                  {visibleFields.pass ? "Hide" : "Show"}
+                </button>
               </div>
 
-              {/* Email */}
-              <div>
-                <label className="text-sm font-semibold">Email</label>
+              {/* Confirm Password Field */}
+              <div className="relative">
                 <input
-                  type="email"
-                  name="email"
-                  placeholder="Email address"
+                  name="confirmPassword"
+                  type={visibleFields.confirm ? "text" : "password"}
+                  placeholder="Confirm Password"
                   onChange={handleChange}
                   required
-                  className="w-full border p-3 rounded-lg mt-1"
+                  className="border p-3 w-full rounded pr-14 focus:outline-green-500"
                 />
+                <button
+                  type="button"
+                  onClick={() => toggleVisibility('confirm')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs font-semibold uppercase hover:text-green-600"
+                >
+                  {visibleFields.confirm ? "Hide" : "Show"}
+                </button>
               </div>
 
-              {/* Password */}
-              <div>
-                <label className="text-sm font-semibold">Password</label>
-                <div className="relative">
-                  <input
-                    type={showPass ? "text" : "password"}
-                    name="password"
-                    placeholder="••••••••"
-                    onChange={handleChange}
-                    required
-                    className="w-full border p-3 rounded-lg mt-1 pr-10"
-                  />
-                  <button
-                    type="button"
-                    className="absolute right-3 top-4 text-sm"
-                    onClick={() => setShowPass(!showPass)}
-                  >
-                    {showPass ? "Hide" : "Show"}
-                  </button>
-                </div>
-              </div>
+              <select name="role" onChange={handleChange} className="border p-3 w-full rounded bg-white">
+                <option value="user">Customer</option>
+                <option value="pharmacy">Pharmacy</option>
+              </select>
 
-              {/* Error */}
-              {error && <div className="text-red-500 text-sm">{error}</div>}
+              {error && <p className="text-red-500 text-sm">{error}</p>}
 
-              {/* Submit */}
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-green-500 text-white py-3 rounded-lg font-semibold hover:bg-green-600"
-              >
-                {loading ? "Signing up..." : "Sign Up"}
+              <button className="bg-green-600 hover:bg-green-700 w-full text-white py-3 rounded font-bold transition-colors mt-2">
+                Sign Up
               </button>
             </form>
-
-            <p className="mt-6 text-sm text-center">
-              Already have an account? <Link to="/login" className="font-semibold underline">Login</Link>
-            </p>
           </div>
-
         </div>
       </div>
 
-      {/* Footer */}
-      <footer className="text-center text-gray-400 text-xs py-6">
-        © 2024 Health Haul Nepal
+      <footer className="bg-gray-900 text-white text-center py-4 text-sm">
+        © {new Date().getFullYear()} HealthHaul Nepal
       </footer>
     </div>
   );
-};
-
-export default Signup;
+}

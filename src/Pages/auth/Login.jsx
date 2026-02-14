@@ -1,126 +1,148 @@
-import React, { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../../api/axios";
 
-const Login = () => {
+export default function Login() {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({ email: "", password: "" });
-  const [showPass, setShowPass] = useState(false);
-  const [loading, setLoading] = useState(false);
+
+  const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
+  const [showPass, setShowPass] = useState(false);
 
-  const handleChange = (e) =>
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  // ✅ Auto redirect if already logged in
+  useEffect(() => {
+    const storedUser = JSON.parse(localStorage.getItem("user"));
 
-  const handleSubmit = async (e) => {
+    if (storedUser?.role === "pharmacy") {
+      navigate("/pharmacy/dashboard");
+    } else if (storedUser?.role === "user") {
+      navigate("/user/dashboard");
+    }
+  }, [navigate]);
+
+  const change = (e) =>
+    setForm({ ...form, [e.target.name]: e.target.value });
+
+  const submit = async (e) => {
     e.preventDefault();
     setError("");
 
     try {
-      setLoading(true);
-      const res = await api.post("/auth/login", formData);
-      localStorage.setItem("user", JSON.stringify(res.data.user));
-      navigate("/");
-    } catch {
-      setError("Invalid email or password");
-    } finally {
-      setLoading(false);
+      const res = await api.post("/auth/login", form);
+
+      console.log("LOGIN RESPONSE:", res.data); // debug
+
+      // ✅ Handle both possible response structures
+      const user = res.data.user ? res.data.user : res.data;
+
+      if (!user) {
+        setError("User data missing from server");
+        return;
+      }
+
+      // Save user in localStorage
+      localStorage.setItem("user", JSON.stringify(user));
+
+      // Redirect by role
+      if (user.role === "pharmacy") {
+        navigate("/pharmacy/dashboard");
+      } else if (user.role === "user") {
+        navigate("/user/dashboard");
+      } else {
+        navigate("/");
+      }
+
+    } catch (err) {
+      setError(err.response?.data?.message || "Login failed");
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col">
+    <div className="flex flex-col min-h-screen">
 
-      {/* Navbar */}
-      <nav className="flex justify-between items-center px-8 py-4 bg-white shadow-sm">
-        <h1 className="font-bold text-lg">Health Haul Nepal</h1>
-        <div className="flex gap-6 text-sm">
-          <Link to="/" className="hover:text-green-500 transition">Home</Link>
-          <Link to="/signup" className="hover:text-green-500 transition">Sign Up</Link>
+      {/* NAVBAR */}
+      <nav className="flex justify-between px-8 py-4 shadow bg-white">
+        <h1 className="font-bold text-green-600">HealthHaul Nepal</h1>
+        <div className="flex gap-5">
+          <Link to="/">Home</Link>
+          <Link to="/signup">Signup</Link>
         </div>
       </nav>
 
-      {/* Main */}
-      <div className="flex justify-center items-center flex-1 p-6 mt-8">
+      {/* LOGIN FORM */}
+      <div className="flex-grow flex justify-center items-center bg-gray-100 p-6">
         <div className="flex bg-white shadow-xl rounded-xl overflow-hidden max-w-5xl w-full">
 
-          {/* Left Image */}
+          {/* LEFT IMAGE */}
           <div className="hidden md:block w-1/2 relative">
             <img
-              src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&q=80&w=1000"
-              alt="Healthcare"
+              src="https://images.unsplash.com/photo-1587854692152-cbe660dbde88"
               className="absolute inset-0 w-full h-full object-cover"
+              alt="Login"
             />
             <div className="absolute inset-0 bg-black/40 flex flex-col justify-end p-10 text-white">
-              <h2 className="text-3xl font-bold mb-3">Healthcare at Your Doorstep</h2>
-              <p className="text-sm">Trusted medicine delivery across Nepal.</p>
+              <h2 className="text-3xl font-bold">Welcome Back</h2>
             </div>
           </div>
 
-          {/* Right Form */}
+          {/* RIGHT SIDE */}
           <div className="w-full md:w-1/2 p-10">
-            <h2 className="text-2xl font-bold mb-2">Welcome Back</h2>
-            <p className="text-gray-500 mb-8 text-sm">Login to your account</p>
+            <h2 className="text-2xl font-bold mb-6">Login</h2>
 
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form onSubmit={submit} className="space-y-4">
 
-              <div>
-                <label className="text-sm font-semibold">Email</label>
+              <input
+                name="email"
+                type="email"
+                placeholder="Email"
+                onChange={change}
+                required
+                className="border p-3 w-full rounded"
+              />
+
+              <div className="relative">
                 <input
-                  type="email"
-                  name="email"
-                  placeholder="Email"
-                  onChange={handleChange}
+                  name="password"
+                  type={showPass ? "text" : "password"}
+                  placeholder="••••••••"
+                  onChange={change}
                   required
-                  className="w-full border p-3 rounded-lg mt-1"
+                  className="border p-3 w-full rounded pr-12"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPass(!showPass)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 text-sm font-medium"
+                >
+                  {showPass ? "Hide" : "Show"}
+                </button>
               </div>
 
-              <div>
-                <label className="text-sm font-semibold">Password</label>
-                <div className="relative">
-                  <input
-                    type={showPass ? "text" : "password"}
-                    name="password"
-                    placeholder="••••••••"
-                    onChange={handleChange}
-                    required
-                    className="w-full border p-3 rounded-lg mt-1 pr-10"
-                  />
-                  <button
-                    type="button"
-                    className="absolute right-3 top-4 text-sm"
-                    onClick={() => setShowPass(!showPass)}
-                  >
-                    {showPass ? "Hide" : "Show"}
-                  </button>
-                </div>
-              </div>
+              {error && (
+                <p className="text-red-500 text-sm">{error}</p>
+              )}
 
-              {error && <div className="text-red-500 text-sm">{error}</div>}
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-green-500 text-white py-3 rounded-lg font-semibold hover:bg-green-600"
-              >
-                {loading ? "Logging in..." : "Log In"}
+              <button className="bg-green-500 w-full text-white py-3 rounded">
+                Login
               </button>
+
             </form>
 
-            <p className="mt-6 text-sm text-center">
-              New user? <Link to="/signup" className="font-semibold underline">Create account</Link>
+            <p className="mt-6 text-sm">
+              No account?{" "}
+              <Link to="/signup" className="underline">
+                Signup
+              </Link>
             </p>
-          </div>
 
+          </div>
         </div>
       </div>
 
-      <footer className="text-center text-gray-400 text-xs py-6">
-        © 2024 Health Haul Nepal
+      {/* FOOTER */}
+      <footer className="bg-gray-900 text-white text-center py-4">
+        © HealthHaul Nepal
       </footer>
     </div>
   );
-};
-
-export default Login;
+}
