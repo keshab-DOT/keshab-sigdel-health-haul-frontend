@@ -40,7 +40,7 @@ export default function Home() {
 
           <p className="text-gray-600 mb-8 text-lg leading-relaxed">
             HealthHaul Nepal connects pharmacies and customers to deliver
-            medicines quickly and safely at your doorstep. Get what you need, when you need it.
+            medicines quickly and safely at your doorstep.
           </p>
 
           <div className="flex gap-4 mb-8">
