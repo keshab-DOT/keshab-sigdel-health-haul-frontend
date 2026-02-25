@@ -30,7 +30,7 @@ export default function PharmacyDashboard() {
 
     setUser(storedUser);
     fetchPharmacyStats();
-  }, [navigate]);
+  }, []);
 
   const fetchPharmacyStats = async () => {
     try {

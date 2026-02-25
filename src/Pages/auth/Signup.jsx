@@ -10,7 +10,7 @@ export default function Signup() {
     email: "",
     password: "",
     confirmPassword: "",
-    role: "user",
+    role: "USER", // ✅ UPPERCASE to match backend
   });
 
   const [error, setError] = useState("");
@@ -194,7 +194,7 @@ export default function Signup() {
                 </div>
               </div>
 
-              {/* ROLE */}
+              {/* ROLE - ✅ UPPERCASE VALUES */}
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">Account Type</label>
                 <div className="relative">
@@ -209,8 +209,8 @@ export default function Signup() {
                     value={formData.role}
                     className="border border-gray-300 p-3 pl-12 w-full rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition appearance-none cursor-pointer"
                   >
-                    <option value="user">Customer</option>
-                    <option value="pharmacy">Pharmacy</option>
+                    <option value="USER">Customer</option>
+                    <option value="PHARMACY">Pharmacy</option>
                   </select>
                   <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
                     <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
