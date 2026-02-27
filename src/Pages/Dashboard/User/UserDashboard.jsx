@@ -38,22 +38,8 @@ function Topbar({ user, cartCount, onLogout, navigate }) {
         <button onClick={() => navigate("/user/orders")} className="px-3.5 py-1.5 text-[13px] font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-50 rounded-lg transition">My Orders</button>
       </nav>
 
-      {/* Search bar */}
-      <div className="flex-1 max-w-sm mx-6">
-        <div className="relative">
-          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-          <input
-            type="text"
-            placeholder="Search medicines, categories…"
-            className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-[13px] text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-400/40 focus:border-green-400 transition"
-            onFocus={() => navigate("/user/search")}
-            readOnly
-          />
-        </div>
-      </div>
-
       {/* Right: cart + user */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 ml-auto">
         {/* Cart */}
         <button onClick={() => navigate("/user/cart")} className="relative w-9 h-9 flex items-center justify-center text-gray-500 hover:text-gray-800 hover:bg-gray-50 rounded-xl transition">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
@@ -110,13 +96,11 @@ function FeaturedOrderCard({ order, navigate }) {
 
   return (
     <div className="relative rounded-2xl overflow-hidden h-full min-h-[260px] bg-gradient-to-br from-gray-900 via-gray-800 to-emerald-950 flex flex-col justify-between p-5">
-      {/* Background decoration */}
       <div className="absolute inset-0 opacity-10">
         <div className="absolute top-4 right-4 w-32 h-32 rounded-full bg-green-400 blur-3xl"/>
         <div className="absolute bottom-4 left-4 w-24 h-24 rounded-full bg-emerald-500 blur-3xl"/>
       </div>
 
-      {/* Top badges */}
       <div className="relative flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="bg-green-500 text-white text-[10px] font-black px-2.5 py-1 rounded-full flex items-center gap-1">
@@ -131,7 +115,6 @@ function FeaturedOrderCard({ order, navigate }) {
         </button>
       </div>
 
-      {/* Order info */}
       <div className="relative">
         <p className="text-white/40 text-[10px] font-semibold uppercase tracking-widest mb-1">ORDER</p>
         <p className="text-white font-black text-xl tracking-tight leading-none mb-1">#{order._id.slice(-8).toUpperCase()}</p>
@@ -141,7 +124,6 @@ function FeaturedOrderCard({ order, navigate }) {
         </p>
       </div>
 
-      {/* Tracking bar */}
       <div className="relative">
         {isCancelled ? (
           <div className="h-1 rounded-full bg-red-400/40 mb-2"/>
@@ -167,7 +149,6 @@ function FeaturedOrderCard({ order, navigate }) {
         )}
       </div>
 
-      {/* Bottom: price + status */}
       <div className="relative flex items-center justify-between border-t border-white/10 pt-3">
         <div>
           <p className="text-white/40 text-[10px] font-medium">Total</p>
@@ -184,13 +165,27 @@ function FeaturedOrderCard({ order, navigate }) {
 }
 
 // ── Footer ─────────────────────────────────────────────────────────────────────
-function Footer() {
+function Footer({ navigate }) {
+  const quickLinks = [
+    { label: "Search Medicines", path: "/user/search" },
+    { label: "My Orders",        path: "/user/orders" },
+    { label: "My Cart",          path: "/user/cart" },
+    { label: "Profile",          path: "/user/profile" },
+  ];
+
+  const supportLinks = [
+    { label: "Help Center",      path: "/user/help" },
+    { label: "Contact Us",       path: "/user/contact" },
+    { label: "Refund Policy",    path: "/user/refund-policy" },
+    { label: "Terms of Service", path: "/user/terms" },
+  ];
+
   return (
     <footer className="bg-gray-950 text-white mt-auto">
       <div className="px-8 pt-8 pb-5">
         <div className="grid grid-cols-4 gap-8 mb-6">
           <div className="col-span-2">
-            <div className="flex items-center gap-2 mb-3">
+            <div className="flex items-center gap-2 mb-3 cursor-pointer" onClick={() => navigate("/user/dashboard")}>
               <div className="w-6 h-6 rounded-md bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
                 <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
               </div>
@@ -198,15 +193,42 @@ function Footer() {
             </div>
             <p className="text-gray-400 text-xs leading-relaxed max-w-xs">Fast, reliable medicine delivery across Nepal. Licensed pharmacies, verified products, doorstep delivery in 30 minutes.</p>
           </div>
+
+          {/* Quick Links */}
           <div>
             <h5 className="font-bold text-[11px] text-gray-500 uppercase tracking-widest mb-3">Quick Links</h5>
-            <ul className="space-y-1.5 text-gray-400 text-[13px]">{["Search Medicines","My Orders","My Cart","Profile"].map(t=><li key={t} className="hover:text-green-400 cursor-pointer transition-colors">{t}</li>)}</ul>
+            <ul className="space-y-1.5 text-gray-400 text-[13px]">
+              {quickLinks.map(({ label, path }) => (
+                <li key={label}>
+                  <button
+                    onClick={() => navigate(path)}
+                    className="hover:text-green-400 transition-colors text-left w-full"
+                  >
+                    {label}
+                  </button>
+                </li>
+              ))}
+            </ul>
           </div>
+
+          {/* Support */}
           <div>
             <h5 className="font-bold text-[11px] text-gray-500 uppercase tracking-widest mb-3">Support</h5>
-            <ul className="space-y-1.5 text-gray-400 text-[13px]">{["Help Center","Contact Us","Refund Policy","Terms of Service"].map(t=><li key={t} className="hover:text-green-400 cursor-pointer transition-colors">{t}</li>)}</ul>
+            <ul className="space-y-1.5 text-gray-400 text-[13px]">
+              {supportLinks.map(({ label, path }) => (
+                <li key={label}>
+                  <button
+                    onClick={() => navigate(path)}
+                    className="hover:text-green-400 transition-colors text-left w-full"
+                  >
+                    {label}
+                  </button>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
+
         <div className="border-t border-gray-800 pt-4 flex justify-between items-center">
           <p className="text-gray-600 text-xs">© {new Date().getFullYear()} HealthHaul Nepal. All rights reserved.</p>
           <p className="text-gray-700 text-xs">Made with ❤️ in Nepal</p>
@@ -272,14 +294,12 @@ export default function UserDashboard() {
     }
   };
 
-  // Derived
   const activeOrders   = orders.filter(o => ["pending","ontheway"].includes(o.orderStatus));
   const latestActive   = activeOrders[0] || null;
   const totalOrders    = orders.length;
   const delivered      = orders.filter(o => o.orderStatus === "delivered").length;
   const totalSpent     = orders.filter(o => o.orderStatus === "delivered").reduce((s, o) => s + (o.totalAmount || 0), 0);
 
-  // Recent products for reorder
   const recentProducts = [];
   const seen = new Set();
   for (const order of orders.slice(0, 5)) {
@@ -320,28 +340,18 @@ export default function UserDashboard() {
 
             {/* LEFT: hero text */}
             <div className="flex-1 bg-white rounded-2xl border border-gray-100 shadow-sm px-8 py-7 flex flex-col justify-between relative overflow-hidden">
-              {/* Decorative circle */}
               <div className="absolute -top-12 -right-12 w-40 h-40 rounded-full bg-green-50 border border-green-100"/>
               <div className="absolute -bottom-8 -right-4 w-24 h-24 rounded-full bg-emerald-50"/>
 
               <div className="relative">
-                {/* Greeting */}
                 <p className="text-gray-400 text-[13px] font-medium mb-1">{greeting},</p>
-
-                {/* Big headline */}
-                <h1 className="text-3xl font-black text-gray-900 leading-tight tracking-tight mb-1">
-                  Stay Healthy.
-                </h1>
-                <h1 className="text-3xl font-black text-green-600 leading-tight tracking-tight mb-3">
-                  Delivered Fast.
-                </h1>
-
+                <h1 className="text-3xl font-black text-gray-900 leading-tight tracking-tight mb-1">Stay Healthy.</h1>
+                <h1 className="text-3xl font-black text-green-600 leading-tight tracking-tight mb-3">Delivered Fast.</h1>
                 <p className="text-gray-500 text-[13px] leading-relaxed max-w-xs">
                   Welcome back, <span className="font-bold text-gray-800">{user?.name?.split(" ")[0]}</span>. Browse medicines from licensed pharmacies and get them to your door.
                 </p>
               </div>
 
-              {/* CTA buttons */}
               <div className="relative flex items-center gap-2.5 mt-5">
                 <button onClick={() => navigate("/user/search")}
                   className="flex items-center gap-2 bg-gray-900 text-white px-5 py-2.5 rounded-xl font-bold text-[13px] hover:bg-gray-800 transition shadow-sm">
@@ -356,7 +366,7 @@ export default function UserDashboard() {
               </div>
             </div>
 
-            {/* RIGHT: featured active order OR empty state card */}
+            {/* RIGHT: featured active order OR empty state */}
             <div className="w-[340px] flex-shrink-0">
               {latestActive ? (
                 <FeaturedOrderCard order={latestActive} navigate={navigate} />
@@ -390,9 +400,7 @@ export default function UserDashboard() {
               { icon: "📋", title: "Order Tracking",        desc: "Live status every step" },
             ].map(({ icon, title, desc }) => (
               <div key={title} className="bg-white rounded-xl border border-gray-100 shadow-sm px-4 py-3.5 flex items-center gap-3 hover:border-green-200 hover:shadow-md transition-all group">
-                <div className="w-9 h-9 bg-green-50 rounded-xl flex items-center justify-center text-lg flex-shrink-0 group-hover:bg-green-100 transition">
-                  {icon}
-                </div>
+                <div className="w-9 h-9 bg-green-50 rounded-xl flex items-center justify-center text-lg flex-shrink-0 group-hover:bg-green-100 transition">{icon}</div>
                 <div>
                   <p className="text-[12px] font-bold text-gray-800">{title}</p>
                   <p className="text-[11px] text-gray-400">{desc}</p>
@@ -527,9 +535,7 @@ export default function UserDashboard() {
             {CATEGORIES.map(({ label, icon }) => (
               <button key={label} onClick={() => navigate("/user/search")}
                 className="bg-white rounded-xl border border-gray-100 shadow-sm p-3.5 flex flex-col items-center gap-2 hover:border-green-300 hover:shadow-md hover:-translate-y-0.5 transition-all group">
-                <div className="w-10 h-10 rounded-xl bg-green-50 group-hover:bg-green-100 flex items-center justify-center text-xl transition">
-                  {icon}
-                </div>
+                <div className="w-10 h-10 rounded-xl bg-green-50 group-hover:bg-green-100 flex items-center justify-center text-xl transition">{icon}</div>
                 <p className="text-[11px] font-semibold text-gray-700 text-center leading-tight">{label}</p>
               </button>
             ))}
@@ -599,7 +605,7 @@ export default function UserDashboard() {
 
       </main>
 
-      <Footer />
+      <Footer navigate={navigate} />
     </div>
   );
 }

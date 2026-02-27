@@ -2,31 +2,34 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../../api/axios";
 
+// Normalize role to lowercase string regardless of array/string/case
+const getRole = (roles) => {
+  const raw = Array.isArray(roles) ? roles[0] : roles;
+  return (raw || "").toLowerCase().trim();
+};
+
+const redirectByRole = (roles, navigate) => {
+  const role = getRole(roles);
+  if (role === "pharmacy") {
+    navigate("/pharmacy/dashboard", { replace: true });
+  } else {
+    navigate("/user/dashboard", { replace: true });
+  }
+};
+
 export default function Login() {
   const navigate = useNavigate();
-  const [form, setForm] = useState({ email: "", password: "" });
-  const [error, setError] = useState("");
+  const [form, setForm]       = useState({ email: "", password: "" });
+  const [error, setError]     = useState("");
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // Redirect if already logged in
+  // Redirect if already logged in — only runs once on mount
   useEffect(() => {
     const storedUser = JSON.parse(localStorage.getItem("user"));
     if (!storedUser?.roles) return;
-    redirectByRole(storedUser.roles);
-  }, []);
-
-  // ✅ FIXED: handles array or string roles, and any role value from DB
-  const redirectByRole = (roles) => {
-    const role = Array.isArray(roles) ? roles[0] : roles;
-    console.log("Role detected:", role); // remove this after confirming it works
-    if (role === "pharmacy") {
-      navigate("/pharmacy/dashboard");
-    } else {
-      // covers "user", "seller", or any other non-pharmacy role
-      navigate("/user/dashboard");
-    }
-  };
+    redirectByRole(storedUser.roles, navigate);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const change = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
@@ -37,14 +40,22 @@ export default function Login() {
     try {
       const res = await api.post("/auth/login", form);
       const user = res.data.user;
-      console.log("Server returned user:", user); // remove after confirming
       if (!user || !user.roles) {
         setError("Invalid user data from server");
         setLoading(false);
         return;
       }
-      localStorage.setItem("user", JSON.stringify(user));
-      redirectByRole(user.roles);
+
+      // Normalize the role in storage so all pages can do simple lowercase compare
+      const normalizedUser = {
+        ...user,
+        roles: Array.isArray(user.roles)
+          ? user.roles.map(r => r.toLowerCase().trim())
+          : [user.roles.toLowerCase().trim()],
+      };
+
+      localStorage.setItem("user", JSON.stringify(normalizedUser));
+      redirectByRole(normalizedUser.roles, navigate);
     } catch (err) {
       setError(err.response?.data?.message || "Login failed");
       setLoading(false);
