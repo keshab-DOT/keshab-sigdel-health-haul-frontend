@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../../api/axios";
 
-function Topbar({ user, cartCount, onLogout, navigate }) {
+function Topbar({ user, onLogout, navigate }) {
   return (
     <header className="bg-white border-b border-gray-100 px-6 py-0 flex items-center justify-between sticky top-0 z-30 h-[56px]">
       <div className="flex items-center gap-2 cursor-pointer flex-shrink-0" onClick={() => navigate("/user/dashboard")}>
@@ -16,16 +16,9 @@ function Topbar({ user, cartCount, onLogout, navigate }) {
         <button onClick={() => navigate("/user/search")}    className="px-3.5 py-1.5 text-[13px] font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-50 rounded-lg transition">Browse Medicines</button>
         <button onClick={() => navigate("/user/orders")}    className="px-3.5 py-1.5 text-[13px] font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-50 rounded-lg transition">My Orders</button>
       </nav>
-      <div className="flex-1 max-w-sm mx-6">
-        <div className="relative">
-          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-          <input type="text" placeholder="Search medicines, categories…" className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-[13px] text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-400/40 focus:border-green-400 transition" onFocus={() => navigate("/user/search")} readOnly/>
-        </div>
-      </div>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 ml-auto">
         <button onClick={() => navigate("/user/cart")} className="relative w-9 h-9 flex items-center justify-center text-gray-500 hover:text-gray-800 hover:bg-gray-50 rounded-xl transition">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-          {cartCount > 0 && <span className="absolute top-1 right-1 w-[14px] h-[14px] bg-red-500 text-white text-[9px] font-black rounded-full flex items-center justify-center">{cartCount > 9 ? "9+" : cartCount}</span>}
         </button>
         <button onClick={() => navigate("/user/settings")} className="w-9 h-9 flex items-center justify-center text-gray-700 bg-gray-100 rounded-xl transition">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
@@ -42,13 +35,25 @@ function Topbar({ user, cartCount, onLogout, navigate }) {
   );
 }
 
-function Footer() {
+function Footer({ navigate }) {
+  const quickLinks = [
+    { label: "Search Medicines", path: "/user/search" },
+    { label: "My Orders",        path: "/user/orders" },
+    { label: "My Cart",          path: "/user/cart" },
+    { label: "Profile",          path: "/user/profile" },
+  ];
+  const supportLinks = [
+    { label: "Help Center",      path: "/user/support" },
+    { label: "Contact Us",       path: "/user/support" },
+    { label: "Refund Policy",    path: "/user/support" },
+    { label: "Terms of Service", path: "/user/support" },
+  ];
   return (
     <footer className="bg-gray-950 text-white mt-auto">
       <div className="px-8 pt-8 pb-5">
         <div className="grid grid-cols-4 gap-8 mb-6">
           <div className="col-span-2">
-            <div className="flex items-center gap-2 mb-3">
+            <div className="flex items-center gap-2 mb-3 cursor-pointer" onClick={() => navigate("/user/dashboard")}>
               <div className="w-6 h-6 rounded-md bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
                 <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
               </div>
@@ -56,8 +61,22 @@ function Footer() {
             </div>
             <p className="text-gray-400 text-xs leading-relaxed max-w-xs">Fast, reliable medicine delivery across Nepal. Licensed pharmacies, verified products, doorstep delivery.</p>
           </div>
-          <div><h5 className="font-bold text-[11px] text-gray-500 uppercase tracking-widest mb-3">Quick Links</h5><ul className="space-y-1.5 text-gray-400 text-[13px]">{["Search Medicines","My Orders","My Cart","Profile"].map(t=><li key={t} className="hover:text-green-400 cursor-pointer transition-colors">{t}</li>)}</ul></div>
-          <div><h5 className="font-bold text-[11px] text-gray-500 uppercase tracking-widest mb-3">Support</h5><ul className="space-y-1.5 text-gray-400 text-[13px]">{["Help Center","Contact Us","Refund Policy","Terms of Service"].map(t=><li key={t} className="hover:text-green-400 cursor-pointer transition-colors">{t}</li>)}</ul></div>
+          <div>
+            <h5 className="font-bold text-[11px] text-gray-500 uppercase tracking-widest mb-3">Quick Links</h5>
+            <ul className="space-y-1.5 text-gray-400 text-[13px]">
+              {quickLinks.map(({ label, path }) => (
+                <li key={label}><button onClick={() => navigate(path)} className="hover:text-green-400 transition-colors text-left w-full">{label}</button></li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <h5 className="font-bold text-[11px] text-gray-500 uppercase tracking-widest mb-3">Support</h5>
+            <ul className="space-y-1.5 text-gray-400 text-[13px]">
+              {supportLinks.map(({ label, path }) => (
+                <li key={label}><button onClick={() => navigate(path)} className="hover:text-green-400 transition-colors text-left w-full">{label}</button></li>
+              ))}
+            </ul>
+          </div>
         </div>
         <div className="border-t border-gray-800 pt-4 flex justify-between items-center">
           <p className="text-gray-600 text-xs">© {new Date().getFullYear()} HealthHaul Nepal. All rights reserved.</p>
@@ -94,7 +113,7 @@ const FAQS = [
   { q: "How do I track my order?", a: "Go to 'My Orders' from the top navigation. Each order shows a real-time tracking bar with statuses: Pending → On the Way → Delivered." },
   { q: "How long does delivery take?", a: "We aim to deliver within 30 minutes for orders within the delivery area. Times may vary based on location and demand." },
   { q: "Can I cancel my order?", a: "Orders can only be cancelled before they are dispatched. Please contact our support team immediately if you need to cancel." },
-  { q: "What payment methods are accepted?", a: "We accept Cash on Delivery (COD), Khalti, and eSewa digital wallets." },
+  { q: "What payment methods are accepted?", a: "We accept Cash on Delivery (COD) and eSewa digital wallet." },
   { q: "How do I return a medicine?", a: "Returns are accepted for sealed, unopened medicines within 24 hours of delivery. Contact our support team to initiate a return." },
 ];
 
@@ -106,7 +125,6 @@ export default function SettingsPage() {
   const [ticket, setTicket] = useState({ category: "general", subject: "", message: "" });
   const [ticketSent, setTicketSent]       = useState(false);
   const [ticketLoading, setTicketLoading] = useState(false);
-
   const [notifs, setNotifs] = useState({ orderUpdates: true, deliveryAlerts: true, promotions: false, smsAlerts: true, emailDigest: false });
   const [prefs, setPrefs]   = useState({ saveAddress: true, searchHistory: true, analytics: false });
 
@@ -147,16 +165,14 @@ export default function SettingsPage() {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {toast && <div className={`fixed top-5 right-5 z-50 flex items-center gap-2.5 px-4 py-3 rounded-xl shadow-lg text-white text-[13px] font-medium ${toast.type === "error" ? "bg-red-500" : "bg-green-600"}`}>{toast.msg}</div>}
 
-      <Topbar user={user} cartCount={0} onLogout={handleLogout} navigate={navigate}/>
+      <Topbar user={user} onLogout={handleLogout} navigate={navigate}/>
 
       <main className="flex-1 px-8 py-6 space-y-5">
-        {/* Page header */}
         <div>
           <h2 className="text-[22px] font-black text-gray-900 tracking-tight">Settings</h2>
           <p className="text-gray-400 text-[13px] mt-0.5">Manage your preferences and support</p>
         </div>
 
-        {/* Tabs */}
         <div className="flex gap-1 bg-white rounded-xl p-1 shadow-sm border border-gray-100 w-fit">
           {[{ key: "notifications", label: "Notifications" }, { key: "privacy", label: "Privacy" }, { key: "support", label: "Help & Support" }].map(({ key, label }) => (
             <button key={key} onClick={() => setActiveTab(key)}
@@ -166,7 +182,6 @@ export default function SettingsPage() {
           ))}
         </div>
 
-        {/* ── Notifications Tab ── */}
         {activeTab === "notifications" && (
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 max-w-lg">
             <h3 className="text-[15px] font-black text-gray-900 mb-1">Notification Preferences</h3>
@@ -192,7 +207,6 @@ export default function SettingsPage() {
           </div>
         )}
 
-        {/* ── Privacy Tab ── */}
         {activeTab === "privacy" && (
           <div className="space-y-4 max-w-lg">
             <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
@@ -234,7 +248,6 @@ export default function SettingsPage() {
           </div>
         )}
 
-        {/* ── Help & Support Tab ── */}
         {activeTab === "support" && (
           <div className="grid md:grid-cols-2 gap-4">
             <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
@@ -297,7 +310,7 @@ export default function SettingsPage() {
           </div>
         )}
       </main>
-      <Footer/>
+      <Footer navigate={navigate}/>
     </div>
   );
 }

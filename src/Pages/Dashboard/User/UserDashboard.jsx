@@ -23,7 +23,6 @@ const CATEGORIES = [
 function Topbar({ user, cartCount, onLogout, navigate }) {
   return (
     <header className="bg-white border-b border-gray-100 px-6 py-0 flex items-center justify-between sticky top-0 z-30 h-[56px]">
-      {/* Logo */}
       <div className="flex items-center gap-2 cursor-pointer flex-shrink-0" onClick={() => navigate("/user/dashboard")}>
         <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-sm">
           <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
@@ -31,27 +30,22 @@ function Topbar({ user, cartCount, onLogout, navigate }) {
         <span className="font-black text-[15px] text-gray-900 tracking-tight">HealthHaul</span>
       </div>
 
-      {/* Nav links */}
       <nav className="flex items-center gap-1 ml-6">
         <button onClick={() => navigate("/user/dashboard")} className="px-3.5 py-1.5 text-[13px] font-semibold text-gray-900 bg-gray-100 rounded-lg">Dashboard</button>
         <button onClick={() => navigate("/user/search")} className="px-3.5 py-1.5 text-[13px] font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-50 rounded-lg transition">Browse Medicines</button>
         <button onClick={() => navigate("/user/orders")} className="px-3.5 py-1.5 text-[13px] font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-50 rounded-lg transition">My Orders</button>
       </nav>
 
-      {/* Right: cart + user */}
       <div className="flex items-center gap-2 ml-auto">
-        {/* Cart */}
         <button onClick={() => navigate("/user/cart")} className="relative w-9 h-9 flex items-center justify-center text-gray-500 hover:text-gray-800 hover:bg-gray-50 rounded-xl transition">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
           {cartCount > 0 && <span className="absolute top-1 right-1 w-[14px] h-[14px] bg-red-500 text-white text-[9px] font-black rounded-full flex items-center justify-center">{cartCount > 9 ? "9+" : cartCount}</span>}
         </button>
 
-        {/* Settings */}
         <button onClick={() => navigate("/user/settings")} className="w-9 h-9 flex items-center justify-center text-gray-400 hover:text-gray-700 hover:bg-gray-50 rounded-xl transition">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
         </button>
 
-        {/* User pill */}
         <button onClick={() => navigate("/user/profile")} className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl px-2.5 py-1.5 hover:border-green-300 transition">
           <div className="w-6 h-6 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white font-black text-[11px]">
             {user?.name?.[0]?.toUpperCase() || "U"}
@@ -62,7 +56,6 @@ function Topbar({ user, cartCount, onLogout, navigate }) {
           </div>
         </button>
 
-        {/* Logout */}
         <button onClick={onLogout} className="w-9 h-9 flex items-center justify-center text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition" title="Sign Out">
           <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
         </button>
@@ -71,13 +64,12 @@ function Topbar({ user, cartCount, onLogout, navigate }) {
   );
 }
 
-// ── Status Pill ────────────────────────────────────────────────────────────────
+// Status Pill
 function StatusPill({ status }) {
   const map = {
-    pending:   { cls: "bg-amber-100 text-amber-700",  dot: "bg-amber-400",  label: "Pending" },
-    ontheway:  { cls: "bg-blue-100 text-blue-700",    dot: "bg-blue-500",   label: "On the Way", pulse: true },
-    delivered: { cls: "bg-green-100 text-green-700",  dot: "bg-green-500",  label: "Delivered" },
-    cancalled: { cls: "bg-red-100 text-red-600",      dot: "bg-red-400",    label: "Cancelled" },
+    pending: { cls: "bg-amber-100 text-amber-700", dot: "bg-amber-400", label: "Pending" },
+    delivered: { cls: "bg-green-100 text-green-700", dot: "bg-green-500", label: "Delivered" },
+    cancalled: { cls: "bg-red-100 text-red-600",dot: "bg-red-400", label: "Cancelled" },
   };
   const s = map[status] || { cls: "bg-gray-100 text-gray-600", dot: "bg-gray-400", label: status };
   return (
@@ -88,11 +80,17 @@ function StatusPill({ status }) {
   );
 }
 
-// ── Featured Active Order Card ─────────────────────────────────────────────────
+// ── Featured Active Order Card (2-step tracking: Pending → Delivered) ──────────
 function FeaturedOrderCard({ order, navigate }) {
-  const steps = ["pending", "ontheway", "delivered"];
+  // Only 2 steps now: pending → delivered
+  const steps = ["pending", "delivered"];
   const idx = steps.indexOf(order.orderStatus);
   const isCancelled = order.orderStatus === "cancalled";
+
+  // Get the first product image from the order
+  const firstProduct = order.products?.[0]?.productId;
+  const productImage = firstProduct?.productImageUrl;
+  const productName  = firstProduct?.productName;
 
   return (
     <div className="relative rounded-2xl overflow-hidden h-full min-h-[260px] bg-gradient-to-br from-gray-900 via-gray-800 to-emerald-950 flex flex-col justify-between p-5">
@@ -101,29 +99,43 @@ function FeaturedOrderCard({ order, navigate }) {
         <div className="absolute bottom-4 left-4 w-24 h-24 rounded-full bg-emerald-500 blur-3xl"/>
       </div>
 
-      <div className="relative flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span className="bg-green-500 text-white text-[10px] font-black px-2.5 py-1 rounded-full flex items-center gap-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse inline-block"/>
-            ACTIVE
-          </span>
-          <span className="bg-white/10 text-white/70 text-[10px] font-semibold px-2.5 py-1 rounded-full border border-white/10">Latest Order</span>
-        </div>
+      {/* Header row */}
+      <div className="relative flex items-center justify-end">
         <button onClick={() => navigate("/user/orders")}
           className="w-8 h-8 bg-white/10 hover:bg-white/20 rounded-lg flex items-center justify-center text-white transition border border-white/10">
           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
         </button>
       </div>
 
-      <div className="relative">
-        <p className="text-white/40 text-[10px] font-semibold uppercase tracking-widest mb-1">ORDER</p>
-        <p className="text-white font-black text-xl tracking-tight leading-none mb-1">#{order._id.slice(-8).toUpperCase()}</p>
-        <p className="text-white/50 text-[11px]">
-          {new Date(order.createdAt).toLocaleDateString("en-NP", { day: "numeric", month: "short", year: "numeric" })}
-          &nbsp;·&nbsp;{order.products?.length} item{order.products?.length !== 1 ? "s" : ""}
-        </p>
+      {/* Order info + medicine image */}
+      <div className="relative flex items-start justify-between gap-3">
+        <div>
+          <p className="text-white/40 text-[10px] font-semibold uppercase tracking-widest mb-1">ORDER</p>
+          <p className="text-white font-black text-xl tracking-tight leading-none mb-1">#{order._id.slice(-8).toUpperCase()}</p>
+          <p className="text-white/50 text-[11px]">
+            {new Date(order.createdAt).toLocaleDateString("en-NP", { day: "numeric", month: "short", year: "numeric" })}
+            &nbsp;·&nbsp;{order.products?.length} item{order.products?.length !== 1 ? "s" : ""}
+          </p>
+        </div>
+
+        {/* Medicine image */}
+        <div className="w-14 h-14 rounded-xl overflow-hidden border border-white/20 bg-white/10 flex items-center justify-center flex-shrink-0">
+          {productImage ? (
+            <img
+              src={productImage}
+              alt={productName || "Medicine"}
+              className="w-full h-full object-cover"
+              onError={e => { e.target.style.display = "none"; e.target.nextSibling.style.display = "flex"; }}
+            />
+          ) : null}
+          <span
+            className="text-2xl items-center justify-center w-full h-full"
+            style={{ display: productImage ? "none" : "flex" }}
+          >💊</span>
+        </div>
       </div>
 
+      {/* Tracking bar: only Pending → Delivered (2 steps) */}
       <div className="relative">
         {isCancelled ? (
           <div className="h-1 rounded-full bg-red-400/40 mb-2"/>
@@ -141,7 +153,7 @@ function FeaturedOrderCard({ order, navigate }) {
               ))}
             </div>
             <div className="flex justify-between">
-              {["Placed", "On Way", "Delivered"].map((l, i) => (
+              {["Placed", "Delivered"].map((l, i) => (
                 <span key={l} className={`text-[9px] font-semibold ${i <= idx ? "text-green-400" : "text-white/25"}`}>{l}</span>
               ))}
             </div>
@@ -149,6 +161,7 @@ function FeaturedOrderCard({ order, navigate }) {
         )}
       </div>
 
+      {/* Footer */}
       <div className="relative flex items-center justify-between border-t border-white/10 pt-3">
         <div>
           <p className="text-white/40 text-[10px] font-medium">Total</p>
@@ -172,14 +185,12 @@ function Footer({ navigate }) {
     { label: "My Cart",          path: "/user/cart" },
     { label: "Profile",          path: "/user/profile" },
   ];
-
   const supportLinks = [
     { label: "Help Center",      path: "/user/help" },
     { label: "Contact Us",       path: "/user/contact" },
     { label: "Refund Policy",    path: "/user/refund-policy" },
     { label: "Terms of Service", path: "/user/terms" },
   ];
-
   return (
     <footer className="bg-gray-950 text-white mt-auto">
       <div className="px-8 pt-8 pb-5">
@@ -193,42 +204,23 @@ function Footer({ navigate }) {
             </div>
             <p className="text-gray-400 text-xs leading-relaxed max-w-xs">Fast, reliable medicine delivery across Nepal. Licensed pharmacies, verified products, doorstep delivery in 30 minutes.</p>
           </div>
-
-          {/* Quick Links */}
           <div>
             <h5 className="font-bold text-[11px] text-gray-500 uppercase tracking-widest mb-3">Quick Links</h5>
             <ul className="space-y-1.5 text-gray-400 text-[13px]">
               {quickLinks.map(({ label, path }) => (
-                <li key={label}>
-                  <button
-                    onClick={() => navigate(path)}
-                    className="hover:text-green-400 transition-colors text-left w-full"
-                  >
-                    {label}
-                  </button>
-                </li>
+                <li key={label}><button onClick={() => navigate(path)} className="hover:text-green-400 transition-colors text-left w-full">{label}</button></li>
               ))}
             </ul>
           </div>
-
-          {/* Support */}
           <div>
             <h5 className="font-bold text-[11px] text-gray-500 uppercase tracking-widest mb-3">Support</h5>
             <ul className="space-y-1.5 text-gray-400 text-[13px]">
               {supportLinks.map(({ label, path }) => (
-                <li key={label}>
-                  <button
-                    onClick={() => navigate(path)}
-                    className="hover:text-green-400 transition-colors text-left w-full"
-                  >
-                    {label}
-                  </button>
-                </li>
+                <li key={label}><button onClick={() => navigate(path)} className="hover:text-green-400 transition-colors text-left w-full">{label}</button></li>
               ))}
             </ul>
           </div>
         </div>
-
         <div className="border-t border-gray-800 pt-4 flex justify-between items-center">
           <p className="text-gray-600 text-xs">© {new Date().getFullYear()} HealthHaul Nepal. All rights reserved.</p>
           <p className="text-gray-700 text-xs">Made with ❤️ in Nepal</p>
@@ -294,21 +286,12 @@ export default function UserDashboard() {
     }
   };
 
-  const activeOrders   = orders.filter(o => ["pending","ontheway"].includes(o.orderStatus));
+  // Active orders: only pending (removed ontheway)
+  const activeOrders   = orders.filter(o => o.orderStatus === "pending");
   const latestActive   = activeOrders[0] || null;
   const totalOrders    = orders.length;
   const delivered      = orders.filter(o => o.orderStatus === "delivered").length;
   const totalSpent     = orders.filter(o => o.orderStatus === "delivered").reduce((s, o) => s + (o.totalAmount || 0), 0);
-
-  const recentProducts = [];
-  const seen = new Set();
-  for (const order of orders.slice(0, 5)) {
-    for (const item of (order.products || [])) {
-      const p = item.productId;
-      if (p && p._id && !seen.has(p._id)) { seen.add(p._id); recentProducts.push(p); if (recentProducts.length >= 3) break; }
-    }
-    if (recentProducts.length >= 3) break;
-  }
 
   if (loading) return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50">
@@ -329,7 +312,6 @@ export default function UserDashboard() {
         </div>
       )}
 
-      {/* Top navbar */}
       <Topbar user={user} cartCount={cartCount} onLogout={handleLogout} navigate={navigate} />
 
       <main className="flex-1">
@@ -383,7 +365,7 @@ export default function UserDashboard() {
                   <h3 className="text-white font-black text-lg leading-tight mb-3">Need medicines<br/>delivered now?</h3>
                   <button onClick={() => navigate("/user/search")}
                     className="bg-green-500 hover:bg-green-400 text-white text-[12px] font-bold px-5 py-2.5 rounded-xl transition">
-                    Shop Medicines →
+                    Get Medicines Now →
                   </button>
                 </div>
               )}
@@ -397,7 +379,7 @@ export default function UserDashboard() {
           <div className="grid grid-cols-2 gap-3">
             {[
               { icon: "🏥", title: "Licensed Pharmacies",  desc: "Every pharmacy verified" },
-              { icon: "📋", title: "Order Tracking",        desc: "Live status every step" },
+              { icon: "📋", title: "Order Tracking",        desc: "Get medicines on time" },
             ].map(({ icon, title, desc }) => (
               <div key={title} className="bg-white rounded-xl border border-gray-100 shadow-sm px-4 py-3.5 flex items-center gap-3 hover:border-green-200 hover:shadow-md transition-all group">
                 <div className="w-9 h-9 bg-green-50 rounded-xl flex items-center justify-center text-lg flex-shrink-0 group-hover:bg-green-100 transition">{icon}</div>
@@ -436,34 +418,6 @@ export default function UserDashboard() {
             </div>
           </div>
         </section>
-
-        {/* ── ACTIVE ORDERS (if more than 1) ───────────────────────────── */}
-        {activeOrders.length > 1 && (
-          <section className="px-8 pb-6">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"/>
-                <h2 className="text-[14px] font-black text-gray-900">Active Orders</h2>
-                <span className="bg-blue-100 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded-full">{activeOrders.length}</span>
-              </div>
-              <button onClick={() => navigate("/user/orders")} className="text-[12px] text-green-600 font-semibold hover:text-green-700 flex items-center gap-0.5">
-                See all <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7"/></svg>
-              </button>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              {activeOrders.slice(1, 3).map(order => (
-                <div key={order._id} onClick={() => navigate("/user/orders")} className="bg-white rounded-xl border border-gray-100 p-4 flex items-center gap-3 hover:border-green-200 hover:shadow-md transition-all cursor-pointer">
-                  <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center text-sm flex-shrink-0">🚚</div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[12px] font-bold text-gray-800">#{order._id.slice(-8).toUpperCase()}</p>
-                    <p className="text-[11px] text-gray-400">{order.products?.length} items · Rs. {order.totalAmount?.toLocaleString()}</p>
-                  </div>
-                  <StatusPill status={order.orderStatus} />
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
 
         {/* ── LIVE MEDICINES ─────────────────────────────────────────────── */}
         <section className="px-8 pb-6">
@@ -566,7 +520,7 @@ export default function UserDashboard() {
               {orders.slice(0, 5).map(order => (
                 <div key={order._id} onClick={() => navigate("/user/orders")} className="flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 transition cursor-pointer group">
                   <div className="w-8 h-8 bg-gray-50 group-hover:bg-green-50 rounded-lg flex items-center justify-center text-sm flex-shrink-0 transition">
-                    {order.orderStatus === "delivered" ? "✅" : order.orderStatus === "ontheway" ? "🚚" : order.orderStatus === "cancalled" ? "❌" : "📦"}
+                    {order.orderStatus === "delivered" ? "✅" : order.orderStatus === "cancalled" ? "❌" : "📦"}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-[12px] font-bold text-gray-800">#{order._id.slice(-8).toUpperCase()}</p>
@@ -602,9 +556,7 @@ export default function UserDashboard() {
             </button>
           </div>
         </section>
-
       </main>
-
       <Footer navigate={navigate} />
     </div>
   );

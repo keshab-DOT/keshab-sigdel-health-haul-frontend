@@ -1,5 +1,4 @@
 import "./App.css";
-import { Toaster } from "react-hot-toast";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 import Signup from "./Pages/auth/Signup";
@@ -17,15 +16,18 @@ import SettingsPage from "./Pages/Dashboard/User/SettingsPage";
 
 // Pharmacy
 import PharmacyDashboard from "./Pages/Dashboard/Pharmacy/PharmacyDashboard";
-import PharmacyOrders from "./Pages/Dashboard/Pharmacy/PharmacyOrders";
+import PharmacyOrders from "./Pages/Dashboard/Pharmacy/Pharmacyorders";
+import PharmacyProducts from "./Pages/Dashboard/Pharmacy/Pharmacyproducts";
 import PharmacyProfile from "./Pages/Dashboard/Pharmacy/PharmacyProfile";
-import PharmacyProducts from "./Pages/Dashboard/Pharmacy/PharmacyProducts";
+
+// Admin
+import AdminDashboard from "./Pages/Dashboard/Admin/AdminDashboard";
+import AdminUsers from "./Pages/Dashboard/Admin/Adminusers";
+import AdminProducts from "./Pages/Dashboard/Admin/Adminproducts";
 
 function App() {
   return (
     <>
-      <Toaster position="top-right" reverseOrder={false} />
-
       <Router>
         <Routes>
 
@@ -47,8 +49,13 @@ function App() {
           {/* Pharmacy Routes */}
           <Route path="/pharmacy/dashboard" element={<PharmacyDashboard />} />
           <Route path="/pharmacy/orders" element={<PharmacyOrders />} />
-          <Route path="/pharmacy/profile" element={<PharmacyProfile />} />
           <Route path="/pharmacy/products" element={<PharmacyProducts />} />
+          <Route path="/pharmacy/profile" element={<PharmacyProfile />} />
+
+          {/* Admin Routes */}
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/admin/users" element={<AdminUsers />} />
+          <Route path="/admin/products" element={<AdminProducts />} />
 
         </Routes>
       </Router>

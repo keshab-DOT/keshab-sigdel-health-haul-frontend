@@ -12,6 +12,8 @@ const redirectByRole = (roles, navigate) => {
   const role = getRole(roles);
   if (role === "pharmacy") {
     navigate("/pharmacy/dashboard", { replace: true });
+  } else if (role === "admin") {
+    navigate("/admin/dashboard", { replace: true });
   } else {
     navigate("/user/dashboard", { replace: true });
   }
@@ -19,10 +21,10 @@ const redirectByRole = (roles, navigate) => {
 
 export default function Login() {
   const navigate = useNavigate();
-  const [form, setForm]       = useState({ email: "", password: "" });
-  const [error, setError]     = useState("");
+  const [form, setForm]         = useState({ email: "", password: "" });
+  const [error, setError]       = useState("");
   const [showPass, setShowPass] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading]   = useState(false);
 
   // Redirect if already logged in — only runs once on mount
   useEffect(() => {

@@ -16,13 +16,7 @@ function Topbar({ user, cartCount, onLogout, navigate }) {
         <button onClick={() => navigate("/user/search")}    className="px-3.5 py-1.5 text-[13px] font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-50 rounded-lg transition">Browse Medicines</button>
         <button onClick={() => navigate("/user/orders")}    className="px-3.5 py-1.5 text-[13px] font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-50 rounded-lg transition">My Orders</button>
       </nav>
-      <div className="flex-1 max-w-sm mx-6">
-        <div className="relative">
-          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-          <input type="text" placeholder="Search medicines, categories…" className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-[13px] text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-400/40 focus:border-green-400 transition" onFocus={() => navigate("/user/search")} readOnly/>
-        </div>
-      </div>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 ml-auto">
         <button onClick={() => navigate("/user/cart")} className="relative w-9 h-9 flex items-center justify-center text-gray-500 hover:text-gray-800 hover:bg-gray-50 rounded-xl transition">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
           {cartCount > 0 && <span className="absolute top-1 right-1 w-[14px] h-[14px] bg-red-500 text-white text-[9px] font-black rounded-full flex items-center justify-center">{cartCount > 9 ? "9+" : cartCount}</span>}
@@ -42,13 +36,25 @@ function Topbar({ user, cartCount, onLogout, navigate }) {
   );
 }
 
-function Footer() {
+function Footer({ navigate }) {
+  const quickLinks = [
+    { label: "Search Medicines", path: "/user/search" },
+    { label: "My Orders",        path: "/user/orders" },
+    { label: "My Cart",          path: "/user/cart" },
+    { label: "Profile",          path: "/user/profile" },
+  ];
+  const supportLinks = [
+    { label: "Help Center",      path: "/user/support" },
+    { label: "Contact Us",       path: "/user/support" },
+    { label: "Refund Policy",    path: "/user/support" },
+    { label: "Terms of Service", path: "/user/support" },
+  ];
   return (
     <footer className="bg-gray-950 text-white mt-auto">
       <div className="px-8 pt-8 pb-5">
         <div className="grid grid-cols-4 gap-8 mb-6">
           <div className="col-span-2">
-            <div className="flex items-center gap-2 mb-3">
+            <div className="flex items-center gap-2 mb-3 cursor-pointer" onClick={() => navigate("/user/dashboard")}>
               <div className="w-6 h-6 rounded-md bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
                 <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
               </div>
@@ -56,8 +62,22 @@ function Footer() {
             </div>
             <p className="text-gray-400 text-xs leading-relaxed max-w-xs">Fast, reliable medicine delivery across Nepal. Licensed pharmacies, verified products, doorstep delivery.</p>
           </div>
-          <div><h5 className="font-bold text-[11px] text-gray-500 uppercase tracking-widest mb-3">Quick Links</h5><ul className="space-y-1.5 text-gray-400 text-[13px]">{["Search Medicines","My Orders","My Cart","Profile"].map(t=><li key={t} className="hover:text-green-400 cursor-pointer transition-colors">{t}</li>)}</ul></div>
-          <div><h5 className="font-bold text-[11px] text-gray-500 uppercase tracking-widest mb-3">Support</h5><ul className="space-y-1.5 text-gray-400 text-[13px]">{["Help Center","Contact Us","Refund Policy","Terms of Service"].map(t=><li key={t} className="hover:text-green-400 cursor-pointer transition-colors">{t}</li>)}</ul></div>
+          <div>
+            <h5 className="font-bold text-[11px] text-gray-500 uppercase tracking-widest mb-3">Quick Links</h5>
+            <ul className="space-y-1.5 text-gray-400 text-[13px]">
+              {quickLinks.map(({ label, path }) => (
+                <li key={label}><button onClick={() => navigate(path)} className="hover:text-green-400 transition-colors text-left w-full">{label}</button></li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <h5 className="font-bold text-[11px] text-gray-500 uppercase tracking-widest mb-3">Support</h5>
+            <ul className="space-y-1.5 text-gray-400 text-[13px]">
+              {supportLinks.map(({ label, path }) => (
+                <li key={label}><button onClick={() => navigate(path)} className="hover:text-green-400 transition-colors text-left w-full">{label}</button></li>
+              ))}
+            </ul>
+          </div>
         </div>
         <div className="border-t border-gray-800 pt-4 flex justify-between items-center">
           <p className="text-gray-600 text-xs">© {new Date().getFullYear()} HealthHaul Nepal. All rights reserved.</p>
@@ -123,13 +143,11 @@ export default function ProfilePage() {
       <Topbar user={user} cartCount={0} onLogout={handleLogout} navigate={navigate}/>
 
       <main className="flex-1 px-8 py-6 space-y-5">
-        {/* Page header */}
         <div>
           <h2 className="text-[22px] font-black text-gray-900 tracking-tight">My Profile</h2>
           <p className="text-gray-400 text-[13px] mt-0.5">Manage your personal information</p>
         </div>
 
-        {/* Hero banner */}
         <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-gray-900 via-gray-800 to-emerald-950 px-7 py-6 flex items-center gap-5">
           <div className="absolute inset-0 opacity-10"><div className="absolute top-0 right-0 w-48 h-48 rounded-full bg-green-400 blur-3xl"/></div>
           <div className="w-14 h-14 rounded-full bg-white/20 flex items-center justify-center text-2xl font-black text-white flex-shrink-0 border border-white/20">
@@ -149,7 +167,6 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* Tabs */}
         <div className="flex gap-1 bg-white rounded-xl p-1 shadow-sm border border-gray-100 w-fit">
           {[{ key: "profile", label: "Edit Profile" }, { key: "account", label: "Account Info" }].map(({ key, label }) => (
             <button key={key} onClick={() => setActiveTab(key)}
@@ -191,14 +208,13 @@ export default function ProfilePage() {
               ))}
             </div>
             <div className="border border-red-100 rounded-xl p-4 bg-red-50/50">
-              <h4 className="text-[13px] font-black text-red-600 mb-1">Danger Zone</h4>
               <p className="text-[11px] text-gray-400 mb-3">This action will sign you out of all sessions.</p>
               <button onClick={handleLogout} className="bg-red-500 text-white px-4 py-2 rounded-xl text-[13px] font-bold hover:bg-red-600 transition">Sign Out of Account</button>
             </div>
           </div>
         )}
       </main>
-      <Footer/>
+      <Footer navigate={navigate}/>
     </div>
   );
 }
