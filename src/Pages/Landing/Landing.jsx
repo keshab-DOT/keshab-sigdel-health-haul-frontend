@@ -16,8 +16,8 @@ export default function Home() {
           <Link to="/login" className="text-gray-700 hover:text-green-600 font-medium transition">
             Login
           </Link>
-          <Link 
-            to="/signup" 
+          <Link
+            to="/signup"
             className="bg-green-600 text-white px-5 py-2 rounded-lg hover:bg-green-700 transition shadow-sm font-medium"
           >
             Signup
@@ -33,7 +33,7 @@ export default function Home() {
           <div className="inline-block bg-green-100 text-green-700 px-4 py-2 rounded-full text-sm font-semibold mb-6">
             🚀 Your Health, Our Priority
           </div>
-          
+
           <h2 className="text-4xl md:text-6xl font-bold mb-6 text-gray-900 leading-tight">
             Fast & Reliable <span className="text-green-600">Medicine Delivery</span> in Nepal
           </h2>
@@ -44,14 +44,14 @@ export default function Home() {
           </p>
 
           <div className="flex gap-4 mb-8">
-            <Link 
+            <Link
               to="/signup"
               className="bg-green-600 text-white px-8 py-4 rounded-lg hover:bg-green-700 transition shadow-lg hover:shadow-xl transform hover:-translate-y-1 font-semibold"
             >
               Get Started →
             </Link>
 
-            <Link 
+            <Link
               to="/login"
               className="border-2 border-green-600 text-green-600 px-8 py-4 rounded-lg hover:bg-green-50 transition font-semibold"
             >
@@ -216,7 +216,7 @@ export default function Home() {
         <p className="text-xl text-green-100 mb-8 max-w-2xl mx-auto">
           Join thousands of satisfied customers who trust HealthHaul Nepal for their medicine needs
         </p>
-        <Link 
+        <Link
           to="/signup"
           className="inline-block bg-white text-green-600 px-10 py-4 rounded-lg hover:bg-gray-100 transition shadow-xl font-bold text-lg"
         >
@@ -234,7 +234,7 @@ export default function Home() {
                 Your trusted partner for fast and reliable medicine delivery across Nepal.
               </p>
             </div>
-            
+
             <div>
               <h5 className="font-semibold mb-4">Quick Links</h5>
               <ul className="space-y-2 text-gray-400">
@@ -243,7 +243,7 @@ export default function Home() {
                 <li><Link to="/signup" className="hover:text-white transition">Signup</Link></li>
               </ul>
             </div>
-            
+
             <div>
               <h5 className="font-semibold mb-4">Support</h5>
               <ul className="space-y-2 text-gray-400">
@@ -252,7 +252,7 @@ export default function Home() {
                 <li><a href="#" className="hover:text-white transition">FAQ</a></li>
               </ul>
             </div>
-            
+
             <div>
               <h5 className="font-semibold mb-4">Legal</h5>
               <ul className="space-y-2 text-gray-400">
@@ -262,7 +262,7 @@ export default function Home() {
               </ul>
             </div>
           </div>
-          
+
           <div className="border-t border-gray-800 pt-6 text-center text-gray-400 text-sm">
             © {new Date().getFullYear()} HealthHaul Nepal. All rights reserved.
           </div>

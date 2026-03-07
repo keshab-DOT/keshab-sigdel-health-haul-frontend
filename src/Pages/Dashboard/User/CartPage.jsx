@@ -13,8 +13,8 @@ function Topbar({ user, cartCount, onLogout, navigate }) {
       </div>
       <nav className="flex items-center gap-1 ml-6">
         <button onClick={() => navigate("/user/dashboard")} className="px-3.5 py-1.5 text-[13px] font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-50 rounded-lg transition">Dashboard</button>
-        <button onClick={() => navigate("/user/search")}    className="px-3.5 py-1.5 text-[13px] font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-50 rounded-lg transition">Browse Medicines</button>
-        <button onClick={() => navigate("/user/orders")}    className="px-3.5 py-1.5 text-[13px] font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-50 rounded-lg transition">My Orders</button>
+        <button onClick={() => navigate("/user/search")} className="px-3.5 py-1.5 text-[13px] font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-50 rounded-lg transition">Browse Medicines</button>
+        <button onClick={() => navigate("/user/orders")} className="px-3.5 py-1.5 text-[13px] font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-50 rounded-lg transition">My Orders</button>
       </nav>
       <div className="flex items-center gap-2 ml-auto">
         <button onClick={() => navigate("/user/cart")} className="relative w-9 h-9 flex items-center justify-center text-gray-500 hover:text-gray-800 hover:bg-gray-50 rounded-xl transition">
@@ -39,14 +39,14 @@ function Topbar({ user, cartCount, onLogout, navigate }) {
 function Footer({ navigate }) {
   const quickLinks = [
     { label: "Search Medicines", path: "/user/search" },
-    { label: "My Orders",        path: "/user/orders" },
-    { label: "My Cart",          path: "/user/cart" },
-    { label: "Profile",          path: "/user/profile" },
+    { label: "My Orders", path: "/user/orders" },
+    { label: "My Cart", path: "/user/cart" },
+    { label: "Profile", path: "/user/profile" },
   ];
   const supportLinks = [
-    { label: "Help Center",      path: "/user/support" },
-    { label: "Contact Us",       path: "/user/support" },
-    { label: "Refund Policy",    path: "/user/support" },
+    { label: "Help Center", path: "/user/support" },
+    { label: "Contact Us", path: "/user/support" },
+    { label: "Refund Policy", path: "/user/support" },
     { label: "Terms of Service", path: "/user/support" },
   ];
   return (
@@ -90,13 +90,13 @@ function Footer({ navigate }) {
 
 export default function CartPage() {
   const navigate = useNavigate();
-  const [user, setUser]           = useState(null);
+  const [user, setUser] = useState(null);
   const [cartItems, setCartItems] = useState([]);
-  const [loading, setLoading]     = useState(true);
-  const [updating, setUpdating]   = useState({});
+  const [loading, setLoading] = useState(true);
+  const [updating, setUpdating] = useState({});
   const [showCheckout, setShowCheckout] = useState(false);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
-  const [toast, setToast]         = useState(null);
+  const [toast, setToast] = useState(null);
   const [checkoutForm, setCheckoutForm] = useState({ shippingAddress: "", phoneNumber: "", paymentMethod: "cod" });
 
   const showToast = (msg, type = "success") => { setToast({ msg, type }); setTimeout(() => setToast(null), 3000); };

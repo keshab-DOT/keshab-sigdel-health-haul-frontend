@@ -110,8 +110,7 @@ export default function PharmacyOrders() {
     if (!stored || role !== "pharmacy") { navigate("/login", { replace: true }); return; }
     setUser(stored);
     fetchOrders();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
+  }, []);
   const fetchOrders = async () => {
     setLoading(true);
     try {
@@ -122,7 +121,7 @@ export default function PharmacyOrders() {
     finally { setLoading(false); }
   };
 
-  // ✅ FIXED: correct backend route PUT /orders/update/order/:id
+  // correct backend route PUT /orders/update/order/:id
   const handleStatusUpdate = async (orderId, newStatus) => {
     setUpdating(p => ({ ...p, [orderId]: true }));
     try {

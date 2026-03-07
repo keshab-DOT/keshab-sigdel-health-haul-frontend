@@ -1,26 +1,25 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../../api/axios";
-import { AdminSidebar } from "./AdminDashboard";
+import { AdminSidebar } from "./Admindashboard";
 
 const STATUS_OPTIONS = ["Active", "Suspended", "Banned"];
 
-// Normalize whatever the backend sends into one of our 3 known values
 const normalizeStatus = (raw) => {
   const s = (raw || "").toString().trim();
   if (STATUS_OPTIONS.includes(s)) return s;
-  return "Active"; // safe default
+  return "Active";
 };
 
 export default function AdminUsers() {
   const navigate = useNavigate();
-  const [admin, setAdmin]     = useState(null);
-  const [users, setUsers]     = useState([]);
+  const [admin, setAdmin] = useState(null);
+  const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter]   = useState("all");
-  const [search, setSearch]   = useState("");
-  const [acting, setActing]   = useState({});
-  const [toast, setToast]     = useState(null);
+  const [filter, setFilter] = useState("all");
+  const [search, setSearch] = useState("");
+  const [acting, setActing] = useState({});
+  const [toast, setToast] = useState(null);
 
   const showToast = (msg, type = "success") => {
     setToast({ msg, type });
@@ -33,7 +32,7 @@ export default function AdminUsers() {
     if (!stored || role !== "admin") { navigate("/login", { replace: true }); return; }
     setAdmin(stored);
     fetchUsers();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -41,7 +40,6 @@ export default function AdminUsers() {
       const r = await api.get("/admin/users");
       const raw = r.data;
       const list = Array.isArray(raw) ? raw : Array.isArray(raw?.users) ? raw.users : [];
-      // Normalize status on every user right here so the select is always controlled
       setUsers(list.map(u => ({ ...u, status: normalizeStatus(u.status) })));
     } catch (_) {
       setUsers([]);
@@ -51,14 +49,13 @@ export default function AdminUsers() {
   };
 
   const changeStatus = async (userId, newStatus) => {
-    // Optimistically update UI first so select stays controlled
+  
     setUsers(prev => prev.map(u => u._id === userId ? { ...u, status: newStatus } : u));
     setActing(p => ({ ...p, [userId]: true }));
     try {
       await api.put(`/admin/user/${userId}/status`, { status: newStatus });
       showToast(`Status updated to ${newStatus}`);
     } catch (err) {
-      // Revert on failure
       fetchUsers();
       showToast(err.response?.data?.message || "Failed to update status", "error");
     } finally {
@@ -72,19 +69,19 @@ export default function AdminUsers() {
   const getStatus = (u) => u.status; // already normalized on fetch
 
   const FILTERS = [
-    { key: "all",       label: "All Users"  },
-    { key: "user",      label: "Users"      },
-    { key: "pharmacy",  label: "Pharmacies" },
+    { key: "all", label: "All Users" },
+    { key: "user", label: "Users" },
+    { key: "pharmacy", label: "Pharmacies" },
     { key: "suspended", label: "Suspended"  },
-    { key: "banned",    label: "Banned"     },
+    { key: "banned", label: "Banned"     },
   ];
 
   const filtered = users.filter(u => {
     const role   = getRole(u);
     const status = getStatus(u).toLowerCase();
     const matchFilter =
-      filter === "all"       ? true :
-      filter === "banned"    ? status === "banned" :
+      filter === "all" ? true :
+      filter === "banned" ? status === "banned" :
       filter === "suspended" ? status === "suspended" :
       role === filter;
     const q = search.toLowerCase();
@@ -92,10 +89,10 @@ export default function AdminUsers() {
   });
 
   const counts = {
-    active:    users.filter(u => getStatus(u) === "Active").length,
-    pharmacy:  users.filter(u => getRole(u) === "pharmacy").length,
+    active: users.filter(u => getStatus(u) === "Active").length,
+    pharmacy: users.filter(u => getRole(u) === "pharmacy").length,
     suspended: users.filter(u => getStatus(u) === "Suspended").length,
-    banned:    users.filter(u => getStatus(u) === "Banned").length,
+    banned: users.filter(u => getStatus(u) === "Banned").length,
   };
 
   if (!admin) return null;
@@ -133,10 +130,10 @@ export default function AdminUsers() {
           {/* Stats bar */}
           <div className="grid grid-cols-4 gap-0 bg-white rounded-2xl border border-gray-100 shadow-sm mb-5 overflow-hidden">
             {[
-              { label: "Active",     count: counts.active,    color: "text-green-600", bg: "bg-green-50"  },
-              { label: "Pharmacies", count: counts.pharmacy,  color: "text-blue-600",  bg: "bg-blue-50"   },
-              { label: "Suspended",  count: counts.suspended, color: "text-amber-600", bg: "bg-amber-50"  },
-              { label: "Banned",     count: counts.banned,    color: "text-red-600",   bg: "bg-red-50"    },
+              { label: "Active", count: counts.active, color: "text-green-600", bg: "bg-green-50" },
+              { label: "Pharmacies", count: counts.pharmacy, color: "text-blue-600", bg: "bg-blue-50" },
+              { label: "Suspended", count: counts.suspended, color: "text-amber-600", bg: "bg-amber-50" },
+              { label: "Banned", count: counts.banned, color: "text-red-600", bg: "bg-red-50" },
             ].map((s, i) => (
               <div key={s.label} className={`${s.bg} px-6 py-4 ${i < 3 ? "border-r border-gray-100" : ""}`}>
                 <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-1">{s.label}</p>
@@ -155,10 +152,10 @@ export default function AdminUsers() {
             <div className="flex gap-1.5 flex-wrap">
               {FILTERS.map(({ key, label }) => {
                 const count =
-                  key === "all"       ? users.length :
-                  key === "banned"    ? counts.banned :
+                  key === "all" ? users.length :
+                  key === "banned" ? counts.banned :
                   key === "suspended" ? counts.suspended :
-                  key === "pharmacy"  ? counts.pharmacy :
+                  key === "pharmacy" ? counts.pharmacy :
                   users.filter(u => getRole(u) === key).length;
                 return (
                   <button key={key} onClick={() => setFilter(key)}
@@ -193,22 +190,22 @@ export default function AdminUsers() {
             ) : (
               <div className="divide-y divide-gray-50">
                 {filtered.map(user => {
-                  const role    = getRole(user);
-                  const status  = getStatus(user); // "Active" | "Suspended" | "Banned" — always normalized
+                  const role = getRole(user);
+                  const status = getStatus(user); // "Active" | "Suspended" | "Banned" 
                   const isAdmin = role === "admin";
 
                   const roleCls =
                     role === "pharmacy" ? "bg-green-100 text-green-700 border-green-200" :
-                    role === "admin"    ? "bg-gray-800 text-white border-gray-700" :
+                    role === "admin" ? "bg-gray-800 text-white border-gray-700" :
                     "bg-blue-100 text-blue-700 border-blue-200";
 
                   const statusCls =
-                    status === "Banned"    ? "bg-red-100 text-red-600 border-red-200" :
+                    status === "Banned" ? "bg-red-100 text-red-600 border-red-200" :
                     status === "Suspended" ? "bg-amber-100 text-amber-700 border-amber-200" :
                     "bg-green-100 text-green-700 border-green-200";
 
                   const statusDot =
-                    status === "Banned"    ? "bg-red-500" :
+                    status === "Banned" ? "bg-red-500" :
                     status === "Suspended" ? "bg-amber-500" :
                     "bg-green-500";
 

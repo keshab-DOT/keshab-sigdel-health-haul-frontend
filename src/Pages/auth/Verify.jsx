@@ -32,7 +32,8 @@ export default function Verify() {
     setResending(true);
     setError("");
     try {
-      // Backend endpoint is resendOtp (matches userRoutes: /resendOtp)
+
+      // Backend endpoint to resend OTP to the user's email
       await api.post("/auth/resendOtp", { email });
       setSuccess("OTP resent successfully! Check your email.");
       setTimeout(() => setSuccess(""), 3000);
@@ -45,6 +46,7 @@ export default function Verify() {
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
+      
       {/* NAVBAR */}
       <nav className="flex justify-between items-center px-8 py-5 shadow-md bg-white">
         <h1

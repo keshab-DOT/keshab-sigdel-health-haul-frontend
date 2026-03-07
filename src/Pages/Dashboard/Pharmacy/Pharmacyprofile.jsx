@@ -66,7 +66,7 @@ export default function PharmacyProfile() {
     if (!stored || getRole(stored) !== "pharmacy") { navigate("/login", { replace: true }); return; }
     setUser(stored);
     setProfile({ name: stored.name || "", email: stored.email || "", phone: stored.phone || "", address: stored.address || "", licenseNumber: stored.licenseNumber || "", description: stored.description || "" });
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleProfileChange = (e) => setProfile(p => ({ ...p, [e.target.name]: e.target.value }));
   const handlePasswordChange = (e) => setPasswords(p => ({ ...p, [e.target.name]: e.target.value }));

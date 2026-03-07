@@ -18,7 +18,7 @@ import SettingsPage from "./Pages/Dashboard/User/SettingsPage";
 import PharmacyDashboard from "./Pages/Dashboard/Pharmacy/PharmacyDashboard";
 import PharmacyOrders from "./Pages/Dashboard/Pharmacy/Pharmacyorders";
 import PharmacyProducts from "./Pages/Dashboard/Pharmacy/Pharmacyproducts";
-import PharmacyProfile from "./Pages/Dashboard/Pharmacy/PharmacyProfile";
+import PharmacyProfile from "./Pages/Dashboard/Pharmacy/Pharmacyprofile";
 
 // Admin
 import AdminDashboard from "./Pages/Dashboard/Admin/AdminDashboard";

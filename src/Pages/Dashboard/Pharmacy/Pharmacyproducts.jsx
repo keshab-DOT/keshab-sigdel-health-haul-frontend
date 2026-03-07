@@ -16,10 +16,39 @@ function Sidebar({ user, active, onLogout, navigate }) {
   ];
   return (
     <aside className="w-[200px] min-h-screen bg-white border-r border-gray-100 flex flex-col flex-shrink-0 fixed left-0 top-0 bottom-0 z-20">
-      <div className="px-5 py-[18px] border-b border-gray-100"><div className="flex items-center gap-2.5"><div className="w-7 h-7 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-sm flex-shrink-0"><svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg></div><span className="font-black text-[14px] text-gray-900 tracking-tight leading-tight">HealthHaul</span></div></div>
-      <div className="px-4 py-3.5 border-b border-gray-100"><p className="text-[10px] text-gray-400 font-medium uppercase tracking-wider mb-2">Logged in as</p><div className="flex items-center gap-2.5"><div className="w-7 h-7 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white font-black text-[11px] flex-shrink-0">{user?.name?.[0]?.toUpperCase() || "P"}</div><div className="min-w-0"><p className="text-[13px] font-bold text-gray-800 truncate leading-tight">{user?.name || "Pharmacy"}</p><p className="text-[11px] text-green-600 font-semibold capitalize">Pharmacy</p></div></div></div>
-      <nav className="flex-1 px-3 py-3 space-y-0.5">{NAV.map(({ key, label, path, icon }) => (<button key={key} onClick={() => navigate(path)} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-150 ${active === key ? "bg-gray-950 text-white shadow-sm" : "text-gray-500 hover:bg-gray-50 hover:text-gray-800"}`}><span className={`flex-shrink-0 ${active === key ? "opacity-100" : "opacity-50"}`}>{icon}</span>{label}</button>))}</nav>
-      <div className="px-3 pb-4 pt-1 border-t border-gray-100"><button onClick={onLogout} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium text-red-500 hover:bg-red-50 hover:text-red-600 transition-all"><span className="opacity-60 flex-shrink-0"><svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg></span>Sign Out</button></div>
+      <div className="px-5 py-[18px] border-b border-gray-100">
+        <div className="flex items-center gap-2.5">
+          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-sm flex-shrink-0">
+            <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+          </div>
+          <span className="font-black text-[14px] text-gray-900 tracking-tight leading-tight">HealthHaul</span>
+        </div>
+      </div>
+      <div className="px-4 py-3.5 border-b border-gray-100">
+        <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wider mb-2">Logged in as</p>
+        <div className="flex items-center gap-2.5">
+          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white font-black text-[11px] flex-shrink-0">{user?.name?.[0]?.toUpperCase() || "P"}</div>
+          <div className="min-w-0">
+            <p className="text-[13px] font-bold text-gray-800 truncate leading-tight">{user?.name || "Pharmacy"}</p>
+            <p className="text-[11px] text-green-600 font-semibold capitalize">Pharmacy</p>
+          </div>
+        </div>
+      </div>
+      <nav className="flex-1 px-3 py-3 space-y-0.5">
+        {NAV.map(({ key, label, path, icon }) => (
+          <button key={key} onClick={() => navigate(path)}
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-150 ${active === key ? "bg-gray-950 text-white shadow-sm" : "text-gray-500 hover:bg-gray-50 hover:text-gray-800"}`}>
+            <span className={`flex-shrink-0 ${active === key ? "opacity-100" : "opacity-50"}`}>{icon}</span>
+            {label}
+          </button>
+        ))}
+      </nav>
+      <div className="px-3 pb-4 pt-1 border-t border-gray-100">
+        <button onClick={onLogout} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium text-red-500 hover:bg-red-50 hover:text-red-600 transition-all">
+          <span className="opacity-60 flex-shrink-0"><svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg></span>
+          Sign Out
+        </button>
+      </div>
     </aside>
   );
 }
@@ -27,8 +56,8 @@ function Sidebar({ user, active, onLogout, navigate }) {
 function ApprovalBadge({ status }) {
   const map = {
     Approved: { cls: "bg-green-100 text-green-700 border-green-200", dot: "bg-green-500" },
-    Pending: { cls: "bg-amber-100 text-amber-700 border-amber-200", dot: "bg-amber-400" },
-    Rejected: { cls: "bg-red-100 text-red-600 border-red-200", dot: "bg-red-400" },
+    Pending:  { cls: "bg-amber-100 text-amber-700 border-amber-200",  dot: "bg-amber-400" },
+    Rejected: { cls: "bg-red-100 text-red-600 border-red-200",        dot: "bg-red-400"   },
   };
   const s = map[status] || { cls: "bg-gray-100 text-gray-500 border-gray-200", dot: "bg-gray-400" };
   return (
@@ -39,39 +68,60 @@ function ApprovalBadge({ status }) {
   );
 }
 
-function ProductModal({ product, onClose, onSuccess }) {
+function ProductModal({ product, onClose, onSuccess, categories }) {
   const isEdit = !!product;
-  const EMPTY = {
-    productName: product?.productName || "",
-    productDescription: product?.productDescription || "",
-    productPrice: product?.productPrice || "",
-    productImageUrl: product?.productImageUrl || "",
+  const [form, setForm] = useState({
+    productName:               product?.productName               || "",
+    productDescription:        product?.productDescription        || "",
+    productPrice:              product?.productPrice              || "",
     productTotalStockQuantity: product?.productTotalStockQuantity || "",
-  };
-  const [form, setForm] = useState(EMPTY);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState("");
+    categoryId:                product?.categoryId?._id || product?.categoryId || "",
+  });
+  const [imageFile, setImageFile]   = useState(null);
+  const [preview,   setPreview]     = useState(
+    product?.productImageUrl ? `http://localhost:3000/${product.productImageUrl}` : ""
+  );
+  const [saving, setSaving]   = useState(false);
+  const [error,  setError]    = useState("");
 
-  const handleChange = (e) => { setError(""); setForm(p => ({ ...p, [e.target.name]: e.target.value })); };
+  const handleChange = (e) => {
+    setError("");
+    setForm(p => ({ ...p, [e.target.name]: e.target.value }));
+  };
+
+  const handleImage = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setImageFile(file);
+    setPreview(URL.createObjectURL(file));
+  };
+
   const handleSubmit = async (e) => {
-    e.preventDefault(); setError("");
+    e.preventDefault();
+    setError("");
     if (!form.productName || !form.productDescription || !form.productPrice || !form.productTotalStockQuantity) {
-      setError("Name, description, price, and stock quantity are all required."); return;
+      setError("Name, description, price and stock quantity are required."); return;
     }
     setSaving(true);
-    const payload = {
-      productName: form.productName,
-      productDescription: form.productDescription,
-      productPrice: Number(form.productPrice),
-      productImageUrl: form.productImageUrl || undefined,
-      productTotalStockQuantity: Number(form.productTotalStockQuantity),
-    };
     try {
+      // Use FormData so image file can be sent
+      const fd = new FormData();
+      fd.append("productName",               form.productName);
+      fd.append("productDescription",        form.productDescription);
+      fd.append("productPrice",              Number(form.productPrice));
+      fd.append("productTotalStockQuantity", Number(form.productTotalStockQuantity));
+      if (form.categoryId) fd.append("categoryId", form.categoryId);
+      if (imageFile) fd.append("image", imageFile);
+
       if (isEdit) {
-        await api.put(`/products/product/update/${product._id}`, payload);
+        await api.put(`/products/product/update/${product._id}`, fd, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
         onSuccess("Product updated! Awaiting re-approval from admin.");
       } else {
-        await api.post("/products/create/product", payload);
+        await api.post("/products/create/product", fd, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
         onSuccess("Product submitted! Awaiting admin approval.");
       }
       onClose();
@@ -84,8 +134,8 @@ function ProductModal({ product, onClose, onSuccess }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-2xl shadow-xl border border-gray-100 w-full max-w-md overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+      <div className="bg-white rounded-2xl shadow-xl border border-gray-100 w-full max-w-md overflow-hidden max-h-[90vh] overflow-y-auto">
+        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between sticky top-0 bg-white z-10">
           <div>
             <h3 className="text-[15px] font-black text-gray-900">{isEdit ? "Edit Product" : "Add New Product"}</h3>
             <p className="text-[11px] text-gray-400 mt-0.5">{isEdit ? "Product will be sent for re-approval" : "Requires admin approval before going live"}</p>
@@ -94,42 +144,72 @@ function ProductModal({ product, onClose, onSuccess }) {
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
         </div>
+
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          {/* Product Name */}
           <div>
             <label className="block text-[12px] font-bold text-gray-700 mb-1.5">Product Name *</label>
-            <input type="text" name="productName" value={form.productName} onChange={handleChange} placeholder="e.g. Paracetamol 500mg"
+            <input type="text" name="productName" value={form.productName} onChange={handleChange}
+              placeholder="e.g. Paracetamol 500mg"
               className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-[13px] focus:outline-none focus:ring-2 focus:ring-green-400/40 focus:border-green-400 bg-white transition" />
           </div>
+
+          {/* Price + Stock */}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-[12px] font-bold text-gray-700 mb-1.5">Price (Rs.) *</label>
-              <input type="number" name="productPrice" value={form.productPrice} onChange={handleChange} placeholder="e.g. 150" min="0"
+              <input type="number" name="productPrice" value={form.productPrice} onChange={handleChange}
+                placeholder="e.g. 150" min="0"
                 className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-[13px] focus:outline-none focus:ring-2 focus:ring-green-400/40 focus:border-green-400 bg-white transition" />
             </div>
             <div>
               <label className="block text-[12px] font-bold text-gray-700 mb-1.5">Stock Qty *</label>
-              <input type="number" name="productTotalStockQuantity" value={form.productTotalStockQuantity} onChange={handleChange} placeholder="e.g. 100" min="0"
+              <input type="number" name="productTotalStockQuantity" value={form.productTotalStockQuantity} onChange={handleChange}
+                placeholder="e.g. 100" min="0"
                 className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-[13px] focus:outline-none focus:ring-2 focus:ring-green-400/40 focus:border-green-400 bg-white transition" />
             </div>
           </div>
+
+          {/* Category */}
           <div>
-            <label className="block text-[12px] font-bold text-gray-700 mb-1.5">Image URL (optional)</label>
-            <input type="text" name="productImageUrl" value={form.productImageUrl} onChange={handleChange} placeholder="https://..."
-              className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-[13px] focus:outline-none focus:ring-2 focus:ring-green-400/40 focus:border-green-400 bg-white transition" />
+            <label className="block text-[12px] font-bold text-gray-700 mb-1.5">Category</label>
+            <select name="categoryId" value={form.categoryId} onChange={handleChange}
+              className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-[13px] focus:outline-none focus:ring-2 focus:ring-green-400/40 focus:border-green-400 bg-white transition">
+              <option value="">— Select category —</option>
+              {categories.map(c => (
+                <option key={c._id} value={c._id}>{c.categoryName}</option>
+              ))}
+            </select>
           </div>
+
+          {/* Image upload */}
+          <div>
+            <label className="block text-[12px] font-bold text-gray-700 mb-1.5">Product Image</label>
+            <div className="flex items-center gap-3">
+              {preview && (
+                <img src={preview} alt="preview" className="w-14 h-14 rounded-xl object-cover border border-gray-100 flex-shrink-0" />
+              )}
+              <label className="flex-1 flex items-center justify-center gap-2 border-2 border-dashed border-gray-200 rounded-xl px-3.5 py-3 cursor-pointer hover:border-green-400 hover:bg-green-50 transition text-[12px] text-gray-400 font-medium">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                {imageFile ? imageFile.name : "Click to upload image"}
+                <input type="file" accept="image/*" className="hidden" onChange={handleImage} />
+              </label>
+            </div>
+          </div>
+
+          {/* Description */}
           <div>
             <label className="block text-[12px] font-bold text-gray-700 mb-1.5">Description *</label>
-            <textarea name="productDescription" value={form.productDescription} onChange={handleChange} rows={3} placeholder="Describe the medicine, its use, dosage info…"
+            <textarea name="productDescription" value={form.productDescription} onChange={handleChange}
+              rows={3} placeholder="Describe the medicine, its use, dosage info…"
               className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-[13px] focus:outline-none focus:ring-2 focus:ring-green-400/40 focus:border-green-400 bg-white resize-none transition" />
           </div>
 
-          {/* Notice banner */}
+          {/* Notice */}
           <div className="flex items-start gap-2.5 bg-amber-50 border border-amber-100 rounded-xl px-3.5 py-3">
             <svg className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" /></svg>
             <p className="text-[11px] text-amber-700 font-medium">
-              {isEdit
-                ? "Editing will reset status to <strong>Pending</strong> until admin re-approves."
-                : "Product will be marked <strong>Pending</strong> until an admin approves it."}
+              {isEdit ? "Editing will reset status to Pending until admin re-approves." : "Product will be marked Pending until an admin approves it."}
             </p>
           </div>
 
@@ -187,14 +267,16 @@ function DeleteModal({ product, onClose, onSuccess }) {
 
 export default function PharmacyProducts() {
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [toast, setToast] = useState(null);
-  const [addModal, setAddModal] = useState(false);
-  const [editProduct, setEditProduct] = useState(null);
+  const [user,          setUser]          = useState(null);
+  const [products,      setProducts]      = useState([]);
+  const [categories,    setCategories]    = useState([]);
+  const [loading,       setLoading]       = useState(true);
+  const [toast,         setToast]         = useState(null);
+  const [addModal,      setAddModal]      = useState(false);
+  const [editProduct,   setEditProduct]   = useState(null);
   const [deleteProduct, setDeleteProduct] = useState(null);
-  const [filter, setFilter] = useState("all");
+  const [filter,        setFilter]        = useState("all");
+  const [catFilter,     setCatFilter]     = useState("all");
 
   const showToast = (msg, type = "success") => {
     setToast({ msg, type });
@@ -206,14 +288,16 @@ export default function PharmacyProducts() {
     if (!stored || getRole(stored) !== "pharmacy") { navigate("/login", { replace: true }); return; }
     setUser(stored);
     fetchProducts();
+    fetchCategories();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ✅ Uses /my/products so ALL statuses (Pending, Approved, Rejected) are returned
   const fetchProducts = async () => {
     setLoading(true);
     try {
       const r = await api.get("/products/my/products");
-      setProducts(r.data || []);
+      // ✅ Fix: backend returns { products: [...] } — always extract the array
+      const data = r.data;
+      setProducts(Array.isArray(data) ? data : Array.isArray(data?.products) ? data.products : []);
     } catch (_) {
       setProducts([]);
     } finally {
@@ -221,8 +305,18 @@ export default function PharmacyProducts() {
     }
   };
 
+  const fetchCategories = async () => {
+    try {
+      const r = await api.get("/categories/get/categories");
+      const data = r.data;
+      setCategories(Array.isArray(data) ? data : Array.isArray(data?.categories) ? data.categories : Array.isArray(data?.data) ? data.data : []);
+    } catch (_) {
+      setCategories([]);
+    }
+  };
+
   const logout = async () => {
-    try { await api.post("/auth/logout"); } catch (_) { }
+    try { await api.post("/auth/logout"); } catch (_) {}
     localStorage.removeItem("user");
     navigate("/login", { replace: true });
   };
@@ -233,11 +327,20 @@ export default function PharmacyProducts() {
   };
 
   const FILTERS = ["all", "Pending", "Approved", "Rejected"];
-  const filtered = filter === "all" ? products : products.filter(p => p.approvalStatus === filter);
+
+  // apply both status filter and category filter
+  const filtered = products
+    .filter(p => filter === "all" || p.approvalStatus === filter)
+    .filter(p => {
+      if (catFilter === "all") return true;
+      const cid = p.categoryId?._id || p.categoryId;
+      return cid === catFilter;
+    });
+
   const counts = {
-    all: products.length,
+    all:      products.length,
     Approved: products.filter(p => p.approvalStatus === "Approved").length,
-    Pending: products.filter(p => p.approvalStatus === "Pending").length,
+    Pending:  products.filter(p => p.approvalStatus === "Pending").length,
     Rejected: products.filter(p => p.approvalStatus === "Rejected").length,
   };
 
@@ -245,6 +348,7 @@ export default function PharmacyProducts() {
 
   return (
     <div className="min-h-screen bg-[#f7f8fa]">
+
       {/* Toast */}
       {toast && (
         <div className={`fixed top-5 right-5 z-50 flex items-center gap-2.5 px-4 py-3 rounded-xl shadow-lg text-white text-[13px] font-bold ${toast.type === "error" ? "bg-red-500" : "bg-green-600"}`}>
@@ -255,8 +359,8 @@ export default function PharmacyProducts() {
         </div>
       )}
 
-      {addModal && <ProductModal onClose={() => setAddModal(false)} onSuccess={handleModalSuccess} />}
-      {editProduct && <ProductModal product={editProduct} onClose={() => setEditProduct(null)} onSuccess={handleModalSuccess} />}
+      {addModal    && <ProductModal onClose={() => setAddModal(false)}    onSuccess={handleModalSuccess} categories={categories} />}
+      {editProduct && <ProductModal product={editProduct} onClose={() => setEditProduct(null)} onSuccess={handleModalSuccess} categories={categories} />}
       {deleteProduct && <DeleteModal product={deleteProduct} onClose={() => setDeleteProduct(null)} onSuccess={handleModalSuccess} />}
 
       <Sidebar user={user} active="products" onLogout={logout} navigate={navigate} />
@@ -279,10 +383,10 @@ export default function PharmacyProducts() {
           {/* Stats bar */}
           <div className="grid grid-cols-4 gap-0 bg-white rounded-2xl border border-gray-100 shadow-sm mb-5 overflow-hidden">
             {[
-              { label: "Total", count: counts.all, color: "text-gray-900", bg: "bg-gray-50" },
+              { label: "Total",    count: counts.all,      color: "text-gray-900",  bg: "bg-gray-50"  },
               { label: "Approved", count: counts.Approved, color: "text-green-600", bg: "bg-green-50" },
-              { label: "Pending", count: counts.Pending, color: "text-amber-600", bg: "bg-amber-50" },
-              { label: "Rejected", count: counts.Rejected, color: "text-red-600", bg: "bg-red-50" },
+              { label: "Pending",  count: counts.Pending,  color: "text-amber-600", bg: "bg-amber-50" },
+              { label: "Rejected", count: counts.Rejected, color: "text-red-600",   bg: "bg-red-50"   },
             ].map((s, i) => (
               <div key={s.label} className={`${s.bg} px-6 py-4 ${i < 3 ? "border-r border-gray-100" : ""}`}>
                 <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-1">{s.label}</p>
@@ -291,30 +395,28 @@ export default function PharmacyProducts() {
             ))}
           </div>
 
-          {/* Rejected notice */}
+          {/* Alerts */}
           {counts.Rejected > 0 && (
-            <div className="flex items-center gap-3 bg-red-50 border border-red-200 rounded-2xl px-5 py-3.5 mb-5">
+            <div className="flex items-center gap-3 bg-red-50 border border-red-200 rounded-2xl px-5 py-3.5 mb-4">
               <span className="w-2.5 h-2.5 rounded-full bg-red-400 flex-shrink-0" />
               <p className="text-[13px] font-semibold text-red-800">
-                <span className="font-black">{counts.Rejected}</span> product{counts.Rejected > 1 ? "s were" : " was"} rejected by admin. Edit and resubmit to request re-approval.
+                <span className="font-black">{counts.Rejected}</span> product{counts.Rejected > 1 ? "s were" : " was"} rejected. Edit and resubmit.
               </p>
-              <button onClick={() => setFilter("Rejected")} className="ml-auto text-[11px] font-bold text-red-700 underline underline-offset-2">View rejected</button>
+              <button onClick={() => setFilter("Rejected")} className="ml-auto text-[11px] font-bold text-red-700 underline underline-offset-2">View</button>
             </div>
           )}
-
-          {/* Pending notice */}
           {counts.Pending > 0 && (
-            <div className="flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-2xl px-5 py-3.5 mb-5">
+            <div className="flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-2xl px-5 py-3.5 mb-4">
               <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse flex-shrink-0" />
               <p className="text-[13px] font-semibold text-amber-800">
-                <span className="font-black">{counts.Pending}</span> product{counts.Pending > 1 ? "s are" : " is"} awaiting admin approval before going live.
+                <span className="font-black">{counts.Pending}</span> product{counts.Pending > 1 ? "s are" : " is"} awaiting admin approval.
               </p>
-              <button onClick={() => setFilter("Pending")} className="ml-auto text-[11px] font-bold text-amber-700 underline underline-offset-2">View pending</button>
+              <button onClick={() => setFilter("Pending")} className="ml-auto text-[11px] font-bold text-amber-700 underline underline-offset-2">View</button>
             </div>
           )}
 
-          {/* Filter tabs */}
-          <div className="flex gap-1.5 mb-4">
+          {/* Status filter tabs */}
+          <div className="flex gap-1.5 mb-3">
             {FILTERS.map(key => (
               <button key={key} onClick={() => setFilter(key)}
                 className={`px-3.5 py-2 rounded-xl text-[13px] font-medium transition-all flex items-center gap-1.5 ${filter === key ? "bg-gray-950 text-white shadow-sm" : "bg-white text-gray-500 border border-gray-200 hover:border-green-300 hover:text-green-600"}`}>
@@ -323,6 +425,22 @@ export default function PharmacyProducts() {
               </button>
             ))}
           </div>
+
+          {/* Category filter */}
+          {categories.length > 0 && (
+            <div className="flex gap-1.5 flex-wrap mb-5">
+              <button onClick={() => setCatFilter("all")}
+                className={`px-3 py-1.5 rounded-lg text-[12px] font-semibold transition-all ${catFilter === "all" ? "bg-green-600 text-white" : "bg-white text-gray-500 border border-gray-200 hover:border-green-300"}`}>
+                All Categories
+              </button>
+              {categories.map(c => (
+                <button key={c._id} onClick={() => setCatFilter(c._id)}
+                  className={`px-3 py-1.5 rounded-lg text-[12px] font-semibold transition-all ${catFilter === c._id ? "bg-green-600 text-white" : "bg-white text-gray-500 border border-gray-200 hover:border-green-300"}`}>
+                  {c.categoryName}
+                </button>
+              ))}
+            </div>
+          )}
 
           {/* Product grid */}
           {loading ? (
@@ -340,9 +458,9 @@ export default function PharmacyProducts() {
               <div className="text-4xl mb-3">📦</div>
               <h3 className="text-[15px] font-bold text-gray-700 mb-1">No products found</h3>
               <p className="text-[13px] text-gray-400 mb-5">
-                {filter === "all" ? "You haven't added any products yet." : `No ${filter} products.`}
+                {filter === "all" && catFilter === "all" ? "You haven't added any products yet." : "No products match the selected filters."}
               </p>
-              {filter === "all" && (
+              {filter === "all" && catFilter === "all" && (
                 <button onClick={() => setAddModal(true)} className="inline-flex items-center gap-2 bg-gray-950 text-white px-4 py-2.5 rounded-xl font-bold text-[13px] hover:bg-gray-800 transition">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
                   Add Your First Product
@@ -351,44 +469,57 @@ export default function PharmacyProducts() {
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-4">
-              {filtered.map(product => (
-                <div key={product._id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
-                  <div className="relative w-full h-36 bg-gradient-to-br from-green-50 to-emerald-50 flex items-center justify-center overflow-hidden">
-                    {product.productImageUrl
-                      ? <img src={product.productImageUrl} alt={product.productName} className="w-full h-full object-cover" />
-                      : <span className="text-4xl">💊</span>}
-                    <div className="absolute top-3 right-3"><ApprovalBadge status={product.approvalStatus} /></div>
-                    {/* Rejected overlay hint */}
-                    {product.approvalStatus === "Rejected" && (
-                      <div className="absolute inset-0 bg-red-900/10 flex items-end pb-3 justify-center">
-                        <span className="text-[10px] font-bold text-red-700 bg-white/90 px-2.5 py-1 rounded-full">Edit to resubmit</span>
+              {filtered.map(product => {
+                const catName = product.categoryId?.categoryName || null;
+                const imgSrc  = product.productImageUrl
+                  ? product.productImageUrl.startsWith("http")
+                    ? product.productImageUrl
+                    : `http://localhost:3000/${product.productImageUrl}`
+                  : null;
+                return (
+                  <div key={product._id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+                    <div className="relative w-full h-36 bg-gradient-to-br from-green-50 to-emerald-50 flex items-center justify-center overflow-hidden">
+                      {imgSrc
+                        ? <img src={imgSrc} alt={product.productName} className="w-full h-full object-cover" />
+                        : <span className="text-4xl">💊</span>}
+                      <div className="absolute top-3 right-3"><ApprovalBadge status={product.approvalStatus} /></div>
+                      {product.approvalStatus === "Rejected" && (
+                        <div className="absolute inset-0 bg-red-900/10 flex items-end pb-3 justify-center">
+                          <span className="text-[10px] font-bold text-red-700 bg-white/90 px-2.5 py-1 rounded-full">Edit to resubmit</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-4">
+                      {/* Category tag */}
+                      {catName && (
+                        <span className="inline-block mb-2 px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 text-[10px] font-bold border border-blue-100">
+                          {catName}
+                        </span>
+                      )}
+                      <h3 className="text-[14px] font-black text-gray-900 truncate mb-1">{product.productName}</h3>
+                      <p className="text-[11px] text-gray-400 line-clamp-2 mb-3 leading-relaxed">{product.productDescription}</p>
+                      <div className="flex items-center justify-between mb-4">
+                        <p className="text-[15px] font-black text-green-600">Rs. {product.productPrice?.toLocaleString()}</p>
+                        <p className="text-[11px] text-gray-500 font-medium bg-gray-50 px-2.5 py-1 rounded-full border border-gray-100">
+                          Stock: <span className={`font-bold ${product.productTotalStockQuantity === 0 ? "text-red-500" : "text-gray-700"}`}>{product.productTotalStockQuantity}</span>
+                        </p>
                       </div>
-                    )}
-                  </div>
-                  <div className="p-4">
-                    <h3 className="text-[14px] font-black text-gray-900 truncate mb-1">{product.productName}</h3>
-                    <p className="text-[11px] text-gray-400 line-clamp-2 mb-3 leading-relaxed">{product.productDescription}</p>
-                    <div className="flex items-center justify-between mb-4">
-                      <p className="text-[15px] font-black text-green-600">Rs. {product.productPrice?.toLocaleString()}</p>
-                      <p className="text-[11px] text-gray-500 font-medium bg-gray-50 px-2.5 py-1 rounded-full border border-gray-100">
-                        Stock: <span className={`font-bold ${product.productTotalStockQuantity === 0 ? "text-red-500" : "text-gray-700"}`}>{product.productTotalStockQuantity}</span>
-                      </p>
-                    </div>
-                    <div className="flex gap-2">
-                      <button onClick={() => setEditProduct(product)}
-                        className="flex-1 flex items-center justify-center gap-1.5 border border-gray-200 text-gray-600 py-2 rounded-xl font-bold text-[12px] hover:border-green-300 hover:text-green-700 hover:bg-green-50 transition">
-                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-                        {product.approvalStatus === "Rejected" ? "Edit & Resubmit" : "Edit"}
-                      </button>
-                      <button onClick={() => setDeleteProduct(product)}
-                        className="flex-1 flex items-center justify-center gap-1.5 border border-red-100 text-red-500 py-2 rounded-xl font-bold text-[12px] hover:bg-red-50 hover:border-red-200 transition">
-                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                        Delete
-                      </button>
+                      <div className="flex gap-2">
+                        <button onClick={() => setEditProduct(product)}
+                          className="flex-1 flex items-center justify-center gap-1.5 border border-gray-200 text-gray-600 py-2 rounded-xl font-bold text-[12px] hover:border-green-300 hover:text-green-700 hover:bg-green-50 transition">
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                          {product.approvalStatus === "Rejected" ? "Edit & Resubmit" : "Edit"}
+                        </button>
+                        <button onClick={() => setDeleteProduct(product)}
+                          className="flex-1 flex items-center justify-center gap-1.5 border border-red-100 text-red-500 py-2 rounded-xl font-bold text-[12px] hover:bg-red-50 hover:border-red-200 transition">
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                          Delete
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </main>

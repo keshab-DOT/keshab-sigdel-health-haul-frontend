@@ -139,7 +139,7 @@ export default function PharmacyDashboard() {
     if (!stored || getRole(stored) !== "pharmacy") { navigate("/login", { replace: true }); return; }
     setUser(stored);
     fetchOrders();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   const fetchOrders = async () => {
     setLoading(true);

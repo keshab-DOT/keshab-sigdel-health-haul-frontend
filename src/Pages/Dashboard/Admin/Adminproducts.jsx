@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../../api/axios";
-import { AdminSidebar } from "./AdminDashboard";
+import { AdminSidebar } from "./Admindashboard";
 
 // ── Approval status config ────────────────────────────────────────────────────
 const STATUS_CFG = {
-  Pending:  { cls: "bg-amber-50 text-amber-700 border-amber-200",  dot: "bg-amber-400",  label: "Pending Review" },
-  Approved: { cls: "bg-green-50 text-green-700 border-green-200",  dot: "bg-green-500",  label: "Approved"       },
-  Rejected: { cls: "bg-red-50 text-red-700 border-red-200",        dot: "bg-red-400",    label: "Rejected"       },
+  Pending: { cls: "bg-amber-50 text-amber-700 border-amber-200", dot: "bg-amber-400", label: "Pending Review" },
+  Approved: { cls: "bg-green-50 text-green-700 border-green-200", dot: "bg-green-500", label: "Approved" },
+  Rejected: { cls: "bg-red-50 text-red-700 border-red-200", dot: "bg-red-400", label: "Rejected" },
 };
 
 function ApprovalBadge({ status }) {
@@ -20,8 +20,7 @@ function ApprovalBadge({ status }) {
   );
 }
 
-// ── Detail drawer / expanded panel ───────────────────────────────────────────
-function ProductDetail({ product, onApprove, onReject, acting }) {
+// Details of each product in the list, with approve/reject buttons 
   const pharmacy = product.userId;
   return (
     <div className="border-t border-gray-100 bg-gray-50/50 px-6 py-5">
@@ -100,6 +99,7 @@ function ProductDetail({ product, onApprove, onReject, acting }) {
         <div>
           <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-3">Seller / Pharmacy</p>
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 space-y-3">
+
             {/* Avatar + name */}
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white font-black text-[14px] flex-shrink-0">
@@ -154,17 +154,17 @@ function ProductDetail({ product, onApprove, onReject, acting }) {
   );
 }
 
-// ── Main component ─────────────────────────────────────────────────────────────
+// Main component 
 export default function AdminProducts() {
   const navigate = useNavigate();
-  const [admin, setAdmin]           = useState(null);
-  const [products, setProducts]     = useState([]);
-  const [loading, setLoading]       = useState(true);
-  const [filter, setFilter]         = useState("Pending");   // default to Pending so admin sees what needs action
-  const [search, setSearch]         = useState("");
-  const [expanded, setExpanded]     = useState(null);
-  const [acting, setActing]         = useState(null);
-  const [toast, setToast]           = useState(null);
+  const [admin, setAdmin] = useState(null);
+  const [products, setProducts]  = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter]  = useState("Pending");   // default to Pending so admin sees what needs to be done right away
+  const [search, setSearch] = useState("");
+  const [expanded, setExpanded] = useState(null);
+  const [acting, setActing] = useState(null);
+  const [toast, setToast] = useState(null);
 
   const showToast = (msg, type = "success") => { setToast({ msg, type }); setTimeout(() => setToast(null), 3500); };
 
@@ -174,13 +174,12 @@ export default function AdminProducts() {
     if (!stored || role !== "admin") { navigate("/login", { replace: true }); return; }
     setAdmin(stored);
     fetchProducts();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []); 
 
   const fetchProducts = async () => {
     setLoading(true);
     try {
       const res = await api.get("/admin/products");
-      // Backend returns { products: [...] } or plain array
       const raw = res.data;
       setProducts(Array.isArray(raw) ? raw : Array.isArray(raw?.products) ? raw.products : []);
     } catch (err) {
@@ -291,10 +290,10 @@ export default function AdminProducts() {
           {/* Stats row */}
           <div className="grid grid-cols-4 gap-0 bg-white rounded-2xl border border-gray-100 shadow-sm mb-5 overflow-hidden">
             {[
-              { key: "All",      label: "Total Products",    count: counts.All,      color: "text-gray-900",  bg: "bg-gray-50"    },
-              { key: "Pending",  label: "Pending Review",    count: counts.Pending,  color: "text-amber-600", bg: "bg-amber-50"   },
-              { key: "Approved", label: "Approved (Selling)",count: counts.Approved, color: "text-green-600", bg: "bg-green-50"   },
-              { key: "Rejected", label: "Rejected (Blocked)",count: counts.Rejected, color: "text-red-600",   bg: "bg-red-50"     },
+              { key: "All", label: "Total Products", count: counts.All, color: "text-gray-900", bg: "bg-gray-50" },
+              { key: "Pending", label: "Pending Review", count: counts.Pending, color: "text-amber-600", bg: "bg-amber-50" },
+              { key: "Approved", label: "Approved (Selling)",count: counts.Approved, color: "text-green-600", bg: "bg-green-50" },
+              { key: "Rejected", label: "Rejected (Blocked)",count: counts.Rejected, color: "text-red-600", bg: "bg-red-50" },
             ].map((s, i) => (
               <button key={s.key} onClick={() => setFilter(s.key)}
                 className={`${s.bg} px-6 py-4 text-left transition-all ${i < 3 ? "border-r border-gray-100" : ""} ${filter === s.key ? "ring-2 ring-inset ring-green-400" : "hover:brightness-95"}`}>
@@ -336,10 +335,10 @@ export default function AdminProducts() {
           ) : (
             <div className="space-y-3">
               {filtered.map(product => {
-                const pharmacy   = product.userId;
+                const pharmacy = product.userId;
                 const isExpanded = expanded === product._id;
-                const isPending  = product.approvalStatus === "Pending";
-                const cfg        = STATUS_CFG[product.approvalStatus] || STATUS_CFG.Pending;
+                const isPending = product.approvalStatus === "Pending";
+                const cfg = STATUS_CFG[product.approvalStatus] || STATUS_CFG.Pending;
 
                 return (
                   <div key={product._id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
@@ -387,12 +386,12 @@ export default function AdminProducts() {
                         <p className={`text-[14px] font-black ${product.productTotalStockQuantity === 0 ? "text-red-500" : "text-gray-700"}`}>{product.productTotalStockQuantity}</p>
                       </div>
 
-                      {/* Selling permission badge */}
+                      {/* Selling permission badge as approval status */}
                       <div className="flex-shrink-0">
                         <ApprovalBadge status={product.approvalStatus}/>
                       </div>
 
-                      {/* Quick action buttons (pending only in row) */}
+                      {/* Quick action buttons */}
                       {isPending && (
                         <div className="flex items-center gap-2 flex-shrink-0">
                           <button

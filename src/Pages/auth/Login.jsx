@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../../api/axios";
 
-// Normalize role to lowercase string regardless of array/string/case
+// Normalize role
 const getRole = (roles) => {
   const raw = Array.isArray(roles) ? roles[0] : roles;
   return (raw || "").toLowerCase().trim();
@@ -21,17 +21,17 @@ const redirectByRole = (roles, navigate) => {
 
 export default function Login() {
   const navigate = useNavigate();
-  const [form, setForm]         = useState({ email: "", password: "" });
-  const [error, setError]       = useState("");
+  const [form, setForm] = useState({ email: "", password: "" });
+  const [error, setError] = useState("");
   const [showPass, setShowPass] = useState(false);
-  const [loading, setLoading]   = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  // Redirect if already logged in — only runs once on mount
+  // Redirect hunxa yedi already logged in xa vana and only runs once on mount
   useEffect(() => {
     const storedUser = JSON.parse(localStorage.getItem("user"));
     if (!storedUser?.roles) return;
     redirectByRole(storedUser.roles, navigate);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   const change = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
@@ -48,7 +48,6 @@ export default function Login() {
         return;
       }
 
-      // Normalize the role in storage so all pages can do simple lowercase compare
       const normalizedUser = {
         ...user,
         roles: Array.isArray(user.roles)
@@ -66,6 +65,7 @@ export default function Login() {
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
+      
       {/* NAVBAR */}
       <nav className="flex justify-between items-center px-8 py-5 shadow-md bg-white">
         <h1

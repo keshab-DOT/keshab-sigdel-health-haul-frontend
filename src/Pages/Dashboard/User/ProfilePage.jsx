@@ -39,14 +39,14 @@ function Topbar({ user, cartCount, onLogout, navigate }) {
 function Footer({ navigate }) {
   const quickLinks = [
     { label: "Search Medicines", path: "/user/search" },
-    { label: "My Orders",        path: "/user/orders" },
-    { label: "My Cart",          path: "/user/cart" },
-    { label: "Profile",          path: "/user/profile" },
+    { label: "My Orders", path: "/user/orders" },
+    { label: "My Cart", path: "/user/cart" },
+    { label: "Profile", path: "/user/profile" },
   ];
   const supportLinks = [
-    { label: "Help Center",      path: "/user/support" },
-    { label: "Contact Us",       path: "/user/support" },
-    { label: "Refund Policy",    path: "/user/support" },
+    { label: "Help Center", path: "/user/support" },
+    { label: "Contact Us", path: "/user/support" },
+    { label: "Refund Policy", path: "/user/support" },
     { label: "Terms of Service", path: "/user/support" },
   ];
   return (
@@ -102,11 +102,11 @@ function InputField({ label, type = "text", value, onChange, disabled, placehold
 
 export default function ProfilePage() {
   const navigate  = useNavigate();
-  const [user, setUser]           = useState(null);
+  const [user, setUser] = useState(null);
   const [activeTab, setActiveTab] = useState("profile");
-  const [form, setForm]           = useState({ name: "", email: "", phone: "" });
-  const [saving, setSaving]       = useState(false);
-  const [toast, setToast]         = useState(null);
+  const [form, setForm] = useState({ name: "", email: "", phone: "" });
+  const [saving, setSaving] = useState(false);
+  const [toast, setToast] = useState(null);
 
   const showToast = (msg, type = "success") => { setToast({ msg, type }); setTimeout(() => setToast(null), 3000); };
 
@@ -195,11 +195,11 @@ export default function ProfilePage() {
             <h3 className="text-[15px] font-black text-gray-900 mb-5">Account Information</h3>
             <div className="space-y-0.5 mb-6">
               {[
-                { label: "Full Name",    value: user.name },
-                { label: "Email",        value: user.email },
-                { label: "Phone",        value: form.phone || "Not set" },
+                { label: "Full Name", value: user.name },
+                { label: "Email", value: user.email },
+                { label: "Phone", value: form.phone || "Not set" },
                 { label: "Account Type", value: user.roles?.[0] || user.roles || "Customer" },
-                { label: "Account ID",   value: user._id || user.id || "N/A" },
+                { label: "Account ID", value: user._id || user.id || "N/A" },
               ].map(({ label, value }) => (
                 <div key={label} className="flex items-center justify-between py-3 border-b border-gray-50 last:border-0">
                   <span className="text-[13px] text-gray-500 font-medium">{label}</span>

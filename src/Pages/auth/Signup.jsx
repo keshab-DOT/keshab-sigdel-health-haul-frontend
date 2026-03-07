@@ -10,7 +10,7 @@ export default function Signup() {
     email: "",
     password: "",
     confirmPassword: "",
-    role: "USER", // ✅ UPPERCASE to match backend
+    role: "USER", // UPPERCASE to match backend code to avoid confusion
   });
 
   const [error, setError] = useState("");
@@ -57,6 +57,7 @@ export default function Signup() {
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
+
       {/* NAVBAR */}
       <nav className="flex justify-between items-center px-8 py-5 shadow-md bg-white">
         <h1
@@ -194,7 +195,7 @@ export default function Signup() {
                 </div>
               </div>
 
-              {/* ROLE - ✅ UPPERCASE VALUES */}
+              {/* ROLE - UPPERCASE VALUES */}
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">Account Type</label>
                 <div className="relative">

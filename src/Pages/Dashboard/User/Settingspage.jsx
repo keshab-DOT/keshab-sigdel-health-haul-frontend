@@ -13,8 +13,8 @@ function Topbar({ user, onLogout, navigate }) {
       </div>
       <nav className="flex items-center gap-1 ml-6">
         <button onClick={() => navigate("/user/dashboard")} className="px-3.5 py-1.5 text-[13px] font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-50 rounded-lg transition">Dashboard</button>
-        <button onClick={() => navigate("/user/search")}    className="px-3.5 py-1.5 text-[13px] font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-50 rounded-lg transition">Browse Medicines</button>
-        <button onClick={() => navigate("/user/orders")}    className="px-3.5 py-1.5 text-[13px] font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-50 rounded-lg transition">My Orders</button>
+        <button onClick={() => navigate("/user/search")} className="px-3.5 py-1.5 text-[13px] font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-50 rounded-lg transition">Browse Medicines</button>
+        <button onClick={() => navigate("/user/orders")} className="px-3.5 py-1.5 text-[13px] font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-50 rounded-lg transition">My Orders</button>
       </nav>
       <div className="flex items-center gap-2 ml-auto">
         <button onClick={() => navigate("/user/cart")} className="relative w-9 h-9 flex items-center justify-center text-gray-500 hover:text-gray-800 hover:bg-gray-50 rounded-xl transition">
@@ -38,14 +38,14 @@ function Topbar({ user, onLogout, navigate }) {
 function Footer({ navigate }) {
   const quickLinks = [
     { label: "Search Medicines", path: "/user/search" },
-    { label: "My Orders",        path: "/user/orders" },
-    { label: "My Cart",          path: "/user/cart" },
-    { label: "Profile",          path: "/user/profile" },
+    { label: "My Orders", path: "/user/orders" },
+    { label: "My Cart", path: "/user/cart" },
+    { label: "Profile", path: "/user/profile" },
   ];
   const supportLinks = [
-    { label: "Help Center",      path: "/user/support" },
-    { label: "Contact Us",       path: "/user/support" },
-    { label: "Refund Policy",    path: "/user/support" },
+    { label: "Help Center", path: "/user/support" },
+    { label: "Contact Us", path: "/user/support" },
+    { label: "Refund Policy", path: "/user/support" },
     { label: "Terms of Service", path: "/user/support" },
   ];
   return (
@@ -119,14 +119,14 @@ const FAQS = [
 
 export default function SettingsPage() {
   const navigate = useNavigate();
-  const [user, setUser]     = useState(null);
-  const [toast, setToast]   = useState(null);
+  const [user, setUser] = useState(null);
+  const [toast, setToast] = useState(null);
   const [activeTab, setActiveTab] = useState("notifications");
   const [ticket, setTicket] = useState({ category: "general", subject: "", message: "" });
-  const [ticketSent, setTicketSent]       = useState(false);
+  const [ticketSent, setTicketSent] = useState(false);
   const [ticketLoading, setTicketLoading] = useState(false);
   const [notifs, setNotifs] = useState({ orderUpdates: true, deliveryAlerts: true, promotions: false, smsAlerts: true, emailDigest: false });
-  const [prefs, setPrefs]   = useState({ saveAddress: true, searchHistory: true, analytics: false });
+  const [prefs, setPrefs] = useState({ saveAddress: true, searchHistory: true, analytics: false });
 
   const showToast = (msg, type = "success") => { setToast({ msg, type }); setTimeout(() => setToast(null), 3000); };
 
@@ -188,11 +188,11 @@ export default function SettingsPage() {
             <p className="text-[12px] text-gray-400 mb-5">Choose what you'd like to be notified about</p>
             <div className="space-y-0.5">
               {[
-                { key: "orderUpdates",   label: "Order Status Updates",   desc: "Get notified when your order status changes" },
-                { key: "deliveryAlerts", label: "Delivery Alerts",        desc: "Alerts when your delivery is on the way" },
-                { key: "smsAlerts",      label: "SMS Notifications",      desc: "Receive updates via text message" },
-                { key: "promotions",     label: "Promotions & Offers",    desc: "Deals, discounts and special offers" },
-                { key: "emailDigest",    label: "Weekly Email Digest",    desc: "A weekly summary of your orders and offers" },
+                { key: "orderUpdates", label: "Order Status Updates", desc: "Get notified when your order status changes" },
+                { key: "deliveryAlerts", label: "Delivery Alerts", desc: "Alerts when your delivery is on the way" },
+                { key: "smsAlerts", label: "SMS Notifications", desc: "Receive updates via text message" },
+                { key: "promotions", label: "Promotions & Offers", desc: "Deals, discounts and special offers" },
+                { key: "emailDigest", label: "Weekly Email Digest", desc: "A weekly summary of your orders and offers" },
               ].map(({ key, label, desc }) => (
                 <div key={key} className="flex items-center justify-between py-3.5 border-b border-gray-50 last:border-0">
                   <div className="flex-1 pr-4">
@@ -214,9 +214,9 @@ export default function SettingsPage() {
               <p className="text-[12px] text-gray-400 mb-5">Control how your data is used</p>
               <div className="space-y-0.5">
                 {[
-                  { key: "saveAddress",   label: "Save Delivery Addresses", desc: "Quickly reuse past addresses at checkout" },
-                  { key: "searchHistory", label: "Save Search History",      desc: "See your recent medicine searches" },
-                  { key: "analytics",     label: "Usage Analytics",          desc: "Help us improve the app (anonymous data only)" },
+                  { key: "saveAddress", label: "Save Delivery Addresses", desc: "Quickly reuse past addresses at checkout" },
+                  { key: "searchHistory", label: "Save Search History", desc: "See your recent medicine searches" },
+                  { key: "analytics", label: "Usage Analytics", desc: "Help us improve the app (anonymous data only)" },
                 ].map(({ key, label, desc }) => (
                   <div key={key} className="flex items-center justify-between py-3.5 border-b border-gray-50 last:border-0">
                     <div className="flex-1 pr-4">
