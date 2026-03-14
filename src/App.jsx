@@ -21,7 +21,7 @@ import PharmacyProducts from "./Pages/Dashboard/Pharmacy/Pharmacyproducts";
 import PharmacyProfile from "./Pages/Dashboard/Pharmacy/Pharmacyprofile";
 
 // Admin
-import AdminDashboard from "./Pages/Dashboard/Admin/AdminDashboard";
+import AdminDashboard from "./Pages/Dashboard/Admin/Admindashboard";
 import AdminUsers from "./Pages/Dashboard/Admin/Adminusers";
 import AdminProducts from "./Pages/Dashboard/Admin/Adminproducts";
 
@@ -55,7 +55,7 @@ function App() {
           {/* Admin Routes */}
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
           <Route path="/admin/users" element={<AdminUsers />} />
-          <Route path="/admin/products" element={<AdminProducts />} />
+          <Route path="/admin/products" element={<AdminProducts />} /> 
 
         </Routes>
       </Router>

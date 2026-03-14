@@ -68,21 +68,20 @@ function ApprovalBadge({ status }) {
   );
 }
 
-function ProductModal({ product, onClose, onSuccess, categories }) {
+function ProductModal({ product, onClose, onSuccess }) {
   const isEdit = !!product;
   const [form, setForm] = useState({
     productName:               product?.productName               || "",
     productDescription:        product?.productDescription        || "",
     productPrice:              product?.productPrice              || "",
     productTotalStockQuantity: product?.productTotalStockQuantity || "",
-    categoryId:                product?.categoryId?._id || product?.categoryId || "",
   });
-  const [imageFile, setImageFile]   = useState(null);
-  const [preview,   setPreview]     = useState(
+  const [imageFile, setImageFile] = useState(null);
+  const [preview,   setPreview]   = useState(
     product?.productImageUrl ? `http://localhost:3000/${product.productImageUrl}` : ""
   );
-  const [saving, setSaving]   = useState(false);
-  const [error,  setError]    = useState("");
+  const [saving, setSaving] = useState(false);
+  const [error,  setError]  = useState("");
 
   const handleChange = (e) => {
     setError("");
@@ -104,24 +103,18 @@ function ProductModal({ product, onClose, onSuccess, categories }) {
     }
     setSaving(true);
     try {
-      // Use FormData so image file can be sent
       const fd = new FormData();
       fd.append("productName",               form.productName);
       fd.append("productDescription",        form.productDescription);
       fd.append("productPrice",              Number(form.productPrice));
       fd.append("productTotalStockQuantity", Number(form.productTotalStockQuantity));
-      if (form.categoryId) fd.append("categoryId", form.categoryId);
       if (imageFile) fd.append("image", imageFile);
 
       if (isEdit) {
-        await api.put(`/products/product/update/${product._id}`, fd, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
+        await api.put(`/products/product/update/${product._id}`, fd);
         onSuccess("Product updated! Awaiting re-approval from admin.");
       } else {
-        await api.post("/products/create/product", fd, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
+        await api.post("/products/create/product", fd);
         onSuccess("Product submitted! Awaiting admin approval.");
       }
       onClose();
@@ -168,18 +161,6 @@ function ProductModal({ product, onClose, onSuccess, categories }) {
                 placeholder="e.g. 100" min="0"
                 className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-[13px] focus:outline-none focus:ring-2 focus:ring-green-400/40 focus:border-green-400 bg-white transition" />
             </div>
-          </div>
-
-          {/* Category */}
-          <div>
-            <label className="block text-[12px] font-bold text-gray-700 mb-1.5">Category</label>
-            <select name="categoryId" value={form.categoryId} onChange={handleChange}
-              className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-[13px] focus:outline-none focus:ring-2 focus:ring-green-400/40 focus:border-green-400 bg-white transition">
-              <option value="">— Select category —</option>
-              {categories.map(c => (
-                <option key={c._id} value={c._id}>{c.categoryName}</option>
-              ))}
-            </select>
           </div>
 
           {/* Image upload */}
@@ -269,14 +250,12 @@ export default function PharmacyProducts() {
   const navigate = useNavigate();
   const [user,          setUser]          = useState(null);
   const [products,      setProducts]      = useState([]);
-  const [categories,    setCategories]    = useState([]);
   const [loading,       setLoading]       = useState(true);
   const [toast,         setToast]         = useState(null);
   const [addModal,      setAddModal]      = useState(false);
   const [editProduct,   setEditProduct]   = useState(null);
   const [deleteProduct, setDeleteProduct] = useState(null);
   const [filter,        setFilter]        = useState("all");
-  const [catFilter,     setCatFilter]     = useState("all");
 
   const showToast = (msg, type = "success") => {
     setToast({ msg, type });
@@ -288,30 +267,18 @@ export default function PharmacyProducts() {
     if (!stored || getRole(stored) !== "pharmacy") { navigate("/login", { replace: true }); return; }
     setUser(stored);
     fetchProducts();
-    fetchCategories();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchProducts = async () => {
     setLoading(true);
     try {
       const r = await api.get("/products/my/products");
-      // ✅ Fix: backend returns { products: [...] } — always extract the array
       const data = r.data;
       setProducts(Array.isArray(data) ? data : Array.isArray(data?.products) ? data.products : []);
     } catch (_) {
       setProducts([]);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const fetchCategories = async () => {
-    try {
-      const r = await api.get("/categories/get/categories");
-      const data = r.data;
-      setCategories(Array.isArray(data) ? data : Array.isArray(data?.categories) ? data.categories : Array.isArray(data?.data) ? data.data : []);
-    } catch (_) {
-      setCategories([]);
     }
   };
 
@@ -328,14 +295,7 @@ export default function PharmacyProducts() {
 
   const FILTERS = ["all", "Pending", "Approved", "Rejected"];
 
-  // apply both status filter and category filter
-  const filtered = products
-    .filter(p => filter === "all" || p.approvalStatus === filter)
-    .filter(p => {
-      if (catFilter === "all") return true;
-      const cid = p.categoryId?._id || p.categoryId;
-      return cid === catFilter;
-    });
+  const filtered = products.filter(p => filter === "all" || p.approvalStatus === filter);
 
   const counts = {
     all:      products.length,
@@ -359,9 +319,9 @@ export default function PharmacyProducts() {
         </div>
       )}
 
-      {addModal    && <ProductModal onClose={() => setAddModal(false)}    onSuccess={handleModalSuccess} categories={categories} />}
-      {editProduct && <ProductModal product={editProduct} onClose={() => setEditProduct(null)} onSuccess={handleModalSuccess} categories={categories} />}
-      {deleteProduct && <DeleteModal product={deleteProduct} onClose={() => setDeleteProduct(null)} onSuccess={handleModalSuccess} />}
+      {addModal      && <ProductModal onClose={() => setAddModal(false)}    onSuccess={handleModalSuccess} />}
+      {editProduct   && <ProductModal product={editProduct} onClose={() => setEditProduct(null)} onSuccess={handleModalSuccess} />}
+      {deleteProduct && <DeleteModal  product={deleteProduct} onClose={() => setDeleteProduct(null)} onSuccess={handleModalSuccess} />}
 
       <Sidebar user={user} active="products" onLogout={logout} navigate={navigate} />
 
@@ -416,7 +376,7 @@ export default function PharmacyProducts() {
           )}
 
           {/* Status filter tabs */}
-          <div className="flex gap-1.5 mb-3">
+          <div className="flex gap-1.5 mb-5">
             {FILTERS.map(key => (
               <button key={key} onClick={() => setFilter(key)}
                 className={`px-3.5 py-2 rounded-xl text-[13px] font-medium transition-all flex items-center gap-1.5 ${filter === key ? "bg-gray-950 text-white shadow-sm" : "bg-white text-gray-500 border border-gray-200 hover:border-green-300 hover:text-green-600"}`}>
@@ -425,22 +385,6 @@ export default function PharmacyProducts() {
               </button>
             ))}
           </div>
-
-          {/* Category filter */}
-          {categories.length > 0 && (
-            <div className="flex gap-1.5 flex-wrap mb-5">
-              <button onClick={() => setCatFilter("all")}
-                className={`px-3 py-1.5 rounded-lg text-[12px] font-semibold transition-all ${catFilter === "all" ? "bg-green-600 text-white" : "bg-white text-gray-500 border border-gray-200 hover:border-green-300"}`}>
-                All Categories
-              </button>
-              {categories.map(c => (
-                <button key={c._id} onClick={() => setCatFilter(c._id)}
-                  className={`px-3 py-1.5 rounded-lg text-[12px] font-semibold transition-all ${catFilter === c._id ? "bg-green-600 text-white" : "bg-white text-gray-500 border border-gray-200 hover:border-green-300"}`}>
-                  {c.categoryName}
-                </button>
-              ))}
-            </div>
-          )}
 
           {/* Product grid */}
           {loading ? (
@@ -458,9 +402,9 @@ export default function PharmacyProducts() {
               <div className="text-4xl mb-3">📦</div>
               <h3 className="text-[15px] font-bold text-gray-700 mb-1">No products found</h3>
               <p className="text-[13px] text-gray-400 mb-5">
-                {filter === "all" && catFilter === "all" ? "You haven't added any products yet." : "No products match the selected filters."}
+                {filter === "all" ? "You haven't added any products yet." : "No products match the selected filter."}
               </p>
-              {filter === "all" && catFilter === "all" && (
+              {filter === "all" && (
                 <button onClick={() => setAddModal(true)} className="inline-flex items-center gap-2 bg-gray-950 text-white px-4 py-2.5 rounded-xl font-bold text-[13px] hover:bg-gray-800 transition">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
                   Add Your First Product
@@ -470,8 +414,7 @@ export default function PharmacyProducts() {
           ) : (
             <div className="grid grid-cols-2 gap-4">
               {filtered.map(product => {
-                const catName = product.categoryId?.categoryName || null;
-                const imgSrc  = product.productImageUrl
+                const imgSrc = product.productImageUrl
                   ? product.productImageUrl.startsWith("http")
                     ? product.productImageUrl
                     : `http://localhost:3000/${product.productImageUrl}`
@@ -490,12 +433,6 @@ export default function PharmacyProducts() {
                       )}
                     </div>
                     <div className="p-4">
-                      {/* Category tag */}
-                      {catName && (
-                        <span className="inline-block mb-2 px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 text-[10px] font-bold border border-blue-100">
-                          {catName}
-                        </span>
-                      )}
                       <h3 className="text-[14px] font-black text-gray-900 truncate mb-1">{product.productName}</h3>
                       <p className="text-[11px] text-gray-400 line-clamp-2 mb-3 leading-relaxed">{product.productDescription}</p>
                       <div className="flex items-center justify-between mb-4">
