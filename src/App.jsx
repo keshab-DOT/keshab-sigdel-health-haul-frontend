@@ -13,12 +13,15 @@ import CartPage from "./Pages/Dashboard/User/CartPage";
 import UserOrderPage from "./Pages/Dashboard/User/UserOrderPage";
 import ProfilePage from "./Pages/Dashboard/User/ProfilePage";
 import SettingsPage from "./Pages/Dashboard/User/SettingsPage";
+import UserChatPage    from "./Pages/Dashboard/User/Userchatpage";
+import KhaltiResultPage from "./Pages/payment/KhaltiResultPage";
 
 // Pharmacy
 import PharmacyDashboard from "./Pages/Dashboard/Pharmacy/PharmacyDashboard";
 import PharmacyOrders from "./Pages/Dashboard/Pharmacy/Pharmacyorders";
 import PharmacyProducts from "./Pages/Dashboard/Pharmacy/Pharmacyproducts";
 import PharmacyProfile from "./Pages/Dashboard/Pharmacy/Pharmacyprofile";
+import PharmacyChatPage from "./Pages/Dashboard/Pharmacy/Pharmacychatpage";
 
 // Admin
 import AdminDashboard from "./Pages/Dashboard/Admin/Admindashboard";
@@ -45,12 +48,15 @@ function App() {
           <Route path="/user/profile" element={<ProfilePage />} />
           <Route path="/user/settings" element={<SettingsPage />} />
           <Route path="/user/support" element={<SettingsPage />} />
+          <Route path="/user/chat"     element={<UserChatPage />} />
+          <Route path="/payment/result" element={<KhaltiResultPage />} />
 
           {/* Pharmacy Routes */}
           <Route path="/pharmacy/dashboard" element={<PharmacyDashboard />} />
           <Route path="/pharmacy/orders" element={<PharmacyOrders />} />
           <Route path="/pharmacy/products" element={<PharmacyProducts />} />
           <Route path="/pharmacy/profile" element={<PharmacyProfile />} />
+          <Route path="/pharmacy/chat" element={<PharmacyChatPage />} />
 
           {/* Admin Routes */}
           <Route path="/admin/dashboard" element={<AdminDashboard />} />

@@ -15,6 +15,7 @@ function Topbar({ user, onLogout, navigate, active }) {
         <button onClick={() => navigate("/user/dashboard")} className={`px-3.5 py-1.5 text-[13px] font-medium rounded-lg transition ${active==="dashboard"?"font-semibold text-gray-900 bg-gray-100":"text-gray-500 hover:text-gray-800 hover:bg-gray-50"}`}>Dashboard</button>
         <button onClick={() => navigate("/user/search")}    className={`px-3.5 py-1.5 text-[13px] font-medium rounded-lg transition ${active==="search"?"font-semibold text-gray-900 bg-gray-100":"text-gray-500 hover:text-gray-800 hover:bg-gray-50"}`}>Browse Medicines</button>
         <button onClick={() => navigate("/user/orders")}    className={`px-3.5 py-1.5 text-[13px] font-medium rounded-lg transition ${active==="orders"?"font-semibold text-gray-900 bg-gray-100":"text-gray-500 hover:text-gray-800 hover:bg-gray-50"}`}>My Orders</button>
+        <button onClick={() => navigate("/user/chat")} className="px-3.5 py-1.5 text-[13px] font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-50 rounded-lg transition">Chat</button>
       </nav>
       <div className="flex items-center gap-2 ml-auto">
         <button onClick={() => navigate("/user/cart")} className="relative w-9 h-9 flex items-center justify-center text-gray-500 hover:text-gray-800 hover:bg-gray-50 rounded-xl transition">
@@ -157,6 +158,7 @@ export default function UserOrderPage() {
   const handleLogout = async () => {
     try { await api.post("/auth/logout"); } catch (_) {}
     localStorage.removeItem("user");
+    localStorage.removeItem("token");
     navigate("/login");
   };
 

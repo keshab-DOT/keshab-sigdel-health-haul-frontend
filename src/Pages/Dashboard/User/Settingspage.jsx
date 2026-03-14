@@ -9,10 +9,15 @@ function Sidebar() {
     { label: "Search", path: "/user/search" },
     { label: "Cart", path: "/user/cart" },
     { label: "My Orders", path: "/user/orders" },
+    { label: "Chat", path: "/user/chat" },
     { label: "Profile", path: "/user/profile" },
     { label: "Settings", path: "/user/settings" },
   ];
-  const logout = () => { localStorage.clear(); navigate("/login"); };
+  const logout = () => {
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
+    navigate("/login");
+  };
   return (
     <aside className="w-60 min-h-screen bg-white border-r border-gray-100 flex flex-col">
       <div className="px-5 py-5 border-b border-gray-100">

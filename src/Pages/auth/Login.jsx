@@ -16,7 +16,7 @@ const redirectByRole = (roles, navigate) => {
 
 // ── 3-step Forgot Password Modal ──────────────────────────────────────────────
 function ForgotPasswordModal({ onClose }) {
-  const [step, setStep]         = useState(1); // 1=email, 2=otp, 3=new password
+  const [step, setStep]         = useState(1);
   const [email, setEmail]       = useState("");
   const [otp, setOtp]           = useState("");
   const [newPass, setNewPass]   = useState("");
@@ -65,8 +65,6 @@ function ForgotPasswordModal({ onClose }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
-
-        {/* Header */}
         <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
           <div>
             <h3 className="text-[16px] font-black text-gray-900">Forgot Password</h3>
@@ -77,7 +75,6 @@ function ForgotPasswordModal({ onClose }) {
           </button>
         </div>
 
-        {/* Step indicator */}
         <div className="px-6 pt-5">
           <div className="flex items-center gap-0">
             {STEPS.map((label, i) => (
@@ -95,7 +92,6 @@ function ForgotPasswordModal({ onClose }) {
           </div>
         </div>
 
-        {/* Step content */}
         <div className="p-6">
           {success && (
             <div className="mb-4 flex items-center gap-2 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl text-[13px] font-medium">
@@ -110,7 +106,6 @@ function ForgotPasswordModal({ onClose }) {
             </div>
           )}
 
-          {/* Step 1: Email */}
           {step === 1 && (
             <form onSubmit={step1} className="space-y-4">
               <div>
@@ -129,7 +124,6 @@ function ForgotPasswordModal({ onClose }) {
             </form>
           )}
 
-          {/* Step 2: OTP */}
           {step === 2 && (
             <form onSubmit={step2} className="space-y-4">
               <div>
@@ -139,14 +133,8 @@ function ForgotPasswordModal({ onClose }) {
                 <p className="text-[11px] text-gray-400 mt-1.5">Sent to <span className="font-semibold text-gray-600">{email}</span></p>
               </div>
               <div className="flex gap-2">
-                <button type="button" onClick={() => setStep(1)}
-                  className="flex-1 border border-gray-200 text-gray-600 py-2.5 rounded-xl font-bold text-[13px] hover:bg-gray-50 transition">
-                  ← Back
-                </button>
-                <button type="submit"
-                  className="flex-1 bg-gray-900 text-white py-2.5 rounded-xl font-bold text-[13px] hover:bg-gray-800 transition">
-                  Verify OTP →
-                </button>
+                <button type="button" onClick={() => setStep(1)} className="flex-1 border border-gray-200 text-gray-600 py-2.5 rounded-xl font-bold text-[13px] hover:bg-gray-50 transition">← Back</button>
+                <button type="submit" className="flex-1 bg-gray-900 text-white py-2.5 rounded-xl font-bold text-[13px] hover:bg-gray-800 transition">Verify OTP →</button>
               </div>
               <button type="button" onClick={() => { step1({ preventDefault: () => {} }); }}
                 className="w-full text-[12px] text-green-600 hover:text-green-700 font-semibold text-center">
@@ -155,7 +143,6 @@ function ForgotPasswordModal({ onClose }) {
             </form>
           )}
 
-          {/* Step 3: New Password */}
           {step === 3 && (
             <form onSubmit={step3} className="space-y-4">
               <div>
@@ -177,7 +164,6 @@ function ForgotPasswordModal({ onClose }) {
                     className="w-full border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-[13px] focus:outline-none focus:ring-2 focus:ring-green-400/40 focus:border-green-400 transition"/>
                 </div>
               </div>
-              {/* Match indicator */}
               {confirm && (
                 <div className={`flex items-center gap-1.5 text-[12px] font-semibold ${newPass === confirm ? "text-green-600" : "text-red-500"}`}>
                   {newPass === confirm
@@ -200,11 +186,11 @@ function ForgotPasswordModal({ onClose }) {
 // ── Main Login Page ────────────────────────────────────────────────────────────
 export default function Login() {
   const navigate = useNavigate();
-  const [form, setForm]               = useState({ email: "", password: "" });
-  const [error, setError]             = useState("");
-  const [showPass, setShowPass]       = useState(false);
-  const [loading, setLoading]         = useState(false);
-  const [showForgot, setShowForgot]   = useState(false);
+  const [form, setForm]             = useState({ email: "", password: "" });
+  const [error, setError]           = useState("");
+  const [showPass, setShowPass]     = useState(false);
+  const [loading, setLoading]       = useState(false);
+  const [showForgot, setShowForgot] = useState(false);
 
   useEffect(() => {
     const storedUser = JSON.parse(localStorage.getItem("user"));
@@ -221,11 +207,17 @@ export default function Login() {
       const res = await api.post("/auth/login", form);
       const user = res.data.user;
       if (!user || !user.roles) { setError("Invalid user data from server"); setLoading(false); return; }
+
       const normalizedUser = {
         ...user,
-        roles: Array.isArray(user.roles) ? user.roles.map(r => r.toLowerCase().trim()) : [user.roles.toLowerCase().trim()],
+        roles: Array.isArray(user.roles)
+          ? user.roles.map(r => r.toLowerCase().trim())
+          : [user.roles.toLowerCase().trim()],
       };
+
       localStorage.setItem("user", JSON.stringify(normalizedUser));
+      localStorage.setItem("token", res.data.token); // ← save token for Authorization header
+
       redirectByRole(normalizedUser.roles, navigate);
     } catch (err) {
       setError(err.response?.data?.message || "Login failed");
@@ -271,7 +263,6 @@ export default function Login() {
             </div>
 
             <form onSubmit={submit} className="space-y-5">
-              {/* EMAIL */}
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">Email Address</label>
                 <div className="relative">
@@ -283,11 +274,9 @@ export default function Login() {
                 </div>
               </div>
 
-              {/* PASSWORD */}
               <div>
                 <div className="flex justify-between items-center mb-2">
                   <label className="text-sm font-semibold text-gray-700">Password</label>
-                  {/* ✅ Forgot password link */}
                   <button type="button" onClick={() => setShowForgot(true)}
                     className="text-[12px] text-green-600 hover:text-green-700 font-semibold transition">
                     Forgot password?
@@ -308,7 +297,6 @@ export default function Login() {
                 </div>
               </div>
 
-              {/* ERROR */}
               {error && (
                 <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center gap-2">
                   <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd"/></svg>
@@ -316,12 +304,11 @@ export default function Login() {
                 </div>
               )}
 
-              {/* SUBMIT */}
               <button type="submit" disabled={loading}
                 className="bg-green-600 hover:bg-green-700 w-full text-white py-3 rounded-lg font-bold transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none">
                 {loading
                   ? <div className="flex items-center justify-center gap-2">
-                      <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
+                      <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
                       <span>Logging in...</span>
                     </div>
                   : "Login"}
