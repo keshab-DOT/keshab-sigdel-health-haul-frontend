@@ -27,6 +27,7 @@ import PharmacyChatPage from "./Pages/Dashboard/Pharmacy/Pharmacychatpage";
 import AdminDashboard from "./Pages/Dashboard/Admin/Admindashboard";
 import AdminUsers from "./Pages/Dashboard/Admin/Adminusers";
 import AdminProducts from "./Pages/Dashboard/Admin/Adminproducts";
+import AdminChatPage from "./Pages/Dashboard/Admin/Adminchatpage";
 
 function App() {
   return (
@@ -61,7 +62,8 @@ function App() {
           {/* Admin Routes */}
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
           <Route path="/admin/users" element={<AdminUsers />} />
-          <Route path="/admin/products" element={<AdminProducts />} /> 
+          <Route path="/admin/products" element={<AdminProducts />} />
+          <Route path="/admin/chat" element={<AdminChatPage />} />
 
         </Routes>
       </Router>

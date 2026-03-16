@@ -2,202 +2,15 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../../api/axios";
 import { io } from "socket.io-client";
+import { AdminSidebar } from "./Admindashboard";
 
-const getRole = (stored) => {
-  const raw = Array.isArray(stored?.roles) ? stored.roles[0] : stored?.roles;
-  return (raw || "").toLowerCase().trim();
-};
-
-const TYPE_META = {
-  ORDER_PLACED:     { icon: "📦", color: "bg-blue-50  text-blue-600"   },
-  ORDER_STATUS:     { icon: "🚚", color: "bg-green-50 text-green-600"  },
-  PRODUCT_APPROVED: { icon: "✅", color: "bg-green-50  text-green-600" },
-  PRODUCT_REJECTED: { icon: "❌", color: "bg-red-50   text-red-600"   },
-  PAYMENT_RECEIVED: { icon: "💰", color: "bg-amber-50 text-amber-600" },
-};
-const notifMeta = (type) => TYPE_META[type] || { icon: "🔔", color: "bg-gray-50 text-gray-600" };
-function timeAgo(date) {
-  const diff = Math.floor((Date.now() - new Date(date)) / 1000);
-  if (diff < 60)    return "just now";
-  if (diff < 3600)  return `${Math.floor(diff / 60)}m ago`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-  return `${Math.floor(diff / 86400)}d ago`;
-}
-
-function NotificationBell({ userId }) {
-  const [open, setOpen]       = useState(false);
-  const [notifs, setNotifs]   = useState([]);
-  const [unread, setUnread]   = useState(0);
-  const [loading, setLoading] = useState(true);
-  const dropdownRef = useRef(null);
-  const socketRef   = useRef(null);
-
-  const fetchNotifs = useCallback(async () => {
-    try {
-      const { data } = await api.get("/notifications");
-      setNotifs(data.notifications || []);
-      setUnread(data.unreadCount   || 0);
-    } catch {}
-    finally { setLoading(false); }
-  }, []);
-
-  useEffect(() => { fetchNotifs(); }, [fetchNotifs]);
-
-  useEffect(() => {
-    if (!userId) return;
-    const socket = io("http://localhost:3000", { query: { userId }, withCredentials: true });
-    socketRef.current = socket;
-    socket.emit("joinUserRoom", userId);
-    socket.on("newNotification", (n) => {
-      setNotifs(prev => prev.some(x => x._id === n._id) ? prev : [n, ...prev]);
-      setUnread(prev => prev + 1);
-    });
-    return () => { socket.emit("leaveUserRoom", userId); socket.disconnect(); };
-  }, [userId]);
-
-  useEffect(() => {
-    const handler = (e) => { if (dropdownRef.current && !dropdownRef.current.contains(e.target)) setOpen(false); };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
-
-  const markRead = async (id) => {
-    try {
-      await api.put(`/notifications/${id}/read`);
-      setNotifs(prev => prev.map(n => n._id === id ? { ...n, isRead: true } : n));
-      setUnread(prev => Math.max(0, prev - 1));
-    } catch {}
-  };
-
-  const markAllRead = async (e) => {
-    e.stopPropagation();
-    try {
-      await api.put("/notifications/read-all");
-      setNotifs(prev => prev.map(n => ({ ...n, isRead: true })));
-      setUnread(0);
-    } catch {}
-  };
-
-  return (
-    <div className="relative" ref={dropdownRef}>
-      <button onClick={() => setOpen(o => !o)}
-        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium text-gray-500 hover:bg-gray-50 hover:text-gray-800 transition-all duration-150">
-        <span className="flex-shrink-0 opacity-50 relative">
-          <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
-          </svg>
-          {unread > 0 && (
-            <span className="absolute -top-1.5 -right-1.5 min-w-[14px] h-[14px] bg-red-500 text-white text-[8px] font-black rounded-full flex items-center justify-center px-[2px] leading-none">
-              {unread > 9 ? "9+" : unread}
-            </span>
-          )}
-        </span>
-        <span>Notifications</span>
-        {unread > 0 && <span className="ml-auto bg-red-100 text-red-600 text-[10px] font-black px-1.5 py-0.5 rounded-full">{unread}</span>}
-      </button>
-
-      {open && (
-        <div className="absolute left-full top-0 ml-2 w-80 bg-white rounded-2xl shadow-xl border border-gray-100 z-50 overflow-hidden">
-          <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <p className="text-[14px] font-black text-gray-900">Notifications</p>
-              {unread > 0 && <span className="bg-red-100 text-red-600 text-[10px] font-black px-1.5 py-0.5 rounded-full">{unread} new</span>}
-            </div>
-            {unread > 0 && <button onClick={markAllRead} className="text-[11px] font-bold text-green-600 hover:text-green-700 transition">Mark all read</button>}
-          </div>
-          <div className="max-h-[380px] overflow-y-auto">
-            {loading ? (
-              <div className="py-10 flex justify-center"><div className="w-6 h-6 border-2 border-green-500 border-t-transparent rounded-full animate-spin"/></div>
-            ) : notifs.length === 0 ? (
-              <div className="py-12 text-center">
-                <div className="text-3xl mb-2">🔔</div>
-                <p className="text-[13px] font-bold text-gray-600">No notifications yet</p>
-                <p className="text-[11px] text-gray-400 mt-1">You're all caught up!</p>
-              </div>
-            ) : notifs.slice(0, 20).map(n => {
-              const m = notifMeta(n.type);
-              return (
-                <button key={n._id} onClick={() => { if (!n.isRead) markRead(n._id); setOpen(false); }}
-                  className={`w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-gray-50 transition border-b border-gray-50 last:border-0 ${!n.isRead ? "bg-green-50/40" : ""}`}>
-                  <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-base flex-shrink-0 mt-0.5 ${m.color}`}>{m.icon}</div>
-                  <div className="flex-1 min-w-0">
-                    <p className={`text-[12px] leading-snug ${n.isRead ? "text-gray-700 font-medium" : "text-gray-900 font-bold"}`}>{n.title}</p>
-                    <p className="text-[11px] text-gray-400 mt-0.5 line-clamp-2 leading-relaxed">{n.message}</p>
-                    <p className="text-[10px] text-gray-300 mt-1 font-medium">{timeAgo(n.createdAt)}</p>
-                  </div>
-                  {!n.isRead && <div className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0 mt-1.5"/>}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function Sidebar({ user, onLogout, navigate }) {
-  const NAV = [
-    { key: "dashboard",     label: "Dashboard", path: "/pharmacy/dashboard", icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg> },
-    { key: "orders",        label: "Orders",    path: "/pharmacy/orders",    icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg> },
-    { key: "products",      label: "Products",  path: "/pharmacy/products",  icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg> },
-    { key: "chat",          label: "Messages",  path: "/pharmacy/chat",      icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M8 12h.01M12 12h.01M16 12h.01M21 3H3a2 2 0 00-2 2v13a2 2 0 002 2h5l3 3 3-3h7a2 2 0 002-2V5a2 2 0 00-2-2z"/></svg> },
-    { key: "notifications", label: "Notifications", path: null, icon: null },
-    { key: "profile",       label: "Profile",   path: "/pharmacy/profile",   icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg> },
-  ];
-  const active = "chat";
-  return (
-    <aside className="w-[200px] min-h-screen bg-white border-r border-gray-100 flex flex-col flex-shrink-0 fixed left-0 top-0 bottom-0 z-20">
-      <div className="px-5 py-[18px] border-b border-gray-100">
-        <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-sm flex-shrink-0">
-            <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
-          </div>
-          <span className="font-black text-[14px] text-gray-900 tracking-tight leading-tight">HealthHaul</span>
-        </div>
-      </div>
-      <div className="px-4 py-3.5 border-b border-gray-100">
-        <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wider mb-2">Logged in as</p>
-        <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white font-black text-[11px] flex-shrink-0">{user?.name?.[0]?.toUpperCase() || "P"}</div>
-          <div className="min-w-0">
-            <p className="text-[13px] font-bold text-gray-800 truncate leading-tight">{user?.name || "Pharmacy"}</p>
-            <p className="text-[11px] text-green-600 font-semibold capitalize">Pharmacy</p>
-          </div>
-        </div>
-      </div>
-      <nav className="flex-1 px-3 py-3 space-y-0.5">
-        {NAV.map(({ key, label, path, icon }) => {
-          if (key === "notifications") return <NotificationBell key="notifications" userId={user?._id}/>;
-          return (
-            <button key={key} onClick={() => navigate(path)}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-150 ${active === key ? "bg-gray-950 text-white shadow-sm" : "text-gray-500 hover:bg-gray-50 hover:text-gray-800"}`}>
-              <span className={`flex-shrink-0 ${active === key ? "opacity-100" : "opacity-50"}`}>{icon}</span>
-              {label}
-            </button>
-          );
-        })}
-      </nav>
-      <div className="px-3 pb-4 pt-1 border-t border-gray-100">
-        <button onClick={onLogout} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium text-red-500 hover:bg-red-50 hover:text-red-600 transition-all">
-          <span className="opacity-60 flex-shrink-0"><svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg></span>
-          Sign Out
-        </button>
-      </div>
-    </aside>
-  );
-}
-
-function Avatar({ name, role, size = "md", online = false }) {
+function Avatar({ name, size = "md", online = false }) {
   const sizes    = { sm: "w-8 h-8 text-[11px]", md: "w-10 h-10 text-[13px]", lg: "w-12 h-12 text-[15px]" };
   const dotSizes = { sm: "w-2 h-2", md: "w-2.5 h-2.5", lg: "w-3 h-3" };
-  // ✅ Different color for admin vs user
-  const gradient = role === "admin"
-    ? "from-gray-700 to-gray-900"
-    : "from-blue-500 to-indigo-600";
   return (
     <div className="relative flex-shrink-0">
-      <div className={`${sizes[size]} rounded-full bg-gradient-to-br ${gradient} flex items-center justify-center text-white font-black`}>
+      {/* ✅ Green gradient — pharmacies only */}
+      <div className={`${sizes[size]} rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white font-black`}>
         {name?.[0]?.toUpperCase() || "?"}
       </div>
       {online && <span className={`absolute -bottom-0.5 -right-0.5 ${dotSizes[size]} bg-green-400 rounded-full border-2 border-white`}/>}
@@ -268,16 +81,9 @@ function MessageBubble({ msg, isMine, onDelete }) {
   );
 }
 
-// ✅ Helper to get role label + badge for a user in the list
-function RoleBadge({ roles }) {
-  const role = (Array.isArray(roles) ? roles[0] : roles || "").toLowerCase();
-  if (role === "admin") return <span className="text-[9px] font-bold text-gray-100 bg-gray-800 px-1.5 py-0.5 rounded-full flex-shrink-0">Admin</span>;
-  return <span className="text-[9px] font-bold text-blue-600 bg-blue-100 px-1.5 py-0.5 rounded-full flex-shrink-0">User</span>;
-}
-
-export default function PharmacyChatPage() {
+export default function AdminChatPage() {
   const navigate = useNavigate();
-  const [user, setUser]                 = useState(null);
+  const [admin, setAdmin]               = useState(null);
   const [chatUsers, setChatUsers]       = useState([]);
   const [selected, setSelected]         = useState(null);
   const [messages, setMessages]         = useState([]);
@@ -299,8 +105,9 @@ export default function PharmacyChatPage() {
 
   useEffect(() => {
     const stored = JSON.parse(localStorage.getItem("user"));
-    if (!stored || getRole(stored) !== "pharmacy") { navigate("/login", { replace: true }); return; }
-    setUser(stored);
+    const role = (Array.isArray(stored?.roles) ? stored.roles[0] : stored?.roles || "").toLowerCase();
+    if (!stored || role !== "admin") { navigate("/login", { replace: true }); return; }
+    setAdmin(stored);
 
     const socket = io("http://localhost:3000", { query: { userId: stored._id }, withCredentials: true });
     socketRef.current = socket;
@@ -316,13 +123,13 @@ export default function PharmacyChatPage() {
   }, []);
 
   useEffect(() => {
-    if (!user) return;
+    if (!admin) return;
     setLoadingUsers(true);
     api.get("/chat/users")
       .then(r => setChatUsers(r.data?.users || []))
       .catch(() => setChatUsers([]))
       .finally(() => setLoadingUsers(false));
-  }, [user]);
+  }, [admin]);
 
   useEffect(() => {
     if (!selected) return;
@@ -363,15 +170,14 @@ export default function PharmacyChatPage() {
   const handleKeyDown   = (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); } };
   const handleImagePick = (e) => { const file = e.target.files[0]; if (!file) return; setImageFile(file); setImagePreview(URL.createObjectURL(file)); };
   const clearImage      = () => { setImageFile(null); setImagePreview(null); if (fileInputRef.current) fileInputRef.current.value = ""; };
-  const logout          = async () => { try { await api.post("/auth/logout"); } catch (_) {} localStorage.removeItem("user"); navigate("/login", { replace: true }); };
+  const logout          = () => { localStorage.removeItem("user"); navigate("/login", { replace: true }); };
 
   const filteredUsers = chatUsers.filter(u =>
     !search.trim() || u.name?.toLowerCase().includes(search.toLowerCase()) || u.email?.toLowerCase().includes(search.toLowerCase())
   );
-  const isOnline    = (id)    => onlineUsers.includes(id?.toString());
-  const getUserRole = (roles) => (Array.isArray(roles) ? roles[0] : roles || "").toLowerCase();
+  const isOnline = (id) => onlineUsers.includes(id?.toString());
 
-  if (!user) return null;
+  if (!admin) return null;
 
   return (
     <div className="min-h-screen bg-[#f7f8fa]">
@@ -381,25 +187,25 @@ export default function PharmacyChatPage() {
         </div>
       )}
 
-      <Sidebar user={user} onLogout={logout} navigate={navigate}/>
+      <AdminSidebar active="chat" navigate={navigate} onLogout={logout} admin={admin}/>
 
-      <div className="pl-[200px]">
+      <div className="pl-[220px]">
         <main className="px-8 py-7 min-h-screen flex flex-col">
           <div className="mb-5">
             <h1 className="text-[26px] font-black text-gray-900 tracking-tight">Messages</h1>
-            {/* ✅ Pharmacy chats with customers AND admins */}
-            <p className="text-gray-400 text-[13px] mt-0.5">Chat with your customers and admins</p>
+            {/* ✅ Admin only chats with pharmacies */}
+            <p className="text-gray-400 text-[13px] mt-0.5">Chat with pharmacies across the platform</p>
           </div>
 
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-1" style={{ height: "calc(100vh - 190px)", minHeight: "500px" }}>
 
-            {/* User list */}
+            {/* LEFT: Pharmacy list */}
             <div className="w-72 flex-shrink-0 border-r border-gray-100 flex flex-col">
               <div className="p-3.5 border-b border-gray-100">
                 <div className="relative">
                   <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                   {/* ✅ Correct placeholder */}
-                  <input type="text" placeholder="Search users & admins…" value={search} onChange={e => setSearch(e.target.value)}
+                  <input type="text" placeholder="Search pharmacies…" value={search} onChange={e => setSearch(e.target.value)}
                     className="w-full pl-8 pr-3 py-2 border border-gray-200 rounded-xl text-[12px] focus:outline-none focus:ring-2 focus:ring-green-400/30 focus:border-green-400 bg-gray-50 transition"/>
                 </div>
               </div>
@@ -416,31 +222,25 @@ export default function PharmacyChatPage() {
                   </div>
                 ) : filteredUsers.length === 0 ? (
                   <div className="flex flex-col items-center justify-center h-full text-center p-6">
-                    <div className="text-3xl mb-2">👤</div>
+                    <div className="text-3xl mb-2">🏥</div>
                     {/* ✅ Correct empty state */}
-                    <p className="text-[13px] font-bold text-gray-600">No users or admins yet</p>
-                    <p className="text-[11px] text-gray-400 mt-1">They will appear here when available</p>
+                    <p className="text-[13px] font-bold text-gray-600">No pharmacies found</p>
+                    <p className="text-[11px] text-gray-400 mt-1">Pharmacies will appear here once registered</p>
                   </div>
                 ) : filteredUsers.map(u => {
                   const online     = isOnline(u._id);
                   const isSelected = selected?._id === u._id;
-                  const role       = getUserRole(u.roles);
                   return (
                     <button key={u._id} onClick={() => setSelected(u)}
                       className={`w-full px-4 py-3.5 flex items-center gap-3 text-left transition-all border-b border-gray-50 last:border-0
                         ${isSelected ? "bg-green-50 border-l-2 border-l-green-500" : "hover:bg-gray-50/70 border-l-2 border-l-transparent"}`}>
-                      {/* ✅ Avatar color differs for admin vs user */}
-                      <Avatar name={u.name} role={role} size="md" online={online}/>
+                      <Avatar name={u.name} size="md" online={online}/>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between gap-1 mb-0.5">
+                        <div className="flex items-center justify-between gap-1">
                           <p className={`text-[13px] font-bold truncate ${isSelected ? "text-green-700" : "text-gray-800"}`}>{u.name}</p>
-                          {/* ✅ Show online badge OR role badge */}
-                          {online
-                            ? <span className="text-[9px] font-bold text-green-600 bg-green-100 px-1.5 py-0.5 rounded-full flex-shrink-0">Online</span>
-                            : <RoleBadge roles={u.roles}/>
-                          }
+                          {online && <span className="text-[9px] font-bold text-green-600 bg-green-100 px-1.5 py-0.5 rounded-full flex-shrink-0">Online</span>}
                         </div>
-                        <p className="text-[11px] text-gray-400 truncate">{u.lastMessage || "No messages yet"}</p>
+                        <p className="text-[11px] text-gray-400 truncate mt-0.5">{u.lastMessage || "No messages yet"}</p>
                       </div>
                     </button>
                   );
@@ -448,25 +248,24 @@ export default function PharmacyChatPage() {
               </div>
             </div>
 
-            {/* Chat window */}
+            {/* RIGHT: Chat window */}
             {!selected ? (
               <div className="flex-1 flex flex-col items-center justify-center text-center p-8">
                 <div className="w-16 h-16 bg-green-50 rounded-2xl flex items-center justify-center mb-4 border border-green-100">
                   <svg className="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 3H3a2 2 0 00-2 2v13a2 2 0 002 2h5l3 3 3-3h7a2 2 0 002-2V5a2 2 0 00-2-2z"/></svg>
                 </div>
                 {/* ✅ Correct empty state */}
-                <h3 className="text-[16px] font-black text-gray-800 mb-1">Select a conversation</h3>
-                <p className="text-[13px] text-gray-400 max-w-xs">Choose a customer or admin from the list to view and reply to their messages.</p>
+                <h3 className="text-[16px] font-black text-gray-800 mb-1">Select a pharmacy</h3>
+                <p className="text-[13px] text-gray-400 max-w-xs">Choose a pharmacy from the list to start a conversation.</p>
               </div>
             ) : (
               <div className="flex-1 flex flex-col min-w-0">
                 <div className="px-5 py-3.5 border-b border-gray-100 flex items-center gap-3 bg-white">
-                  <Avatar name={selected.name} role={getUserRole(selected.roles)} size="md" online={isOnline(selected._id)}/>
+                  <Avatar name={selected.name} size="md" online={isOnline(selected._id)}/>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <p className="text-[14px] font-black text-gray-900">{selected.name}</p>
-                      {/* ✅ Role badge in header */}
-                      <RoleBadge roles={selected.roles}/>
+                      <span className="text-[9px] font-bold text-green-700 bg-green-100 px-1.5 py-0.5 rounded-full">Pharmacy</span>
                     </div>
                     <p className="text-[11px] text-gray-400">
                       {isOnline(selected._id)
@@ -483,11 +282,11 @@ export default function PharmacyChatPage() {
                     <div className="flex flex-col items-center justify-center h-full text-center">
                       <div className="text-3xl mb-2">💬</div>
                       <p className="text-[13px] font-bold text-gray-600">No messages yet</p>
-                      <p className="text-[11px] text-gray-400 mt-1">Start the conversation</p>
+                      <p className="text-[11px] text-gray-400 mt-1">Start the conversation with this pharmacy</p>
                     </div>
                   ) : messages.map(msg => (
                     <MessageBubble key={msg._id} msg={msg}
-                      isMine={msg.senderId === user._id || msg.senderId?._id === user._id}
+                      isMine={msg.senderId === admin._id || msg.senderId?._id === admin._id}
                       onDelete={handleDeleteMessage}/>
                   ))}
                   <div ref={bottomRef}/>
