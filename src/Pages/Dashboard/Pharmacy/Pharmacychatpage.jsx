@@ -14,6 +14,7 @@ const TYPE_META = {
   PRODUCT_APPROVED: { icon: "✅", color: "bg-green-50  text-green-600" },
   PRODUCT_REJECTED: { icon: "❌", color: "bg-red-50   text-red-600"   },
   PAYMENT_RECEIVED: { icon: "💰", color: "bg-amber-50 text-amber-600" },
+  LOW_STOCK:        { icon: "🚨", color: "bg-red-50   text-red-600"   },
 };
 const notifMeta = (type) => TYPE_META[type] || { icon: "🔔", color: "bg-gray-50 text-gray-600" };
 function timeAgo(date) {
