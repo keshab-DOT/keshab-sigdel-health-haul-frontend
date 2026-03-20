@@ -6,7 +6,7 @@ import Verify from "./Pages/auth/Verify";
 import Login from "./Pages/auth/Login";
 import Landing from "./Pages/Landing/Landing";
 
-// Customer
+// Customer User
 import UserDashboard from "./Pages/Dashboard/User/UserDashboard";
 import SearchMedicines from "./Pages/Dashboard/User/SearchMedicines";
 import CartPage from "./Pages/Dashboard/User/CartPage";
@@ -22,12 +22,16 @@ import PharmacyOrders from "./Pages/Dashboard/Pharmacy/Pharmacyorders";
 import PharmacyProducts from "./Pages/Dashboard/Pharmacy/Pharmacyproducts";
 import PharmacyProfile from "./Pages/Dashboard/Pharmacy/Pharmacyprofile";
 import PharmacyChatPage from "./Pages/Dashboard/Pharmacy/Pharmacychatpage";
+import PharmacyReviews from "./Pages/Dashboard/Pharmacy/Pharmacyreviews";
+
 
 // Admin
 import AdminDashboard from "./Pages/Dashboard/Admin/Admindashboard";
 import AdminUsers from "./Pages/Dashboard/Admin/Adminusers";
 import AdminProducts from "./Pages/Dashboard/Admin/Adminproducts";
 import AdminChatPage from "./Pages/Dashboard/Admin/Adminchatpage";
+import AdminReviews from "./Pages/Dashboard/Admin/Adminreviews";
+
 
 function App() {
   return (
@@ -58,12 +62,16 @@ function App() {
           <Route path="/pharmacy/products" element={<PharmacyProducts />} />
           <Route path="/pharmacy/profile" element={<PharmacyProfile />} />
           <Route path="/pharmacy/chat" element={<PharmacyChatPage />} />
+          <Route path="/pharmacy/reviews" element={<PharmacyReviews />} />
 
           {/* Admin Routes */}
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
           <Route path="/admin/users" element={<AdminUsers />} />
           <Route path="/admin/products" element={<AdminProducts />} />
           <Route path="/admin/chat" element={<AdminChatPage />} />
+          <Route path="/admin/reviews" element={<AdminReviews />} />
+
+
 
         </Routes>
       </Router>

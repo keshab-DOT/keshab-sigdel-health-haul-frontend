@@ -4,10 +4,10 @@ import api from "../../../api/axios";
 import { io } from "socket.io-client";
 
 
-const TYPE_META_N={ORDER_PLACED:{icon:"📦",color:"bg-blue-50 text-blue-600"},ORDER_STATUS:{icon:"🚚",color:"bg-green-50 text-green-600"},PAYMENT_SUCCESS:{icon:"💰",color:"bg-amber-50 text-amber-600"}};
-const notifMetaN=(type)=>TYPE_META_N[type]||{icon:"🔔",color:"bg-gray-50 text-gray-600"};
-function timeAgoN(date){const diff=Math.floor((Date.now()-new Date(date))/1000);if(diff<60)return"just now";if(diff<3600)return`${Math.floor(diff/60)}m ago`;if(diff<86400)return`${Math.floor(diff/3600)}h ago`;return`${Math.floor(diff/86400)}d ago`;}
-function NotificationBell({userId}){const[open,setOpen]=useState(false);const[notifs,setNotifs]=useState([]);const[unread,setUnread]=useState(0);const[loading,setLoading]=useState(true);const dropdownRef=useRef(null);const socketRef=useRef(null);const fetchNotifs=useCallback(async()=>{try{const{data}=await api.get("/notifications");setNotifs(data.notifications||[]);setUnread(data.unreadCount||0);}catch{}finally{setLoading(false);};},[]);useEffect(()=>{fetchNotifs();},[fetchNotifs]);useEffect(()=>{if(!userId)return;const socket=io("http://localhost:3000",{query:{userId},withCredentials:true});socketRef.current=socket;socket.emit("joinUserRoom",userId);socket.on("newNotification",(n)=>{setNotifs(prev=>prev.some(x=>x._id===n._id)?prev:[n,...prev]);setUnread(prev=>prev+1);});return()=>{socket.emit("leaveUserRoom",userId);socket.disconnect();};},[userId]);useEffect(()=>{const h=(e)=>{if(dropdownRef.current&&!dropdownRef.current.contains(e.target))setOpen(false);};document.addEventListener("mousedown",h);return()=>document.removeEventListener("mousedown",h);},[]);const markRead=async(id)=>{try{await api.put(`/notifications/${id}/read`);setNotifs(prev=>prev.map(n=>n._id===id?{...n,isRead:true}:n));setUnread(prev=>Math.max(0,prev-1));}catch{}};const markAllRead=async(e)=>{e.stopPropagation();try{await api.put("/notifications/read-all");setNotifs(prev=>prev.map(n=>({...n,isRead:true})));setUnread(0);}catch{}};return(<div className="relative flex-shrink-0" ref={dropdownRef}><button onClick={()=>setOpen(o=>!o)} className="relative w-9 h-9 flex items-center justify-center text-gray-500 hover:text-gray-800 hover:bg-gray-50 rounded-xl transition" title="Notifications"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>{unread>0&&<span className="absolute top-1 right-1 min-w-[14px] h-[14px] bg-red-500 text-white text-[9px] font-black rounded-full flex items-center justify-center px-[3px] leading-none">{unread>9?"9+":unread}</span>}</button>{open&&(<div className="absolute right-0 top-[calc(100%+8px)] w-80 bg-white rounded-2xl shadow-xl border border-gray-100 z-50 overflow-hidden"><div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between"><div className="flex items-center gap-2"><p className="text-[14px] font-black text-gray-900">Notifications</p>{unread>0&&<span className="bg-red-100 text-red-600 text-[10px] font-black px-1.5 py-0.5 rounded-full">{unread} new</span>}</div>{unread>0&&<button onClick={markAllRead} className="text-[11px] font-bold text-green-600 hover:text-green-700">Mark all read</button>}</div><div className="max-h-[380px] overflow-y-auto">{loading?(<div className="py-10 flex justify-center"><div className="w-6 h-6 border-2 border-green-500 border-t-transparent rounded-full animate-spin"/></div>):notifs.length===0?(<div className="py-12 text-center"><div className="text-3xl mb-2">🔔</div><p className="text-[13px] font-bold text-gray-600">No notifications yet</p></div>):notifs.slice(0,20).map(n=>{const m=notifMetaN(n.type);return(<button key={n._id} onClick={()=>{if(!n.isRead)markRead(n._id);setOpen(false);}} className={`w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-gray-50 transition border-b border-gray-50 last:border-0 ${!n.isRead?"bg-green-50/40":""}`}><div className={`w-8 h-8 rounded-xl flex items-center justify-center text-base flex-shrink-0 mt-0.5 ${m.color}`}>{m.icon}</div><div className="flex-1 min-w-0"><p className={`text-[12px] leading-snug ${n.isRead?"text-gray-700 font-medium":"text-gray-900 font-bold"}`}>{n.title}</p><p className="text-[11px] text-gray-400 mt-0.5 line-clamp-2">{n.message}</p><p className="text-[10px] text-gray-300 mt-1">{timeAgoN(n.createdAt)}</p></div>{!n.isRead&&<div className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0 mt-1.5"/>}</button>);})}</div></div>)}</div>);}
+const TYPE_META_N = { ORDER_PLACED: { icon: "📦", color: "bg-blue-50 text-blue-600" }, ORDER_STATUS: { icon: "🚚", color: "bg-green-50 text-green-600" }, PAYMENT_SUCCESS: { icon: "💰", color: "bg-amber-50 text-amber-600" } };
+const notifMetaN = (type) => TYPE_META_N[type] || { icon: "🔔", color: "bg-gray-50 text-gray-600" };
+function timeAgoN(date) { const diff = Math.floor((Date.now() - new Date(date)) / 1000); if (diff < 60) return "just now"; if (diff < 3600) return `${Math.floor(diff / 60)}m ago`; if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`; return `${Math.floor(diff / 86400)}d ago`; }
+function NotificationBell({ userId }) { const [open, setOpen] = useState(false); const [notifs, setNotifs] = useState([]); const [unread, setUnread] = useState(0); const [loading, setLoading] = useState(true); const dropdownRef = useRef(null); const socketRef = useRef(null); const fetchNotifs = useCallback(async () => { try { const { data } = await api.get("/notifications"); setNotifs(data.notifications || []); setUnread(data.unreadCount || 0); } catch { } finally { setLoading(false); }; }, []); useEffect(() => { fetchNotifs(); }, [fetchNotifs]); useEffect(() => { if (!userId) return; const socket = io("http://localhost:3000", { query: { userId }, withCredentials: true }); socketRef.current = socket; socket.emit("joinUserRoom", userId); socket.on("newNotification", (n) => { setNotifs(prev => prev.some(x => x._id === n._id) ? prev : [n, ...prev]); setUnread(prev => prev + 1); }); return () => { socket.emit("leaveUserRoom", userId); socket.disconnect(); }; }, [userId]); useEffect(() => { const h = (e) => { if (dropdownRef.current && !dropdownRef.current.contains(e.target)) setOpen(false); }; document.addEventListener("mousedown", h); return () => document.removeEventListener("mousedown", h); }, []); const markRead = async (id) => { try { await api.put(`/notifications/${id}/read`); setNotifs(prev => prev.map(n => n._id === id ? { ...n, isRead: true } : n)); setUnread(prev => Math.max(0, prev - 1)); } catch { } }; const markAllRead = async (e) => { e.stopPropagation(); try { await api.put("/notifications/read-all"); setNotifs(prev => prev.map(n => ({ ...n, isRead: true }))); setUnread(0); } catch { } }; return (<div className="relative flex-shrink-0" ref={dropdownRef}><button onClick={() => setOpen(o => !o)} className="relative w-9 h-9 flex items-center justify-center text-gray-500 hover:text-gray-800 hover:bg-gray-50 rounded-xl transition" title="Notifications"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>{unread > 0 && <span className="absolute top-1 right-1 min-w-[14px] h-[14px] bg-red-500 text-white text-[9px] font-black rounded-full flex items-center justify-center px-[3px] leading-none">{unread > 9 ? "9+" : unread}</span>}</button>{open && (<div className="absolute right-0 top-[calc(100%+8px)] w-80 bg-white rounded-2xl shadow-xl border border-gray-100 z-50 overflow-hidden"><div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between"><div className="flex items-center gap-2"><p className="text-[14px] font-black text-gray-900">Notifications</p>{unread > 0 && <span className="bg-red-100 text-red-600 text-[10px] font-black px-1.5 py-0.5 rounded-full">{unread} new</span>}</div>{unread > 0 && <button onClick={markAllRead} className="text-[11px] font-bold text-green-600 hover:text-green-700">Mark all read</button>}</div><div className="max-h-[380px] overflow-y-auto">{loading ? (<div className="py-10 flex justify-center"><div className="w-6 h-6 border-2 border-green-500 border-t-transparent rounded-full animate-spin" /></div>) : notifs.length === 0 ? (<div className="py-12 text-center"><div className="text-3xl mb-2">🔔</div><p className="text-[13px] font-bold text-gray-600">No notifications yet</p></div>) : notifs.slice(0, 20).map(n => { const m = notifMetaN(n.type); return (<button key={n._id} onClick={() => { if (!n.isRead) markRead(n._id); setOpen(false); }} className={`w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-gray-50 transition border-b border-gray-50 last:border-0 ${!n.isRead ? "bg-green-50/40" : ""}`}><div className={`w-8 h-8 rounded-xl flex items-center justify-center text-base flex-shrink-0 mt-0.5 ${m.color}`}>{m.icon}</div><div className="flex-1 min-w-0"><p className={`text-[12px] leading-snug ${n.isRead ? "text-gray-700 font-medium" : "text-gray-900 font-bold"}`}>{n.title}</p><p className="text-[11px] text-gray-400 mt-0.5 line-clamp-2">{n.message}</p><p className="text-[10px] text-gray-300 mt-1">{timeAgoN(n.createdAt)}</p></div>{!n.isRead && <div className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0 mt-1.5" />}</button>); })}</div></div>)}</div>); }
 
 function Topbar({ user, cartCount, onLogout, navigate }) {
   return (
@@ -85,23 +85,23 @@ const PAYMENT_METHODS = [
   {
     val: "khalti",
     label: "Khalti",
-    icon: <span className="text-[15px]">💜</span>,
+    icon: <span className="text-[15px]">💳</span>,
   },
 ];
 
 export default function CartPage() {
   const navigate = useNavigate();
-  const [user,             setUser]            = useState(null);
-  const [cartItems,        setCartItems]        = useState([]);
-  const [loading,          setLoading]          = useState(true);
-  const [updating,         setUpdating]         = useState({});
-  const [showCheckout,     setShowCheckout]     = useState(false);
-  const [checkoutLoading,  setCheckoutLoading]  = useState(false);
-  const [toast,            setToast]            = useState(null);
-  const [checkoutForm,     setCheckoutForm]     = useState({
+  const [user, setUser] = useState(null);
+  const [cartItems, setCartItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [updating, setUpdating] = useState({});
+  const [showCheckout, setShowCheckout] = useState(false);
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [toast, setToast] = useState(null);
+  const [checkoutForm, setCheckoutForm] = useState({
     shippingAddress: "",
-    phoneNumber:     "",
-    paymentMethod:   "cod",
+    phoneNumber: "",
+    paymentMethod: "cod",
   });
 
   const showToast = (msg, type = "success") => {
@@ -115,7 +115,7 @@ export default function CartPage() {
     setUser(stored);
     api.get("/cart/getcart")
       .then(r => setCartItems(r.data || []))
-      .catch(() => {})
+      .catch(() => { })
       .finally(() => setLoading(false));
   }, []);
 
@@ -174,7 +174,7 @@ export default function CartPage() {
         return; // stop here — page will unload
       }
 
-      // COD / eSewa — normal success flow
+      // COD / khalti — normal success flow
       setCartItems([]);
       setShowCheckout(false);
       showToast("Order placed successfully! 🎉");
@@ -187,7 +187,7 @@ export default function CartPage() {
   };
 
   const handleLogout = async () => {
-    try { await api.post("/auth/logout"); } catch (_) {}
+    try { await api.post("/auth/logout"); } catch (_) { }
     localStorage.removeItem("user");
     localStorage.removeItem("token");
     navigate("/login");
@@ -255,13 +255,12 @@ export default function CartPage() {
                   {PAYMENT_METHODS.map(({ val, label, icon }) => (
                     <button key={val} type="button"
                       onClick={() => setCheckoutForm(p => ({ ...p, paymentMethod: val }))}
-                      className={`flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl border-2 text-[11px] font-bold transition-all ${
-                        checkoutForm.paymentMethod === val
+                      className={`flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl border-2 text-[11px] font-bold transition-all ${checkoutForm.paymentMethod === val
                           ? val === "khalti"
                             ? "border-purple-500 bg-purple-50 text-purple-700"
                             : "border-gray-800 bg-gray-900 text-white"
                           : "border-gray-200 text-gray-500 hover:border-gray-300"
-                      }`}>
+                        }`}>
                       {icon}
                       {label}
                     </button>
@@ -287,16 +286,15 @@ export default function CartPage() {
 
               {/* Submit */}
               <button type="submit" disabled={checkoutLoading}
-                className={`w-full py-3 rounded-xl font-black disabled:opacity-50 transition text-[13px] text-white flex items-center justify-center gap-2 ${
-                  checkoutForm.paymentMethod === "khalti"
+                className={`w-full py-3 rounded-xl font-black disabled:opacity-50 transition text-[13px] text-white flex items-center justify-center gap-2 ${checkoutForm.paymentMethod === "khalti"
                     ? "bg-[#5C2D8B] hover:bg-[#4a2470]"
                     : "bg-gray-900 hover:bg-gray-800"
-                }`}>
+                  }`}>
                 {checkoutLoading
                   ? <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />Processing…</>
                   : checkoutForm.paymentMethod === "khalti"
-                  ? "Pay with Khalti 💜"
-                  : "Place Order →"
+                    ? "Pay with Khalti 💜"
+                    : "Place Order →"
                 }
               </button>
             </form>

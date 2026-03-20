@@ -3,38 +3,38 @@ import { useNavigate } from "react-router-dom";
 import api from "../../../api/axios";
 import { io } from "socket.io-client";
 
-// ── Notification helpers ───────────────────────────────────────────────────────
+// Notification helpers
 const TYPE_META = {
-  ORDER_PLACED:     { icon: "📦", color: "bg-blue-50  text-blue-600"   },
-  ORDER_STATUS:     { icon: "🚚", color: "bg-green-50 text-green-600"  },
+  ORDER_PLACED: { icon: "📦", color: "bg-blue-50  text-blue-600" },
+  ORDER_STATUS: { icon: "🚚", color: "bg-green-50 text-green-600" },
   PRODUCT_APPROVED: { icon: "✅", color: "bg-green-50  text-green-600" },
-  PRODUCT_REJECTED: { icon: "❌", color: "bg-red-50   text-red-600"   },
+  PRODUCT_REJECTED: { icon: "❌", color: "bg-red-50   text-red-600" },
   PAYMENT_RECEIVED: { icon: "💰", color: "bg-amber-50 text-amber-600" },
 };
 const notifMeta = (type) => TYPE_META[type] || { icon: "🔔", color: "bg-gray-50 text-gray-600" };
 function timeAgo(date) {
   const diff = Math.floor((Date.now() - new Date(date)) / 1000);
-  if (diff < 60)    return "just now";
-  if (diff < 3600)  return `${Math.floor(diff / 60)}m ago`;
+  if (diff < 60) return "just now";
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
   if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
   return `${Math.floor(diff / 86400)}d ago`;
 }
 
-// ── Notification Bell (sidebar variant — opens to the right) ──────────────────
+// Notification Bell (sidebar variant — opens to the right)
 function NotificationBell({ userId }) {
-  const [open,    setOpen]    = useState(false);
-  const [notifs,  setNotifs]  = useState([]);
-  const [unread,  setUnread]  = useState(0);
+  const [open, setOpen] = useState(false);
+  const [notifs, setNotifs] = useState([]);
+  const [unread, setUnread] = useState(0);
   const [loading, setLoading] = useState(true);
   const dropdownRef = useRef(null);
-  const socketRef   = useRef(null);
+  const socketRef = useRef(null);
 
   const fetchNotifs = useCallback(async () => {
     try {
       const { data } = await api.get("/notifications");
       setNotifs(data.notifications || []);
-      setUnread(data.unreadCount   || 0);
-    } catch {}
+      setUnread(data.unreadCount || 0);
+    } catch { }
     finally { setLoading(false); }
   }, []);
 
@@ -65,7 +65,7 @@ function NotificationBell({ userId }) {
       await api.put(`/notifications/${id}/read`);
       setNotifs(prev => prev.map(n => n._id === id ? { ...n, isRead: true } : n));
       setUnread(prev => Math.max(0, prev - 1));
-    } catch {}
+    } catch { }
   };
 
   const markAllRead = async (e) => {
@@ -74,7 +74,7 @@ function NotificationBell({ userId }) {
       await api.put("/notifications/read-all");
       setNotifs(prev => prev.map(n => ({ ...n, isRead: true })));
       setUnread(0);
-    } catch {}
+    } catch { }
   };
 
   return (
@@ -84,7 +84,7 @@ function NotificationBell({ userId }) {
         className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium text-gray-500 hover:bg-gray-50 hover:text-gray-800 transition-all duration-150">
         <span className="flex-shrink-0 opacity-50 relative">
           <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
           </svg>
           {unread > 0 && (
             <span className="absolute -top-1.5 -right-1.5 min-w-[14px] h-[14px] bg-red-500 text-white text-[8px] font-black rounded-full flex items-center justify-center px-[2px] leading-none">
@@ -114,7 +114,7 @@ function NotificationBell({ userId }) {
           <div className="max-h-[380px] overflow-y-auto">
             {loading ? (
               <div className="py-10 flex justify-center">
-                <div className="w-6 h-6 border-2 border-green-500 border-t-transparent rounded-full animate-spin"/>
+                <div className="w-6 h-6 border-2 border-green-500 border-t-transparent rounded-full animate-spin" />
               </div>
             ) : notifs.length === 0 ? (
               <div className="py-12 text-center">
@@ -134,7 +134,7 @@ function NotificationBell({ userId }) {
                     <p className="text-[11px] text-gray-400 mt-0.5 line-clamp-2 leading-relaxed">{n.message}</p>
                     <p className="text-[10px] text-gray-300 mt-1 font-medium">{timeAgo(n.createdAt)}</p>
                   </div>
-                  {!n.isRead && <div className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0 mt-1.5"/>}
+                  {!n.isRead && <div className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0 mt-1.5" />}
                 </button>
               );
             })}
@@ -150,19 +150,23 @@ export function AdminSidebar({ active, navigate, onLogout, admin }) {
   const NAV = [
     {
       key: "overview", label: "Overview", path: "/admin/dashboard",
-      icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>,
+      icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>,
     },
     {
       key: "products", label: "Product Approvals", path: "/admin/products",
-      icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>,
+      icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>,
     },
     {
       key: "users", label: "User Management", path: "/admin/users",
-      icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>,
+      icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>,
     },
     {
       key: "chat", label: "Messages", path: "/admin/chat",
-      icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M8 12h.01M12 12h.01M16 12h.01M21 3H3a2 2 0 00-2 2v13a2 2 0 002 2h5l3 3 3-3h7a2 2 0 002-2V5a2 2 0 00-2-2z"/></svg>,
+      icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M8 12h.01M12 12h.01M16 12h.01M21 3H3a2 2 0 00-2 2v13a2 2 0 002 2h5l3 3 3-3h7a2 2 0 002-2V5a2 2 0 00-2-2z" /></svg>,
+    },
+    {
+      key: "reviews", label: "Reviews", path: "/admin/reviews",
+      icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>,
     },
     {
       key: "notifications", label: "Notifications", path: null, icon: null,
@@ -174,7 +178,7 @@ export function AdminSidebar({ active, navigate, onLogout, admin }) {
       <div className="px-5 py-5 border-b border-gray-100">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-sm">
-            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
           </div>
           <span className="font-black text-[15px] text-gray-900 tracking-tight">HealthHaul</span>
         </div>
@@ -193,7 +197,7 @@ export function AdminSidebar({ active, navigate, onLogout, admin }) {
         {NAV.map(({ key, label, path, icon }) => {
           // Notifications renders as the bell component
           if (key === "notifications") {
-            return <NotificationBell key="notifications" userId={admin?._id}/>;
+            return <NotificationBell key="notifications" userId={admin?._id} />;
           }
           return (
             <button key={key} onClick={() => navigate(path)}
@@ -209,7 +213,7 @@ export function AdminSidebar({ active, navigate, onLogout, admin }) {
         <button onClick={onLogout}
           className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium text-red-500 hover:bg-red-50 hover:text-red-600 transition-all">
           <span className="opacity-60 flex-shrink-0">
-            <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+            <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
           </span>
           Log Out
         </button>
@@ -218,12 +222,12 @@ export function AdminSidebar({ active, navigate, onLogout, admin }) {
   );
 }
 
-// ── Admin Overview Dashboard ───────────────────────────────────────────────────
+// Admin Overview Dashboard 
 export default function AdminDashboard() {
   const navigate = useNavigate();
-  const [admin,       setAdmin]       = useState(null);
-  const [loading,     setLoading]     = useState(true);
-  const [stats,       setStats]       = useState({ totalUsers: 0, totalPharmacies: 0, pendingProducts: 0 });
+  const [admin, setAdmin] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({ totalUsers: 0, totalPharmacies: 0, pendingProducts: 0 });
   const [recentUsers, setRecentUsers] = useState([]);
 
   useEffect(() => {
@@ -255,12 +259,12 @@ export default function AdminDashboard() {
       }
 
       setStats({
-        totalUsers:      users.filter(u => (Array.isArray(u.roles) ? u.roles[0] : u.roles || "").toLowerCase() === "user").length,
+        totalUsers: users.filter(u => (Array.isArray(u.roles) ? u.roles[0] : u.roles || "").toLowerCase() === "user").length,
         totalPharmacies: users.filter(u => (Array.isArray(u.roles) ? u.roles[0] : u.roles || "").toLowerCase() === "pharmacy").length,
         pendingProducts: products.filter(p => p.approvalStatus === "Pending").length,
       });
       setRecentUsers(users.slice(0, 6));
-    } catch (_) {}
+    } catch (_) { }
     finally { setLoading(false); }
   };
 
@@ -269,14 +273,14 @@ export default function AdminDashboard() {
   if (!admin) return null;
 
   const STAT_CARDS = [
-    { label: "Registered Users",   value: stats.totalUsers,       icon: "👥", color: "text-blue-600",  bg: "bg-blue-50"  },
-    { label: "Pharmacies",         value: stats.totalPharmacies,  icon: "🏥", color: "text-green-600", bg: "bg-green-50" },
-    { label: "Pending Approvals",  value: stats.pendingProducts,  icon: "⏳", color: "text-amber-600", bg: "bg-amber-50" },
+    { label: "Registered Users", value: stats.totalUsers, icon: "👥", color: "text-blue-600", bg: "bg-blue-50" },
+    { label: "Pharmacies", value: stats.totalPharmacies, icon: "🏥", color: "text-green-600", bg: "bg-green-50" },
+    { label: "Pending Approvals", value: stats.pendingProducts, icon: "⏳", color: "text-amber-600", bg: "bg-amber-50" },
   ];
 
   return (
     <div className="min-h-screen bg-[#f7f8fa]">
-      <AdminSidebar active="overview" navigate={navigate} onLogout={logout} admin={admin}/>
+      <AdminSidebar active="overview" navigate={navigate} onLogout={logout} admin={admin} />
       <div className="pl-[220px]">
         <main className="px-8 py-7 min-h-screen">
 
@@ -287,7 +291,7 @@ export default function AdminDashboard() {
             </div>
             <button onClick={fetchData}
               className="flex items-center gap-2 border border-gray-200 bg-white text-gray-600 px-4 py-2.5 rounded-xl font-bold text-[13px] hover:border-green-300 hover:text-green-700 transition shadow-sm">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
               Refresh
             </button>
           </div>
@@ -295,7 +299,7 @@ export default function AdminDashboard() {
           {/* Stat cards */}
           {loading ? (
             <div className="grid grid-cols-3 gap-4 mb-7">
-              {[...Array(3)].map((_, i) => <div key={i} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 animate-pulse h-[100px]"/>)}
+              {[...Array(3)].map((_, i) => <div key={i} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 animate-pulse h-[100px]" />)}
             </div>
           ) : (
             <div className="grid grid-cols-3 gap-4 mb-7">
@@ -312,7 +316,7 @@ export default function AdminDashboard() {
           {/* Pending products alert */}
           {stats.pendingProducts > 0 && (
             <div className="flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-2xl px-5 py-3.5 mb-6">
-              <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse flex-shrink-0"/>
+              <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse flex-shrink-0" />
               <p className="text-[13px] font-semibold text-amber-800">
                 <span className="font-black">{stats.pendingProducts}</span> product{stats.pendingProducts > 1 ? "s" : ""} waiting for your approval — pharmacies cannot sell until reviewed
               </p>
@@ -335,15 +339,15 @@ export default function AdminDashboard() {
               </button>
             </div>
             {loading ? (
-              <div className="p-5 space-y-3">{[...Array(5)].map((_, i) => <div key={i} className="h-10 bg-gray-100 rounded-xl animate-pulse"/>)}</div>
+              <div className="p-5 space-y-3">{[...Array(5)].map((_, i) => <div key={i} className="h-10 bg-gray-100 rounded-xl animate-pulse" />)}</div>
             ) : recentUsers.length === 0 ? (
               <div className="py-12 text-center"><div className="text-3xl mb-2">👥</div><p className="text-[13px] text-gray-400">No users yet</p></div>
             ) : (
               <div className="divide-y divide-gray-50">
                 {recentUsers.map(user => {
-                  const role     = (Array.isArray(user.roles) ? user.roles[0] : user.roles || "user").toLowerCase();
-                  const status   = user.status || "Active";
-                  const roleBg   = role === "pharmacy" ? "bg-green-100 text-green-700" : role === "admin" ? "bg-gray-800 text-white" : "bg-blue-100 text-blue-700";
+                  const role = (Array.isArray(user.roles) ? user.roles[0] : user.roles || "user").toLowerCase();
+                  const status = user.status || "Active";
+                  const roleBg = role === "pharmacy" ? "bg-green-100 text-green-700" : role === "admin" ? "bg-gray-800 text-white" : "bg-blue-100 text-blue-700";
                   const statusBg = status === "Banned" ? "bg-red-100 text-red-600" : status === "Suspended" ? "bg-amber-100 text-amber-700" : "bg-green-100 text-green-700";
                   return (
                     <div key={user._id} className="px-5 py-3.5 flex items-center justify-between hover:bg-gray-50/60 transition-colors">
@@ -373,7 +377,7 @@ export default function AdminDashboard() {
             <div className="flex gap-3 flex-wrap">
               <button onClick={() => navigate("/admin/products")}
                 className="flex items-center gap-2 bg-gray-950 text-white px-4 py-2.5 rounded-xl font-bold text-[13px] hover:bg-gray-800 transition">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
                 Product Approvals
                 {stats.pendingProducts > 0 && (
                   <span className="w-5 h-5 bg-amber-400 text-white text-[10px] font-black rounded-full flex items-center justify-center">{stats.pendingProducts}</span>
@@ -381,12 +385,12 @@ export default function AdminDashboard() {
               </button>
               <button onClick={() => navigate("/admin/users")}
                 className="flex items-center gap-2 border border-gray-200 text-gray-700 px-4 py-2.5 rounded-xl font-bold text-[13px] hover:border-green-300 hover:text-green-700 transition">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                 Manage Users
               </button>
               <button onClick={() => navigate("/admin/chat")}
                 className="flex items-center gap-2 border border-gray-200 text-gray-700 px-4 py-2.5 rounded-xl font-bold text-[13px] hover:border-green-300 hover:text-green-700 transition">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M8 12h.01M12 12h.01M16 12h.01M21 3H3a2 2 0 00-2 2v13a2 2 0 002 2h5l3 3 3-3h7a2 2 0 002-2V5a2 2 0 00-2-2z"/></svg>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M8 12h.01M12 12h.01M16 12h.01M21 3H3a2 2 0 00-2 2v13a2 2 0 002 2h5l3 3 3-3h7a2 2 0 002-2V5a2 2 0 00-2-2z" /></svg>
                 Messages
               </button>
             </div>

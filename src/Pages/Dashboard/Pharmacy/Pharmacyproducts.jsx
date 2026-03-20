@@ -7,36 +7,36 @@ const getRole = (stored) => { const raw = Array.isArray(stored?.roles) ? stored.
 
 // ── Notification helpers ───────────────────────────────────────────────────────
 const TYPE_META = {
-  ORDER_PLACED:     { icon: "📦", color: "bg-blue-50  text-blue-600"   },
-  ORDER_STATUS:     { icon: "🚚", color: "bg-green-50 text-green-600"  },
+  ORDER_PLACED: { icon: "📦", color: "bg-blue-50  text-blue-600" },
+  ORDER_STATUS: { icon: "🚚", color: "bg-green-50 text-green-600" },
   PRODUCT_APPROVED: { icon: "✅", color: "bg-green-50  text-green-600" },
-  PRODUCT_REJECTED: { icon: "❌", color: "bg-red-50   text-red-600"   },
+  PRODUCT_REJECTED: { icon: "❌", color: "bg-red-50   text-red-600" },
   PAYMENT_RECEIVED: { icon: "💰", color: "bg-amber-50 text-amber-600" },
 };
 const notifMeta = (type) => TYPE_META[type] || { icon: "🔔", color: "bg-gray-50 text-gray-600" };
 function timeAgo(date) {
   const diff = Math.floor((Date.now() - new Date(date)) / 1000);
-  if (diff < 60)    return "just now";
-  if (diff < 3600)  return `${Math.floor(diff / 60)}m ago`;
+  if (diff < 60) return "just now";
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
   if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
   return `${Math.floor(diff / 86400)}d ago`;
 }
 
 // ── Notification Bell ──────────────────────────────────────────────────────────
 function NotificationBell({ userId }) {
-  const [open, setOpen]       = useState(false);
-  const [notifs, setNotifs]   = useState([]);
-  const [unread, setUnread]   = useState(0);
+  const [open, setOpen] = useState(false);
+  const [notifs, setNotifs] = useState([]);
+  const [unread, setUnread] = useState(0);
   const [loading, setLoading] = useState(true);
   const dropdownRef = useRef(null);
-  const socketRef   = useRef(null);
+  const socketRef = useRef(null);
 
   const fetchNotifs = useCallback(async () => {
     try {
       const { data } = await api.get("/notifications");
       setNotifs(data.notifications || []);
-      setUnread(data.unreadCount   || 0);
-    } catch {}
+      setUnread(data.unreadCount || 0);
+    } catch { }
     finally { setLoading(false); }
   }, []);
 
@@ -67,7 +67,7 @@ function NotificationBell({ userId }) {
       await api.put(`/notifications/${id}/read`);
       setNotifs(prev => prev.map(n => n._id === id ? { ...n, isRead: true } : n));
       setUnread(prev => Math.max(0, prev - 1));
-    } catch {}
+    } catch { }
   };
 
   const markAllRead = async (e) => {
@@ -76,7 +76,7 @@ function NotificationBell({ userId }) {
       await api.put("/notifications/read-all");
       setNotifs(prev => prev.map(n => ({ ...n, isRead: true })));
       setUnread(0);
-    } catch {}
+    } catch { }
   };
 
   return (
@@ -85,7 +85,7 @@ function NotificationBell({ userId }) {
         className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium text-gray-500 hover:bg-gray-50 hover:text-gray-800 transition-all duration-150">
         <span className="flex-shrink-0 opacity-50 relative">
           <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
           </svg>
           {unread > 0 && (
             <span className="absolute -top-1.5 -right-1.5 min-w-[14px] h-[14px] bg-red-500 text-white text-[8px] font-black rounded-full flex items-center justify-center px-[2px] leading-none">
@@ -117,7 +117,7 @@ function NotificationBell({ userId }) {
           <div className="max-h-[380px] overflow-y-auto">
             {loading ? (
               <div className="py-10 flex justify-center">
-                <div className="w-6 h-6 border-2 border-green-500 border-t-transparent rounded-full animate-spin"/>
+                <div className="w-6 h-6 border-2 border-green-500 border-t-transparent rounded-full animate-spin" />
               </div>
             ) : notifs.length === 0 ? (
               <div className="py-12 text-center">
@@ -138,7 +138,7 @@ function NotificationBell({ userId }) {
                       <p className="text-[11px] text-gray-400 mt-0.5 line-clamp-2 leading-relaxed">{n.message}</p>
                       <p className="text-[10px] text-gray-300 mt-1 font-medium">{timeAgo(n.createdAt)}</p>
                     </div>
-                    {!n.isRead && <div className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0 mt-1.5"/>}
+                    {!n.isRead && <div className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0 mt-1.5" />}
                   </button>
                 );
               })
@@ -150,15 +150,16 @@ function NotificationBell({ userId }) {
   );
 }
 
-// ── Sidebar ────────────────────────────────────────────────────────────────────
+// Sidebar 
 function Sidebar({ user, active, onLogout, navigate }) {
   const NAV = [
-    { key: "dashboard",     label: "Dashboard", path: "/pharmacy/dashboard", icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg> },
-    { key: "orders",        label: "Orders",    path: "/pharmacy/orders",    icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg> },
-    { key: "products",      label: "Products",  path: "/pharmacy/products",  icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg> },
-    { key: "chat",          label: "Messages",  path: "/pharmacy/chat",      icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M8 12h.01M12 12h.01M16 12h.01M21 3H3a2 2 0 00-2 2v13a2 2 0 002 2h5l3 3 3-3h7a2 2 0 002-2V5a2 2 0 00-2-2z"/></svg> },
-    { key: "notifications", label: "Notifications", path: null,              icon: null },
-    { key: "profile",       label: "Profile",   path: "/pharmacy/profile",   icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg> },
+    { key: "dashboard", label: "Dashboard", path: "/pharmacy/dashboard", icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg> },
+    { key: "orders", label: "Orders", path: "/pharmacy/orders", icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg> },
+    { key: "products", label: "Products", path: "/pharmacy/products", icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg> },
+    { key: "reviews", label: "Reviews", path: "/pharmacy/reviews", icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg> },
+    { key: "chat", label: "Messages", path: "/pharmacy/chat", icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M8 12h.01M12 12h.01M16 12h.01M21 3H3a2 2 0 00-2 2v13a2 2 0 002 2h5l3 3 3-3h7a2 2 0 002-2V5a2 2 0 00-2-2z" /></svg> },
+    { key: "notifications", label: "Notifications", path: null, icon: null },
+    { key: "profile", label: "Profile", path: "/pharmacy/profile", icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg> },
   ];
   return (
     <aside className="w-[200px] min-h-screen bg-white border-r border-gray-100 flex flex-col flex-shrink-0 fixed left-0 top-0 bottom-0 z-20">
@@ -240,14 +241,14 @@ function DeleteModal({ product, onClose, onSuccess }) {
 
 export default function PharmacyProducts() {
   const navigate = useNavigate();
-  const [user, setUser]           = useState(null);
-  const [products, setProducts]   = useState([]);
-  const [loading, setLoading]     = useState(true);
-  const [toast, setToast]         = useState(null);
-  const [addModal, setAddModal]   = useState(false);
-  const [editProduct, setEditProduct]     = useState(null);
+  const [user, setUser] = useState(null);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [toast, setToast] = useState(null);
+  const [addModal, setAddModal] = useState(false);
+  const [editProduct, setEditProduct] = useState(null);
   const [deleteProduct, setDeleteProduct] = useState(null);
-  const [filter, setFilter]       = useState("all");
+  const [filter, setFilter] = useState("all");
 
   const showToast = (msg, type = "success") => { setToast({ msg, type }); setTimeout(() => setToast(null), 3500); };
 
@@ -264,11 +265,11 @@ export default function PharmacyProducts() {
     finally { setLoading(false); }
   };
 
-  const logout = async () => { try { await api.post("/auth/logout"); } catch (_) {} localStorage.removeItem("user"); localStorage.removeItem("token"); navigate("/login", { replace: true }); };
+  const logout = async () => { try { await api.post("/auth/logout"); } catch (_) { } localStorage.removeItem("user"); localStorage.removeItem("token"); navigate("/login", { replace: true }); };
   const handleModalSuccess = (msg, type) => { showToast(msg, type); fetchProducts(); };
-  const FILTERS  = ["all", "Pending", "Approved", "Rejected"];
+  const FILTERS = ["all", "Pending", "Approved", "Rejected"];
   const filtered = products.filter(p => filter === "all" || p.approvalStatus === filter);
-  const counts   = { all: products.length, Approved: products.filter(p => p.approvalStatus === "Approved").length, Pending: products.filter(p => p.approvalStatus === "Pending").length, Rejected: products.filter(p => p.approvalStatus === "Rejected").length };
+  const counts = { all: products.length, Approved: products.filter(p => p.approvalStatus === "Approved").length, Pending: products.filter(p => p.approvalStatus === "Pending").length, Rejected: products.filter(p => p.approvalStatus === "Rejected").length };
 
   if (!user) return null;
 
