@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import api from "../../../api/axios";
 import { AdminSidebar } from "./Admindashboard";
 
-// ── Approval status config ────────────────────────────────────────────────────
 const STATUS_CFG = {
     Pending: { cls: "bg-amber-50 text-amber-700 border-amber-200", dot: "bg-amber-400", label: "Pending Review" },
     Approved: { cls: "bg-green-50 text-green-700 border-green-200", dot: "bg-green-500", label: "Approved" },
@@ -20,9 +19,15 @@ function ApprovalBadge({ status }) {
     );
 }
 
-// Details of each product in the list, with approve/reject buttons
+// ✅ Fix: was missing `function ProductDetail(...)` declaration entirely
 function ProductDetail({ product, onApprove, onReject, acting }) {
     const pharmacy = product.userId;
+    const imgSrc = product.productImageUrl
+        ? product.productImageUrl.startsWith("http")
+            ? product.productImageUrl
+            : `http://localhost:3000/uploads/${product.productImageUrl}`
+        : null;
+
     return (
         <div className="border-t border-gray-100 bg-gray-50/50 px-6 py-5">
             <div className="grid grid-cols-3 gap-6">
@@ -32,9 +37,7 @@ function ProductDetail({ product, onApprove, onReject, acting }) {
                     <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Product Details</p>
                     <div className="flex gap-4">
                         <div className="w-24 h-24 rounded-2xl bg-white border border-gray-100 flex items-center justify-center text-4xl overflow-hidden flex-shrink-0 shadow-sm">
-                            {product.productImageUrl
-                                ? <img src={product.productImageUrl} alt="" className="w-full h-full object-cover rounded-2xl" />
-                                : "💊"}
+                            {imgSrc ? <img src={imgSrc} alt="" className="w-full h-full object-cover rounded-2xl" /> : "💊"}
                         </div>
                         <div className="flex-1 min-w-0">
                             <h3 className="text-[16px] font-black text-gray-900 mb-1">{product.productName}</h3>
@@ -51,24 +54,25 @@ function ProductDetail({ product, onApprove, onReject, acting }) {
                                         🕐 Submitted {new Date(product.createdAt).toLocaleDateString("en-NP", { day: "numeric", month: "short", year: "numeric" })}
                                     </span>
                                 )}
+                                {product.categoryId?.categoryName && (
+                                    <span className="inline-flex items-center gap-1.5 bg-blue-50 border border-blue-100 text-blue-700 text-[12px] font-bold px-3 py-1 rounded-full">
+                                        🏷️ {product.categoryId.categoryName}
+                                    </span>
+                                )}
                             </div>
                         </div>
                     </div>
 
-                    {/* Approval action buttons */}
+                    {/* Action buttons */}
                     {product.approvalStatus === "Pending" && (
                         <div className="flex gap-3 pt-1">
-                            <button
-                                onClick={() => onApprove(product._id)}
-                                disabled={acting}
+                            <button onClick={() => onApprove(product._id)} disabled={acting}
                                 className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-green-500 text-white rounded-xl text-[13px] font-bold hover:bg-green-400 transition disabled:opacity-50 shadow-sm shadow-green-500/20">
                                 {acting === product._id + "Approved"
                                     ? <><svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>Approving…</>
                                     : <><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>Approve — Allow Selling</>}
                             </button>
-                            <button
-                                onClick={() => onReject(product._id)}
-                                disabled={acting}
+                            <button onClick={() => onReject(product._id)} disabled={acting}
                                 className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-red-50 text-red-600 border border-red-200 rounded-xl text-[13px] font-bold hover:bg-red-100 transition disabled:opacity-50">
                                 {acting === product._id + "Rejected"
                                     ? <><svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>Rejecting…</>
@@ -77,18 +81,14 @@ function ProductDetail({ product, onApprove, onReject, acting }) {
                         </div>
                     )}
                     {product.approvalStatus === "Approved" && (
-                        <button
-                            onClick={() => onReject(product._id)}
-                            disabled={acting}
+                        <button onClick={() => onReject(product._id)} disabled={acting}
                             className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 border border-red-200 rounded-xl text-[12px] font-bold hover:bg-red-100 transition disabled:opacity-50 w-fit">
                             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" /></svg>
                             Revoke Approval
                         </button>
                     )}
                     {product.approvalStatus === "Rejected" && (
-                        <button
-                            onClick={() => onApprove(product._id)}
-                            disabled={acting}
+                        <button onClick={() => onApprove(product._id)} disabled={acting}
                             className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-xl text-[12px] font-bold hover:bg-green-400 transition disabled:opacity-50 shadow-sm shadow-green-500/20 w-fit">
                             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
                             Re-Approve Product
@@ -100,8 +100,6 @@ function ProductDetail({ product, onApprove, onReject, acting }) {
                 <div>
                     <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-3">Seller / Pharmacy</p>
                     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 space-y-3">
-
-                        {/* Avatar + name */}
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white font-black text-[14px] flex-shrink-0">
                                 {pharmacy?.name?.[0]?.toUpperCase() || "P"}
@@ -116,32 +114,11 @@ function ProductDetail({ product, onApprove, onReject, acting }) {
                                 <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider">Email</p>
                                 <p className="text-[12px] text-gray-700 font-medium truncate">{pharmacy?.email || "—"}</p>
                             </div>
-                            {pharmacy?.phone && (
-                                <div>
-                                    <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider">Phone</p>
-                                    <p className="text-[12px] text-gray-700 font-medium">{pharmacy.phone}</p>
-                                </div>
-                            )}
-                            {pharmacy?.address && (
-                                <div>
-                                    <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider">Address</p>
-                                    <p className="text-[12px] text-gray-700 font-medium">{pharmacy.address}</p>
-                                </div>
-                            )}
-                            {pharmacy?.licenseNumber && (
-                                <div>
-                                    <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider">License No.</p>
-                                    <p className="text-[12px] text-gray-700 font-semibold font-mono">{pharmacy.licenseNumber}</p>
-                                </div>
-                            )}
-                            {pharmacy?.createdAt && (
-                                <div>
-                                    <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider">Member Since</p>
-                                    <p className="text-[12px] text-gray-600">{new Date(pharmacy.createdAt).toLocaleDateString("en-NP", { day: "numeric", month: "short", year: "numeric" })}</p>
-                                </div>
-                            )}
+                            {pharmacy?.phone && <div><p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider">Phone</p><p className="text-[12px] text-gray-700 font-medium">{pharmacy.phone}</p></div>}
+                            {pharmacy?.address && <div><p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider">Address</p><p className="text-[12px] text-gray-700 font-medium">{pharmacy.address}</p></div>}
+                            {pharmacy?.licenseNumber && <div><p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider">License No.</p><p className="text-[12px] text-gray-700 font-semibold font-mono">{pharmacy.licenseNumber}</p></div>}
+                            {pharmacy?.createdAt && <div><p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider">Member Since</p><p className="text-[12px] text-gray-600">{new Date(pharmacy.createdAt).toLocaleDateString("en-NP", { day: "numeric", month: "short", year: "numeric" })}</p></div>}
                         </div>
-                        {/* Selling permission badge */}
                         <div className={`mt-1 flex items-center gap-2 px-3 py-2.5 rounded-xl text-[12px] font-bold ${product.approvalStatus === "Approved" ? "bg-green-50 text-green-700 border border-green-100" : "bg-red-50 text-red-600 border border-red-100"}`}>
                             {product.approvalStatus === "Approved"
                                 ? <><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>Permitted to sell this product</>
@@ -155,7 +132,6 @@ function ProductDetail({ product, onApprove, onReject, acting }) {
     );
 }
 
-// Main component 
 export default function AdminProducts() {
     const navigate = useNavigate();
     const [admin, setAdmin] = useState(null);
@@ -175,7 +151,7 @@ export default function AdminProducts() {
         if (!stored || role !== "admin") { navigate("/login", { replace: true }); return; }
         setAdmin(stored);
         fetchProducts();
-    }, []);
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     const fetchProducts = async () => {
         setLoading(true);
@@ -196,9 +172,7 @@ export default function AdminProducts() {
             await api.put(`/admin/product/${productId}/approval`, { approvalStatus });
             setProducts(p => p.map(prod => prod._id === productId ? { ...prod, approvalStatus } : prod));
             showToast(
-                approvalStatus === "Approved"
-                    ? "Product approved — pharmacy can now sell this item."
-                    : "Product rejected — pharmacy cannot sell this item.",
+                approvalStatus === "Approved" ? "Product approved — pharmacy can now sell this item." : "Product rejected — pharmacy cannot sell this item.",
                 approvalStatus === "Approved" ? "success" : "warn"
             );
             setExpanded(null);
@@ -246,7 +220,6 @@ export default function AdminProducts() {
 
     return (
         <div className="min-h-screen bg-[#f7f8fa]">
-            {/* Toast */}
             {toast && (
                 <div className={`fixed top-5 right-5 z-50 flex items-center gap-2.5 px-4 py-3 rounded-xl shadow-lg text-white text-[13px] font-bold
           ${toast.type === "error" ? "bg-red-500" : toast.type === "warn" ? "bg-amber-500" : "bg-green-600"}`}>
@@ -262,11 +235,10 @@ export default function AdminProducts() {
             <div className="pl-[220px]">
                 <main className="px-8 py-7 min-h-screen">
 
-                    {/* Header */}
                     <div className="flex items-start justify-between mb-7">
                         <div>
                             <h1 className="text-[26px] font-black text-gray-900 tracking-tight">Product Approvals</h1>
-                            <p className="text-gray-400 text-[13px] mt-0.5">Review pharmacy product submissions — approve to allow selling, reject to block</p>
+                            <p className="text-gray-400 text-[13px] mt-0.5">Review pharmacy product submissions</p>
                         </div>
                         <button onClick={fetchProducts}
                             className="flex items-center gap-2 border border-gray-200 bg-white text-gray-600 px-4 py-2.5 rounded-xl font-bold text-[13px] hover:border-green-300 hover:text-green-700 transition shadow-sm">
@@ -275,20 +247,16 @@ export default function AdminProducts() {
                         </button>
                     </div>
 
-                    {/* Pending alert */}
                     {counts.Pending > 0 && (
                         <div className="flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-2xl px-5 py-3.5 mb-6">
                             <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse flex-shrink-0" />
                             <p className="text-[13px] font-semibold text-amber-800">
-                                <span className="font-black">{counts.Pending}</span> product{counts.Pending > 1 ? "s" : ""} waiting for your approval — pharmacies cannot sell until you review
+                                <span className="font-black">{counts.Pending}</span> product{counts.Pending > 1 ? "s" : ""} waiting for your approval
                             </p>
-                            <button onClick={() => setFilter("Pending")} className="ml-auto text-[11px] font-bold text-amber-700 underline underline-offset-2">
-                                Review now
-                            </button>
+                            <button onClick={() => setFilter("Pending")} className="ml-auto text-[11px] font-bold text-amber-700 underline underline-offset-2">Review now</button>
                         </div>
                     )}
 
-                    {/* Stats row */}
                     <div className="grid grid-cols-4 gap-0 bg-white rounded-2xl border border-gray-100 shadow-sm mb-5 overflow-hidden">
                         {[
                             { key: "All", label: "Total Products", count: counts.All, color: "text-gray-900", bg: "bg-gray-50" },
@@ -304,7 +272,6 @@ export default function AdminProducts() {
                         ))}
                     </div>
 
-                    {/* Filter tabs + Search */}
                     <div className="flex items-center gap-3 mb-5 flex-wrap">
                         <div className="flex gap-1.5">
                             {["All", "Pending", "Approved", "Rejected"].map(key => (
@@ -322,7 +289,6 @@ export default function AdminProducts() {
                         </div>
                     </div>
 
-                    {/* Product list */}
                     {loading ? (
                         <div className="flex items-center justify-center py-28">
                             <div className="w-9 h-9 border-[3px] border-green-500 border-t-transparent rounded-full animate-spin" />
@@ -340,22 +306,18 @@ export default function AdminProducts() {
                                 const isExpanded = expanded === product._id;
                                 const isPending = product.approvalStatus === "Pending";
                                 const cfg = STATUS_CFG[product.approvalStatus] || STATUS_CFG.Pending;
+                                const imgSrc = product.productImageUrl
+                                    ? product.productImageUrl.startsWith("http") ? product.productImageUrl : `http://localhost:3000/uploads/${product.productImageUrl}`
+                                    : null;
 
                                 return (
                                     <div key={product._id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-
-                                        {/* Row */}
                                         <div className="flex items-center gap-4 px-5 py-4">
-
-                                            {/* Status dot */}
                                             <span className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${cfg.dot} ${isPending ? "animate-pulse" : ""}`} />
 
-                                            {/* Product image + name */}
                                             <div className="flex items-center gap-3 flex-1 min-w-0">
                                                 <div className="w-11 h-11 rounded-xl bg-green-50 border border-green-100 flex items-center justify-center text-xl flex-shrink-0 overflow-hidden">
-                                                    {product.productImageUrl
-                                                        ? <img src={product.productImageUrl} alt="" className="w-full h-full object-cover rounded-xl" />
-                                                        : "💊"}
+                                                    {imgSrc ? <img src={imgSrc} alt="" className="w-full h-full object-cover rounded-xl" /> : "💊"}
                                                 </div>
                                                 <div className="min-w-0">
                                                     <p className="text-[13px] font-black text-gray-900 truncate">{product.productName}</p>
@@ -363,7 +325,6 @@ export default function AdminProducts() {
                                                 </div>
                                             </div>
 
-                                            {/* Pharmacy info */}
                                             <div className="flex-1 min-w-0">
                                                 <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-0.5">Pharmacy</p>
                                                 <div className="flex items-center gap-2">
@@ -377,7 +338,6 @@ export default function AdminProducts() {
                                                 </div>
                                             </div>
 
-                                            {/* Price + Stock */}
                                             <div className="flex-shrink-0 text-center">
                                                 <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-0.5">Price</p>
                                                 <p className="text-[14px] font-black text-gray-900">Rs. {product.productPrice?.toLocaleString()}</p>
@@ -387,40 +347,27 @@ export default function AdminProducts() {
                                                 <p className={`text-[14px] font-black ${product.productTotalStockQuantity === 0 ? "text-red-500" : "text-gray-700"}`}>{product.productTotalStockQuantity}</p>
                                             </div>
 
-                                            {/* Approval badge */}
-                                            <div className="flex-shrink-0">
-                                                <ApprovalBadge status={product.approvalStatus} />
-                                            </div>
+                                            <div className="flex-shrink-0"><ApprovalBadge status={product.approvalStatus} /></div>
 
-                                            {/* Quick action buttons */}
                                             {isPending && (
                                                 <div className="flex items-center gap-2 flex-shrink-0">
-                                                    <button
-                                                        onClick={e => { e.stopPropagation(); handleApproval(product._id, "Approved"); }}
-                                                        disabled={!!acting}
+                                                    <button onClick={e => { e.stopPropagation(); handleApproval(product._id, "Approved"); }} disabled={!!acting}
                                                         className="px-3 py-1.5 text-[11px] font-bold bg-green-500 text-white rounded-lg hover:bg-green-400 transition disabled:opacity-50 shadow-sm shadow-green-500/20">
                                                         {acting === product._id + "Approved" ? "…" : "✓ Approve"}
                                                     </button>
-                                                    <button
-                                                        onClick={e => { e.stopPropagation(); handleApproval(product._id, "Rejected"); }}
-                                                        disabled={!!acting}
+                                                    <button onClick={e => { e.stopPropagation(); handleApproval(product._id, "Rejected"); }} disabled={!!acting}
                                                         className="px-3 py-1.5 text-[11px] font-bold bg-red-50 text-red-600 border border-red-200 rounded-lg hover:bg-red-100 transition disabled:opacity-50">
                                                         {acting === product._id + "Rejected" ? "…" : "✕ Reject"}
                                                     </button>
                                                 </div>
                                             )}
 
-                                            {/* Delete */}
-                                            <button
-                                                onClick={e => { e.stopPropagation(); handleDelete(product._id); }}
-                                                disabled={!!acting}
+                                            <button onClick={e => { e.stopPropagation(); handleDelete(product._id); }} disabled={!!acting}
                                                 className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-lg text-gray-300 hover:bg-red-50 hover:text-red-500 transition disabled:opacity-40">
                                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                                             </button>
 
-                                            {/* Expand toggle */}
-                                            <button
-                                                onClick={() => setExpanded(isExpanded ? null : product._id)}
+                                            <button onClick={() => setExpanded(isExpanded ? null : product._id)}
                                                 className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-lg bg-gray-100 hover:bg-gray-200 transition">
                                                 <svg className={`w-3.5 h-3.5 text-gray-500 transition-transform ${isExpanded ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
@@ -428,7 +375,6 @@ export default function AdminProducts() {
                                             </button>
                                         </div>
 
-                                        {/* Expanded detail panel */}
                                         {isExpanded && (
                                             <ProductDetail
                                                 product={product}

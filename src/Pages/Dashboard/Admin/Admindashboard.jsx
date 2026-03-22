@@ -3,12 +3,13 @@ import { useNavigate } from "react-router-dom";
 import api from "../../../api/axios";
 import { io } from "socket.io-client";
 
-// Notification helpers
+// Notification helpers — PRODUCT_APPROVAL_NEEDED added for admin
 const TYPE_META = {
   ORDER_PLACED: { icon: "📦", color: "bg-blue-50  text-blue-600" },
   ORDER_STATUS: { icon: "🚚", color: "bg-green-50 text-green-600" },
-  PRODUCT_APPROVED: { icon: "✅", color: "bg-green-50  text-green-600" },
+  PRODUCT_APPROVED: { icon: "✅", color: "bg-green-50 text-green-600" },
   PRODUCT_REJECTED: { icon: "❌", color: "bg-red-50   text-red-600" },
+  PRODUCT_APPROVAL_NEEDED: { icon: "🆕", color: "bg-amber-50 text-amber-600" }, // ← admin only
   PAYMENT_RECEIVED: { icon: "💰", color: "bg-amber-50 text-amber-600" },
 };
 const notifMeta = (type) => TYPE_META[type] || { icon: "🔔", color: "bg-gray-50 text-gray-600" };
@@ -145,7 +146,7 @@ function NotificationBell({ userId }) {
   );
 }
 
-// ── Shared Sidebar (exported for AdminUsers + AdminProducts) ──────────────────
+// Shared Sidebar
 export function AdminSidebar({ active, navigate, onLogout, admin }) {
   const NAV = [
     {
@@ -195,7 +196,6 @@ export function AdminSidebar({ active, navigate, onLogout, admin }) {
       </div>
       <nav className="flex-1 px-3 py-3 space-y-0.5">
         {NAV.map(({ key, label, path, icon }) => {
-          // Notifications renders as the bell component
           if (key === "notifications") {
             return <NotificationBell key="notifications" userId={admin?._id} />;
           }
@@ -222,7 +222,7 @@ export function AdminSidebar({ active, navigate, onLogout, admin }) {
   );
 }
 
-// Admin Overview Dashboard 
+// Admin Overview Dashboard
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const [admin, setAdmin] = useState(null);
@@ -296,7 +296,6 @@ export default function AdminDashboard() {
             </button>
           </div>
 
-          {/* Stat cards */}
           {loading ? (
             <div className="grid grid-cols-3 gap-4 mb-7">
               {[...Array(3)].map((_, i) => <div key={i} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 animate-pulse h-[100px]" />)}
@@ -313,7 +312,6 @@ export default function AdminDashboard() {
             </div>
           )}
 
-          {/* Pending products alert */}
           {stats.pendingProducts > 0 && (
             <div className="flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-2xl px-5 py-3.5 mb-6">
               <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse flex-shrink-0" />
@@ -326,7 +324,6 @@ export default function AdminDashboard() {
             </div>
           )}
 
-          {/* Recent Users */}
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-5">
             <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
               <div>
@@ -371,7 +368,6 @@ export default function AdminDashboard() {
             )}
           </div>
 
-          {/* Quick actions */}
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Quick Actions</p>
             <div className="flex gap-3 flex-wrap">

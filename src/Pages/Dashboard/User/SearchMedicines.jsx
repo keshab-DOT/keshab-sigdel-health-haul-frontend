@@ -6,7 +6,6 @@ import { io } from "socket.io-client";
 const toArr = (data) => {
   if (Array.isArray(data)) return data;
   if (data && Array.isArray(data.products)) return data.products;
-  if (data && Array.isArray(data.categories)) return data.categories;
   if (data && Array.isArray(data.data)) return data.data;
   return [];
 };
@@ -78,15 +77,12 @@ function Footer({ navigate }) {
   );
 }
 
-// ── Star display ──────────────────────────────────────────────────────────────
 function Stars({ rating, size = "sm", interactive = false, onRate }) {
   const sz = size === "sm" ? "w-3 h-3" : "w-5 h-5";
   return (
     <div className="flex items-center gap-0.5">
       {[1, 2, 3, 4, 5].map(i => (
-        <button key={i}
-          type="button"
-          disabled={!interactive}
+        <button key={i} type="button" disabled={!interactive}
           onClick={() => interactive && onRate && onRate(i)}
           className={`${interactive ? "cursor-pointer hover:scale-110 transition-transform" : "cursor-default"}`}>
           <svg className={`${sz} ${i <= rating ? "text-amber-400" : "text-gray-200"}`} fill="currentColor" viewBox="0 0 20 20">
@@ -98,7 +94,6 @@ function Stars({ rating, size = "sm", interactive = false, onRate }) {
   );
 }
 
-// ── Review modal ──────────────────────────────────────────────────────────────
 function ReviewModal({ pharmacy, onClose, onSubmitted, currentUserId }) {
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -110,9 +105,7 @@ function ReviewModal({ pharmacy, onClose, onSubmitted, currentUserId }) {
   const [error, setError] = useState("");
   const [alreadyReviewed, setAlreadyReviewed] = useState(false);
 
-  useEffect(() => {
-    fetchReviews();
-  }, [pharmacy._id]);
+  useEffect(() => { fetchReviews(); }, [pharmacy._id]);
 
   const fetchReviews = async () => {
     setLoading(true);
@@ -121,7 +114,6 @@ function ReviewModal({ pharmacy, onClose, onSubmitted, currentUserId }) {
       setReviews(data.reviews || []);
       setAvgRating(data.averageRating || 0);
       setTotalCount(data.totalCount || 0);
-      // Check if current user already submitted a review
       const mine = (data.reviews || []).find(r => r.userId?._id === currentUserId || r.userId === currentUserId);
       if (mine) setAlreadyReviewed(true);
     } catch { }
@@ -134,30 +126,22 @@ function ReviewModal({ pharmacy, onClose, onSubmitted, currentUserId }) {
     if (!myRating) { setError("Please select a star rating."); return; }
     setSubmitting(true);
     try {
-      const { data } = await api.post("/reviews", {
-        pharmacyId: pharmacy._id,
-        rating: myRating,
-        comment: myComment.trim(),
-      });
+      const { data } = await api.post("/reviews", { pharmacyId: pharmacy._id, rating: myRating, comment: myComment.trim() });
       setReviews(prev => [data.data, ...prev]);
       setTotalCount(c => c + 1);
-      setAvgRating(prev => Math.round(((prev * (totalCount) + myRating) / (totalCount + 1)) * 10) / 10);
+      setAvgRating(prev => Math.round(((prev * totalCount + myRating) / (totalCount + 1)) * 10) / 10);
       setAlreadyReviewed(true);
       setMyRating(0);
       setMyComment("");
       if (onSubmitted) onSubmitted(pharmacy._id, data.data);
     } catch (err) {
       setError(err.response?.data?.message || "Failed to submit review.");
-    } finally {
-      setSubmitting(false);
-    }
+    } finally { setSubmitting(false); }
   };
 
   return (
     <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 backdrop-blur-sm" onClick={onClose}>
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden" onClick={e => e.stopPropagation()}>
-
-        {/* Header */}
         <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between flex-shrink-0">
           <div>
             <h3 className="text-[15px] font-black text-gray-900">{pharmacy.name}</h3>
@@ -171,11 +155,7 @@ function ReviewModal({ pharmacy, onClose, onSubmitted, currentUserId }) {
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
         </div>
-
-        {/* Scrollable body */}
         <div className="flex-1 overflow-y-auto">
-
-          {/* Write a review */}
           <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
             {alreadyReviewed ? (
               <div className="flex items-center gap-2 text-green-700 bg-green-50 border border-green-100 rounded-xl px-3.5 py-2.5">
@@ -190,42 +170,28 @@ function ReviewModal({ pharmacy, onClose, onSubmitted, currentUserId }) {
                   <p className="text-[11px] font-semibold text-gray-600 mb-1">Your Rating *</p>
                   <Stars rating={myRating} size="lg" interactive onRate={setMyRating} />
                 </div>
-                <textarea
-                  value={myComment}
-                  onChange={e => setMyComment(e.target.value)}
-                  placeholder="Share your experience with this pharmacy… (optional)"
-                  rows={3}
-                  maxLength={500}
+                <textarea value={myComment} onChange={e => setMyComment(e.target.value)}
+                  placeholder="Share your experience… (optional)" rows={3} maxLength={500}
                   className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-[13px] focus:outline-none focus:ring-2 focus:ring-green-400/40 focus:border-green-400 resize-none bg-white transition" />
                 {error && <p className="text-[12px] text-red-600 font-semibold bg-red-50 border border-red-100 px-3 py-2 rounded-lg">{error}</p>}
                 <button type="submit" disabled={submitting || !myRating}
                   className="w-full bg-gray-900 text-white py-2.5 rounded-xl text-[13px] font-bold hover:bg-gray-800 disabled:opacity-40 transition flex items-center justify-center gap-2">
-                  {submitting
-                    ? <><svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>Submitting…</>
-                    : "Submit Review"}
+                  {submitting ? <><svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>Submitting…</> : "Submit Review"}
                 </button>
               </form>
             )}
           </div>
-
-          {/* Reviews list */}
           <div className="px-6 py-4 space-y-4">
             <p className="text-[13px] font-bold text-gray-800">{totalCount > 0 ? `${totalCount} Review${totalCount !== 1 ? "s" : ""}` : "No reviews yet"}</p>
             {loading ? (
               <div className="flex justify-center py-8"><div className="w-6 h-6 border-2 border-green-500 border-t-transparent rounded-full animate-spin" /></div>
             ) : reviews.length === 0 ? (
-              <div className="text-center py-8">
-                <div className="text-3xl mb-2">💬</div>
-                <p className="text-[13px] text-gray-500 font-medium">No reviews yet</p>
-                <p className="text-[11px] text-gray-400 mt-1">Be the first to review this pharmacy</p>
-              </div>
+              <div className="text-center py-8"><div className="text-3xl mb-2">💬</div><p className="text-[13px] text-gray-500 font-medium">No reviews yet</p></div>
             ) : reviews.map(r => (
               <div key={r._id} className="bg-gray-50 rounded-xl p-3.5 space-y-1.5">
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white font-black text-[11px] flex-shrink-0">
-                      {r.userId?.name?.[0]?.toUpperCase() || "U"}
-                    </div>
+                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white font-black text-[11px] flex-shrink-0">{r.userId?.name?.[0]?.toUpperCase() || "U"}</div>
                     <p className="text-[13px] font-bold text-gray-800">{r.userId?.name || "User"}</p>
                   </div>
                   <Stars rating={r.rating} />
@@ -241,92 +207,56 @@ function ReviewModal({ pharmacy, onClose, onSubmitted, currentUserId }) {
   );
 }
 
-// ── Product Card ──────────────────────────────────────────────────────────────
 function ProductCard({ product, onAddToCart, adding, onReviewClick, pharmacyRatings }) {
   const [qty, setQty] = useState(1);
-
   const outOfStock = product.productTotalStockQuantity === 0;
   const lowStock = !outOfStock && product.productTotalStockQuantity <= 5;
-  const catName = product.categoryId?.categoryName || null;
   const pharmacy = product.userId;
   const rating = pharmacy ? (pharmacyRatings[pharmacy._id] || null) : null;
-
   const imgSrc = product.productImageUrl
-    ? product.productImageUrl.startsWith("http")
-      ? product.productImageUrl
-      : `http://localhost:3000/${product.productImageUrl}`
+    ? product.productImageUrl.startsWith("http") ? product.productImageUrl : `http://localhost:3000/uploads/${product.productImageUrl}`
     : null;
 
   return (
     <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-all duration-200 flex flex-col group">
-      {/* Image */}
       <div className="h-36 bg-gradient-to-br from-green-50 to-emerald-50 flex items-center justify-center overflow-hidden relative">
-        {imgSrc
-          ? <img src={imgSrc} alt={product.productName} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" onError={e => { e.target.style.display = "none"; }} />
-          : <span className="text-5xl opacity-40">💊</span>}
-        {outOfStock && (
-          <div className="absolute inset-0 bg-gray-900/50 flex items-center justify-center">
-            <span className="bg-red-500 text-white text-[9px] font-bold px-2 py-1 rounded-full">Out of Stock</span>
-          </div>
-        )}
+        {imgSrc ? <img src={imgSrc} alt={product.productName} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" onError={e => { e.target.style.display = "none"; }} /> : <span className="text-5xl opacity-40">💊</span>}
+        {outOfStock && <div className="absolute inset-0 bg-gray-900/50 flex items-center justify-center"><span className="bg-red-500 text-white text-[9px] font-bold px-2 py-1 rounded-full">Out of Stock</span></div>}
         {lowStock && <div className="absolute top-2 right-2 bg-orange-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-md">Only {product.productTotalStockQuantity} left</div>}
       </div>
-
       <div className="p-3.5 flex flex-col flex-1">
-        {catName && (
-          <span className="inline-block mb-1.5 px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 text-[10px] font-bold border border-blue-100 self-start">{catName}</span>
-        )}
         <h4 className="font-bold text-gray-800 text-[12px] leading-snug mb-0.5 truncate">{product.productName}</h4>
         <p className="text-[10px] text-gray-400 line-clamp-2 mb-2 flex-1 leading-relaxed">{product.productDescription}</p>
-
-        {/* ✅ Pharmacy info + rating + review button */}
         {pharmacy?.name && (
           <div className="mb-2.5 bg-gray-50 border border-gray-100 rounded-lg px-2.5 py-2 space-y-1.5">
             <div className="flex items-center justify-between gap-1">
               <div className="flex items-center gap-1.5 min-w-0">
-                <div className="w-4 h-4 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white font-black text-[8px] flex-shrink-0">
-                  {pharmacy.name[0].toUpperCase()}
-                </div>
+                <div className="w-4 h-4 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white font-black text-[8px] flex-shrink-0">{pharmacy.name[0].toUpperCase()}</div>
                 <span className="text-[10px] text-gray-700 font-semibold truncate">{pharmacy.name}</span>
               </div>
-              {/* ✅ Review button */}
-              <button
-                onClick={() => onReviewClick(pharmacy)}
-                className="text-[9px] font-bold text-green-700 bg-green-50 border border-green-100 px-1.5 py-0.5 rounded-lg hover:bg-green-100 transition flex-shrink-0">
-                Reviews
-              </button>
+              <button onClick={() => onReviewClick(pharmacy)} className="text-[9px] font-bold text-green-700 bg-green-50 border border-green-100 px-1.5 py-0.5 rounded-lg hover:bg-green-100 transition flex-shrink-0">Reviews</button>
             </div>
-            {/* ✅ Star rating summary */}
             {rating ? (
               <div className="flex items-center gap-1.5">
                 <Stars rating={Math.round(rating.averageRating)} />
                 <span className="text-[10px] font-bold text-gray-700">{rating.averageRating.toFixed(1)}</span>
                 <span className="text-[10px] text-gray-400">({rating.totalCount})</span>
               </div>
-            ) : (
-              <p className="text-[10px] text-gray-400 italic">No reviews yet</p>
-            )}
+            ) : <p className="text-[10px] text-gray-400 italic">No reviews yet</p>}
           </div>
         )}
-
         <div className="flex items-center justify-between mb-2.5">
           <p className="text-green-600 font-black text-[13px]">Rs. {product.productPrice?.toLocaleString()}</p>
-          <span className={`text-[10px] font-medium px-2 py-0.5 rounded-lg ${outOfStock ? "bg-red-50 text-red-400" : "bg-gray-50 text-gray-400"}`}>
-            {outOfStock ? "No stock" : `${product.productTotalStockQuantity} in stock`}
-          </span>
+          <span className={`text-[10px] font-medium px-2 py-0.5 rounded-lg ${outOfStock ? "bg-red-50 text-red-400" : "bg-gray-50 text-gray-400"}`}>{outOfStock ? "No stock" : `${product.productTotalStockQuantity} in stock`}</span>
         </div>
-
         <div className="flex items-center gap-2">
           <div className="flex items-center border border-gray-200 rounded-xl overflow-hidden">
             <button onClick={() => setQty(q => Math.max(1, q - 1))} disabled={qty <= 1 || outOfStock} className="w-7 h-7 flex items-center justify-center text-gray-500 hover:bg-gray-50 disabled:opacity-30 transition font-bold">−</button>
             <span className="w-6 text-center text-[12px] font-bold text-gray-800">{qty}</span>
             <button onClick={() => setQty(q => Math.min(product.productTotalStockQuantity, q + 1))} disabled={qty >= product.productTotalStockQuantity || outOfStock} className="w-7 h-7 flex items-center justify-center text-gray-500 hover:bg-gray-50 disabled:opacity-30 transition font-bold">+</button>
           </div>
-          <button
-            onClick={() => onAddToCart(product._id, qty, () => setQty(1))}
-            disabled={adding || outOfStock}
-            className={`flex-1 h-7 rounded-xl text-[11px] font-bold transition-all flex items-center justify-center gap-1
-              ${outOfStock ? "bg-gray-100 text-gray-400 cursor-not-allowed" : adding ? "bg-green-100 text-green-600" : "bg-gray-900 text-white hover:bg-gray-800"}`}>
+          <button onClick={() => onAddToCart(product._id, qty, () => setQty(1))} disabled={adding || outOfStock}
+            className={`flex-1 h-7 rounded-xl text-[11px] font-bold transition-all flex items-center justify-center gap-1 ${outOfStock ? "bg-gray-100 text-gray-400 cursor-not-allowed" : adding ? "bg-green-100 text-green-600" : "bg-gray-900 text-white hover:bg-gray-800"}`}>
             {adding ? "Adding…" : outOfStock ? "Out of Stock" : "+ Add to Cart"}
           </button>
         </div>
@@ -335,12 +265,10 @@ function ProductCard({ product, onAddToCart, adding, onReviewClick, pharmacyRati
   );
 }
 
-// ── Main Page ─────────────────────────────────────────────────────────────────
 export default function SearchMedicines() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [products, setProducts] = useState([]);
-  const [categories, setCategories] = useState([]);
   const [cartCount, setCartCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [adding, setAdding] = useState({});
@@ -348,11 +276,8 @@ export default function SearchMedicines() {
   const [query, setQuery] = useState("");
   const [sortBy, setSortBy] = useState("newest");
   const [stockFilter, setStockFilter] = useState("all");
-  const [catFilter, setCatFilter] = useState("all");
-
-  // ✅ Review state
-  const [pharmacyRatings, setPharmacyRatings] = useState({}); // { pharmacyId: { averageRating, totalCount } }
-  const [reviewModal, setReviewModal] = useState(null); // pharmacy object or null
+  const [pharmacyRatings, setPharmacyRatings] = useState({});
+  const [reviewModal, setReviewModal] = useState(null);
 
   const showToast = (msg, type = "success") => { setToast({ msg, type }); setTimeout(() => setToast(null), 3000); };
 
@@ -363,25 +288,19 @@ export default function SearchMedicines() {
     Promise.allSettled([
       api.get("/products/get/products"),
       api.get("/cart/getcart"),
-      api.get("/categories/"),
-    ]).then(([prodRes, cartRes, catRes]) => {
+    ]).then(([prodRes, cartRes]) => {
       if (prodRes.status === "fulfilled") {
         const prods = toArr(prodRes.value.data);
         setProducts(prods);
-        // ✅ Fetch ratings for all unique pharmacies
         fetchPharmacyRatings(prods);
       }
       if (cartRes.status === "fulfilled") setCartCount(toArr(cartRes.value.data).length);
-      if (catRes.status === "fulfilled") setCategories(toArr(catRes.value.data));
     }).finally(() => setLoading(false));
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ✅ Fetch rating summaries for all unique pharmacies in one batch
   const fetchPharmacyRatings = async (prods) => {
     const pharmacyIds = [...new Set(prods.map(p => p.userId?._id).filter(Boolean))];
-    const results = await Promise.allSettled(
-      pharmacyIds.map(id => api.get(`/reviews/pharmacy/${id}`))
-    );
+    const results = await Promise.allSettled(pharmacyIds.map(id => api.get(`/reviews/pharmacy/${id}`)));
     const map = {};
     pharmacyIds.forEach((id, i) => {
       if (results[i].status === "fulfilled") {
@@ -392,7 +311,6 @@ export default function SearchMedicines() {
     setPharmacyRatings(map);
   };
 
-  // ✅ When a review is submitted update the rating summary in state
   const handleReviewSubmitted = (pharmacyId, newReview) => {
     setPharmacyRatings(prev => {
       const existing = prev[pharmacyId] || { averageRating: 0, totalCount: 0 };
@@ -426,13 +344,8 @@ export default function SearchMedicines() {
     let r = [...products];
     if (query.trim()) {
       const q = query.toLowerCase();
-      r = r.filter(p =>
-        p.productName?.toLowerCase().includes(q) ||
-        p.productDescription?.toLowerCase().includes(q) ||
-        p.userId?.name?.toLowerCase().includes(q)
-      );
+      r = r.filter(p => p.productName?.toLowerCase().includes(q) || p.productDescription?.toLowerCase().includes(q) || p.userId?.name?.toLowerCase().includes(q));
     }
-    if (catFilter !== "all") r = r.filter(p => (p.categoryId?._id || p.categoryId) === catFilter);
     if (stockFilter === "instock") r = r.filter(p => p.productTotalStockQuantity > 0);
     if (stockFilter === "outofstock") r = r.filter(p => p.productTotalStockQuantity === 0);
     if (sortBy === "newest") r.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
@@ -441,25 +354,13 @@ export default function SearchMedicines() {
     if (sortBy === "price_desc") r.sort((a, b) => b.productPrice - a.productPrice);
     if (sortBy === "name_asc") r.sort((a, b) => a.productName.localeCompare(b.productName));
     return r;
-  }, [products, query, sortBy, stockFilter, catFilter]);
+  }, [products, query, sortBy, stockFilter]);
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      {toast && (
-        <div className={`fixed top-5 right-5 z-50 flex items-center gap-2.5 px-4 py-3 rounded-xl shadow-lg text-white text-[13px] font-medium ${toast.type === "error" ? "bg-red-500" : "bg-green-600"}`}>
-          {toast.msg}
-        </div>
-      )}
+      {toast && <div className={`fixed top-5 right-5 z-50 flex items-center gap-2.5 px-4 py-3 rounded-xl shadow-lg text-white text-[13px] font-medium ${toast.type === "error" ? "bg-red-500" : "bg-green-600"}`}>{toast.msg}</div>}
 
-      {/* ✅ Review modal */}
-      {reviewModal && (
-        <ReviewModal
-          pharmacy={reviewModal}
-          currentUserId={user?._id}
-          onClose={() => setReviewModal(null)}
-          onSubmitted={handleReviewSubmitted}
-        />
-      )}
+      {reviewModal && <ReviewModal pharmacy={reviewModal} currentUserId={user?._id} onClose={() => setReviewModal(null)} onSubmitted={handleReviewSubmitted} />}
 
       <Topbar user={user} cartCount={cartCount} onLogout={handleLogout} navigate={navigate} />
 
@@ -476,17 +377,12 @@ export default function SearchMedicines() {
           </button>
         </div>
 
-        {/* Search & filters */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-3.5 flex flex-col sm:flex-row gap-2.5">
           <div className="relative flex-1">
             <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
             <input type="text" placeholder="Search medicines or pharmacy name…" value={query} onChange={e => setQuery(e.target.value)}
               className="w-full pl-10 pr-9 py-2.5 border border-gray-200 rounded-xl text-[13px] focus:outline-none focus:ring-2 focus:ring-green-400/40 focus:border-green-400 transition bg-gray-50/50" autoFocus />
-            {query && (
-              <button onClick={() => setQuery("")} className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600">
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-              </button>
-            )}
+            {query && <button onClick={() => setQuery("")} className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>}
           </div>
           <select value={stockFilter} onChange={e => setStockFilter(e.target.value)} className="border border-gray-200 rounded-xl px-3 py-2.5 text-[13px] focus:outline-none focus:ring-2 focus:ring-green-400/40 bg-gray-50/50 text-gray-600 min-w-[120px]">
             <option value="all">All Stock</option>
@@ -502,26 +398,6 @@ export default function SearchMedicines() {
           </select>
         </div>
 
-        {/* Category pills */}
-        {categories.length > 0 && (
-          <div className="flex gap-2 flex-wrap">
-            <button onClick={() => setCatFilter("all")}
-              className={`px-3.5 py-1.5 rounded-xl text-[12px] font-semibold border transition-all ${catFilter === "all" ? "bg-gray-900 text-white border-gray-900" : "bg-white text-gray-500 border-gray-200 hover:border-green-400 hover:text-green-600"}`}>
-              All Categories
-            </button>
-            {categories.map(cat => (
-              <button key={cat._id} onClick={() => setCatFilter(cat._id)}
-                className={`px-3.5 py-1.5 rounded-xl text-[12px] font-semibold border transition-all flex items-center gap-1.5 ${catFilter === cat._id ? "bg-gray-900 text-white border-gray-900" : "bg-white text-gray-500 border-gray-200 hover:border-green-400 hover:text-green-600"}`}>
-                {cat.categoryImageUrl && (
-                  <img src={cat.categoryImageUrl.startsWith("http") ? cat.categoryImageUrl : `http://localhost:3000/${cat.categoryImageUrl}`}
-                    alt="" className="w-4 h-4 rounded object-cover" />
-                )}
-                {cat.categoryName}
-              </button>
-            ))}
-          </div>
-        )}
-
         {query && (
           <div className="flex items-center gap-2">
             <span className="text-[13px] text-gray-400">Results for:</span>
@@ -533,7 +409,6 @@ export default function SearchMedicines() {
           </div>
         )}
 
-        {/* Product grid */}
         {loading ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
             {[...Array(10)].map((_, i) => (
@@ -547,22 +422,13 @@ export default function SearchMedicines() {
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm py-24 text-center">
             <div className="text-5xl mb-3">🔍</div>
             <h3 className="text-[15px] font-bold text-gray-700 mb-1">No medicines found</h3>
-            <p className="text-gray-400 text-[13px] mb-6">{query ? `No results for "${query}". Try a different term.` : "No products available yet."}</p>
-            {(query || catFilter !== "all") && (
-              <button onClick={() => { setQuery(""); setCatFilter("all"); }} className="bg-gray-900 text-white px-5 py-2 rounded-xl font-bold text-[13px] hover:bg-gray-800 transition">Clear Filters</button>
-            )}
+            <p className="text-gray-400 text-[13px] mb-6">{query ? `No results for "${query}".` : "No products available yet."}</p>
+            {query && <button onClick={() => setQuery("")} className="bg-gray-900 text-white px-5 py-2 rounded-xl font-bold text-[13px] hover:bg-gray-800 transition">Clear Search</button>}
           </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
             {filtered.map(product => (
-              <ProductCard
-                key={product._id}
-                product={product}
-                onAddToCart={handleAddToCart}
-                adding={adding[product._id]}
-                onReviewClick={setReviewModal}
-                pharmacyRatings={pharmacyRatings}
-              />
+              <ProductCard key={product._id} product={product} onAddToCart={handleAddToCart} adding={adding[product._id]} onReviewClick={setReviewModal} pharmacyRatings={pharmacyRatings} />
             ))}
           </div>
         )}
