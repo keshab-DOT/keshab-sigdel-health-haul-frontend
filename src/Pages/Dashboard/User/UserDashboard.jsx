@@ -3,14 +3,6 @@ import { useNavigate } from "react-router-dom";
 import api from "../../../api/axios";
 import { io } from "socket.io-client";
 
-const NAV = [
-  { key: "search", label: "Search Medicines", path: "/user/search", icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg> },
-  { key: "cart", label: "My Cart", path: "/user/cart", icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg> },
-  { key: "orders", label: "My Orders", path: "/user/orders", icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg> },
-  { key: "profile", label: "Profile", path: "/user/profile", icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg> },
-  { key: "settings", label: "Settings", path: "/user/settings", icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg> },
-];
-
 const CATEGORIES = [
   { label: "Pain Relief", icon: "💊" },
   { label: "Antibiotics", icon: "🧬" },
@@ -29,7 +21,6 @@ function extractArray(data) {
   return [];
 }
 
-// ── Build image src safely (always include /uploads/ prefix) ─────────────────
 function imgSrc(url) {
   if (!url) return null;
   if (url.startsWith("http")) return url;
@@ -37,11 +28,11 @@ function imgSrc(url) {
 }
 
 const TYPE_META = {
-  ORDER_PLACED: { icon: "📦", color: "bg-blue-50   text-blue-600" },
-  ORDER_STATUS: { icon: "🚚", color: "bg-green-50  text-green-600" },
-  PRODUCT_APPROVED: { icon: "✅", color: "bg-green-50  text-green-600" },
-  PRODUCT_REJECTED: { icon: "❌", color: "bg-red-50    text-red-600" },
-  PAYMENT_SUCCESS: { icon: "💰", color: "bg-amber-50  text-amber-600" },
+  ORDER_PLACED: { icon: "📦", color: "bg-blue-50 text-blue-600" },
+  ORDER_STATUS: { icon: "🚚", color: "bg-green-50 text-green-600" },
+  PRODUCT_APPROVED: { icon: "✅", color: "bg-green-50 text-green-600" },
+  PRODUCT_REJECTED: { icon: "❌", color: "bg-red-50 text-red-600" },
+  PAYMENT_SUCCESS: { icon: "💰", color: "bg-amber-50 text-amber-600" },
 };
 const notifMeta = (type) => TYPE_META[type] || { icon: "🔔", color: "bg-gray-50 text-gray-600" };
 function timeAgo(date) {
@@ -108,19 +99,12 @@ function NotificationBell({ userId }) {
 
   return (
     <div className="relative flex-shrink-0" ref={dropdownRef}>
-      <button onClick={() => setOpen(o => !o)}
-        className="relative w-9 h-9 flex items-center justify-center text-gray-500 hover:text-gray-800 hover:bg-gray-50 rounded-xl transition"
-        title="Notifications">
+      <button onClick={() => setOpen(o => !o)} className="relative w-9 h-9 flex items-center justify-center text-gray-500 hover:text-gray-800 hover:bg-gray-50 rounded-xl transition" title="Notifications">
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
         </svg>
-        {unread > 0 && (
-          <span className="absolute top-1 right-1 min-w-[14px] h-[14px] bg-red-500 text-white text-[9px] font-black rounded-full flex items-center justify-center px-[3px] leading-none">
-            {unread > 9 ? "9+" : unread}
-          </span>
-        )}
+        {unread > 0 && <span className="absolute top-1 right-1 min-w-[14px] h-[14px] bg-red-500 text-white text-[9px] font-black rounded-full flex items-center justify-center px-[3px] leading-none">{unread > 9 ? "9+" : unread}</span>}
       </button>
-
       {open && (
         <div className="absolute right-0 top-[calc(100%+8px)] w-80 bg-white rounded-2xl shadow-xl border border-gray-100 z-50 overflow-hidden">
           <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
@@ -142,8 +126,7 @@ function NotificationBell({ userId }) {
             ) : notifs.slice(0, 20).map(n => {
               const m = notifMeta(n.type);
               return (
-                <button key={n._id}
-                  onClick={() => { if (!n.isRead) markRead(n._id); setOpen(false); }}
+                <button key={n._id} onClick={() => { if (!n.isRead) markRead(n._id); setOpen(false); }}
                   className={`w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-gray-50 transition border-b border-gray-50 last:border-0 ${!n.isRead ? "bg-green-50/40" : ""}`}>
                   <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-base flex-shrink-0 mt-0.5 ${m.color}`}>{m.icon}</div>
                   <div className="flex-1 min-w-0">
@@ -183,9 +166,6 @@ function Topbar({ user, cartCount, onLogout, navigate }) {
           {cartCount > 0 && <span className="absolute top-1 right-1 w-[14px] h-[14px] bg-red-500 text-white text-[9px] font-black rounded-full flex items-center justify-center">{cartCount > 9 ? "9+" : cartCount}</span>}
         </button>
         <NotificationBell userId={user?._id} />
-        <button onClick={() => navigate("/user/settings")} className="w-9 h-9 flex items-center justify-center text-gray-400 hover:text-gray-700 hover:bg-gray-50 rounded-xl transition">
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-        </button>
         <button onClick={() => navigate("/user/profile")} className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl px-2.5 py-1.5 hover:border-green-300 transition">
           <div className="w-6 h-6 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white font-black text-[11px]">{user?.name?.[0]?.toUpperCase() || "U"}</div>
           <div className="text-left">
@@ -201,11 +181,66 @@ function Topbar({ user, cartCount, onLogout, navigate }) {
   );
 }
 
+function Footer({ navigate }) {
+  const quickLinks = [
+    { label: "Search Medicines", path: "/user/search" },
+    { label: "My Orders", path: "/user/orders" },
+    { label: "My Cart", path: "/user/cart" },
+    { label: "Profile", path: "/user/profile" },
+  ];
+  return (
+    <footer className="bg-gray-900 text-white mt-auto">
+      <div className="px-8 pt-8 pb-5">
+        <div className="grid grid-cols-3 gap-8 mb-6">
+          <div>
+            <div className="flex items-center gap-2 mb-3 cursor-pointer" onClick={() => navigate("/user/dashboard")}>
+              <div className="w-6 h-6 rounded-md bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
+                <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+              </div>
+              <h4 className="font-bold text-green-400">HealthHaul Nepal</h4>
+            </div>
+            <p className="text-gray-400 text-xs leading-relaxed">Your trusted partner for fast and reliable medicine delivery across Nepal.</p>
+          </div>
+          <div>
+            <h5 className="font-semibold mb-4">Quick Links</h5>
+            <ul className="space-y-2 text-gray-400 text-sm">
+              {quickLinks.map(({ label, path }) => (
+                <li key={label}><button onClick={() => navigate(path)} className="hover:text-white transition text-left w-full">{label}</button></li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <h5 className="font-semibold mb-4">Contact Us</h5>
+            <ul className="space-y-3 text-gray-400 text-sm">
+              <li className="flex items-center gap-2">
+                <svg className="w-4 h-4 text-green-400 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" /><path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" /></svg>
+                <a href="mailto:sigdelbibek9898@gmail.com" className="hover:text-white transition break-all">sigdelbibek9898@gmail.com</a>
+              </li>
+              <li className="flex items-center gap-2">
+                <svg className="w-4 h-4 text-green-400 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" /></svg>
+                <a href="tel:9829396927" className="hover:text-white transition">9829396927</a>
+              </li>
+              <li className="flex items-center gap-2">
+                <svg className="w-4 h-4 text-green-400 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" /></svg>
+                <span>Itahari-8, Sunsari, Nepal</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div className="border-t border-gray-800 pt-4 flex justify-between items-center">
+          <p className="text-gray-600 text-xs">© {new Date().getFullYear()} HealthHaul Nepal. All rights reserved.</p>
+          <p className="text-gray-700 text-xs">Made with ❤️ in Nepal</p>
+        </div>
+      </div>
+    </footer>
+  );
+}
+
 function StatusPill({ status }) {
   const map = {
     pending: { cls: "bg-amber-100 text-amber-700", dot: "bg-amber-400", label: "Pending" },
     delivered: { cls: "bg-green-100 text-green-700", dot: "bg-green-500", label: "Delivered" },
-    cancelled: { cls: "bg-red-100   text-red-600", dot: "bg-red-400", label: "Cancelled" },
+    cancelled: { cls: "bg-red-100 text-red-600", dot: "bg-red-400", label: "Cancelled" },
   };
   const s = map[status] || { cls: "bg-gray-100 text-gray-600", dot: "bg-gray-400", label: status };
   return (
@@ -271,32 +306,6 @@ function FeaturedOrderCard({ order, navigate }) {
         </button>
       </div>
     </div>
-  );
-}
-
-function Footer({ navigate }) {
-  const quickLinks = [{ label: "Search Medicines", path: "/user/search" }, { label: "My Orders", path: "/user/orders" }, { label: "My Cart", path: "/user/cart" }, { label: "Profile", path: "/user/profile" }];
-  const supportLinks = [{ label: "Help Center", path: "/user/help" }, { label: "Contact Us", path: "/user/contact" }, { label: "Refund Policy", path: "/user/refund-policy" }, { label: "Terms of Service", path: "/user/terms" }];
-  return (
-    <footer className="bg-gray-950 text-white mt-auto">
-      <div className="px-8 pt-8 pb-5">
-        <div className="grid grid-cols-4 gap-8 mb-6">
-          <div className="col-span-2">
-            <div className="flex items-center gap-2 mb-3 cursor-pointer" onClick={() => navigate("/user/dashboard")}>
-              <div className="w-6 h-6 rounded-md bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center"><svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg></div>
-              <h4 className="font-bold text-green-400">HealthHaul Nepal</h4>
-            </div>
-            <p className="text-gray-400 text-xs leading-relaxed max-w-xs">Fast, reliable medicine delivery across Nepal. Licensed pharmacies, verified products, doorstep delivery.</p>
-          </div>
-          <div><h5 className="font-bold text-[11px] text-gray-500 uppercase tracking-widest mb-3">Quick Links</h5><ul className="space-y-1.5 text-gray-400 text-[13px]">{quickLinks.map(({ label, path }) => (<li key={label}><button onClick={() => navigate(path)} className="hover:text-green-400 transition-colors text-left w-full">{label}</button></li>))}</ul></div>
-          <div><h5 className="font-bold text-[11px] text-gray-500 uppercase tracking-widest mb-3">Support</h5><ul className="space-y-1.5 text-gray-400 text-[13px]">{supportLinks.map(({ label, path }) => (<li key={label}><button onClick={() => navigate(path)} className="hover:text-green-400 transition-colors text-left w-full">{label}</button></li>))}</ul></div>
-        </div>
-        <div className="border-t border-gray-800 pt-4 flex justify-between items-center">
-          <p className="text-gray-600 text-xs">© {new Date().getFullYear()} HealthHaul Nepal. All rights reserved.</p>
-          <p className="text-gray-700 text-xs">Made with ❤️ in Nepal</p>
-        </div>
-      </div>
-    </footer>
   );
 }
 
@@ -381,11 +390,8 @@ export default function UserDashboard() {
           {toast.msg}
         </div>
       )}
-
       <Topbar user={user} cartCount={cartCount} onLogout={handleLogout} navigate={navigate} />
-
       <main className="flex-1">
-
         {/* Hero */}
         <section className="px-8 pt-7 pb-6">
           <div className="flex gap-5 items-stretch min-h-[270px]">
@@ -462,8 +468,7 @@ export default function UserDashboard() {
               <p className="text-[11px] text-gray-400 mt-0.5">From licensed pharmacies near you</p>
             </div>
             <button onClick={() => navigate("/user/search")} className="text-[12px] text-green-600 font-semibold hover:text-green-700 flex items-center gap-0.5 bg-green-50 px-3 py-1.5 rounded-lg transition">
-              View all
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
+              View all <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
             </button>
           </div>
           <div className="grid grid-cols-4 gap-3">
@@ -471,23 +476,13 @@ export default function UserDashboard() {
               const outOfStock = product.productTotalStockQuantity === 0;
               const lowStock = !outOfStock && product.productTotalStockQuantity <= 5;
               const pharmacyName = product.userId?.name || null;
-              // ✅ use imgSrc helper — always adds /uploads/ prefix
               const src = imgSrc(product.productImageUrl);
-
               return (
                 <div key={product._id} className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all group flex flex-col">
                   <div className="h-32 bg-gradient-to-br from-green-50 to-emerald-50 flex items-center justify-center overflow-hidden relative">
-                    {src
-                      ? <img src={src} alt={product.productName} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" onError={e => { e.target.style.display = "none"; }} />
-                      : <span className="text-4xl opacity-50">💊</span>}
-                    {outOfStock && (
-                      <div className="absolute inset-0 bg-gray-900/50 flex items-center justify-center">
-                        <span className="bg-red-500 text-white text-[10px] font-bold px-2 py-1 rounded-full">Out of Stock</span>
-                      </div>
-                    )}
-                    {lowStock && (
-                      <div className="absolute top-2 right-2 bg-orange-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-lg">Only {product.productTotalStockQuantity} left</div>
-                    )}
+                    {src ? <img src={src} alt={product.productName} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" onError={e => { e.target.style.display = "none"; }} /> : <span className="text-4xl opacity-50">💊</span>}
+                    {outOfStock && <div className="absolute inset-0 bg-gray-900/50 flex items-center justify-center"><span className="bg-red-500 text-white text-[10px] font-bold px-2 py-1 rounded-full">Out of Stock</span></div>}
+                    {lowStock && <div className="absolute top-2 right-2 bg-orange-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-lg">Only {product.productTotalStockQuantity} left</div>}
                   </div>
                   <div className="p-3 flex flex-col flex-1">
                     <p className="text-[12px] font-bold text-gray-800 truncate mb-0.5">{product.productName}</p>
@@ -500,9 +495,7 @@ export default function UserDashboard() {
                     )}
                     <div className="flex items-center justify-between mt-auto">
                       <p className="text-green-600 font-black text-[13px]">Rs. {product.productPrice?.toLocaleString()}</p>
-                      <button
-                        onClick={() => handleReorder(product._id)}
-                        disabled={outOfStock || reordering[product._id]}
+                      <button onClick={() => handleReorder(product._id)} disabled={outOfStock || reordering[product._id]}
                         className={`text-[10px] font-bold px-2.5 py-1.5 rounded-lg transition ${outOfStock ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "bg-green-50 text-green-700 hover:bg-green-600 hover:text-white"}`}>
                         {reordering[product._id] ? "…" : outOfStock ? "N/A" : "+ Cart"}
                       </button>
@@ -581,7 +574,6 @@ export default function UserDashboard() {
             </button>
           </div>
         </section>
-
       </main>
       <Footer navigate={navigate} />
     </div>

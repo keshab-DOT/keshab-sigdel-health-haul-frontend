@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../../api/axios";
 
-function Topbar({ user, cartCount, onLogout, navigate }) {
+function Topbar({ user, onLogout, navigate }) {
   return (
     <header className="bg-white border-b border-gray-100 px-6 py-0 flex items-center justify-between sticky top-0 z-30 h-[56px]">
       <div className="flex items-center gap-2 cursor-pointer flex-shrink-0" onClick={() => navigate("/user/dashboard")}>
@@ -20,10 +20,6 @@ function Topbar({ user, cartCount, onLogout, navigate }) {
       <div className="flex items-center gap-2 ml-auto">
         <button onClick={() => navigate("/user/cart")} className="relative w-9 h-9 flex items-center justify-center text-gray-500 hover:text-gray-800 hover:bg-gray-50 rounded-xl transition">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-          {cartCount > 0 && <span className="absolute top-1 right-1 w-[14px] h-[14px] bg-red-500 text-white text-[9px] font-black rounded-full flex items-center justify-center">{cartCount > 9 ? "9+" : cartCount}</span>}
-        </button>
-        <button onClick={() => navigate("/user/settings")} className="w-9 h-9 flex items-center justify-center text-gray-400 hover:text-gray-700 hover:bg-gray-50 rounded-xl transition">
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
         </button>
         <button onClick={() => navigate("/user/profile")} className="flex items-center gap-2 bg-gray-50 border border-green-300 rounded-xl px-2.5 py-1.5 transition">
           <div className="w-6 h-6 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white font-black text-[11px]">{user?.name?.[0]?.toUpperCase() || "U"}</div>
@@ -39,16 +35,34 @@ function Topbar({ user, cartCount, onLogout, navigate }) {
 
 function Footer({ navigate }) {
   const quickLinks = [{ label: "Search Medicines", path: "/user/search" }, { label: "My Orders", path: "/user/orders" }, { label: "My Cart", path: "/user/cart" }, { label: "Profile", path: "/user/profile" }];
-  const supportLinks = [{ label: "Help Center", path: "/user/support" }, { label: "Contact Us", path: "/user/support" }, { label: "Refund Policy", path: "/user/support" }, { label: "Terms of Service", path: "/user/support" }];
   return (
-    <footer className="bg-gray-950 text-white mt-auto">
+    <footer className="bg-gray-900 text-white mt-auto">
       <div className="px-8 pt-8 pb-5">
-        <div className="grid grid-cols-4 gap-8 mb-6">
-          <div className="col-span-2"><div className="flex items-center gap-2 mb-3 cursor-pointer" onClick={() => navigate("/user/dashboard")}><div className="w-6 h-6 rounded-md bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center"><svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg></div><h4 className="font-bold text-green-400">HealthHaul Nepal</h4></div><p className="text-gray-400 text-xs leading-relaxed max-w-xs">Fast, reliable medicine delivery across Nepal.</p></div>
-          <div><h5 className="font-bold text-[11px] text-gray-500 uppercase tracking-widest mb-3">Quick Links</h5><ul className="space-y-1.5 text-gray-400 text-[13px]">{quickLinks.map(({ label, path }) => (<li key={label}><button onClick={() => navigate(path)} className="hover:text-green-400 transition-colors text-left w-full">{label}</button></li>))}</ul></div>
-          <div><h5 className="font-bold text-[11px] text-gray-500 uppercase tracking-widest mb-3">Support</h5><ul className="space-y-1.5 text-gray-400 text-[13px]">{supportLinks.map(({ label, path }) => (<li key={label}><button onClick={() => navigate(path)} className="hover:text-green-400 transition-colors text-left w-full">{label}</button></li>))}</ul></div>
+        <div className="grid grid-cols-3 gap-8 mb-6">
+          <div>
+            <div className="flex items-center gap-2 mb-3 cursor-pointer" onClick={() => navigate("/user/dashboard")}>
+              <div className="w-6 h-6 rounded-md bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center"><svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg></div>
+              <h4 className="font-bold text-green-400">HealthHaul Nepal</h4>
+            </div>
+            <p className="text-gray-400 text-xs leading-relaxed">Your trusted partner for fast and reliable medicine delivery across Nepal.</p>
+          </div>
+          <div>
+            <h5 className="font-semibold mb-4">Quick Links</h5>
+            <ul className="space-y-2 text-gray-400 text-sm">{quickLinks.map(({ label, path }) => (<li key={label}><button onClick={() => navigate(path)} className="hover:text-white transition text-left w-full">{label}</button></li>))}</ul>
+          </div>
+          <div>
+            <h5 className="font-semibold mb-4">Contact Us</h5>
+            <ul className="space-y-3 text-gray-400 text-sm">
+              <li className="flex items-center gap-2"><svg className="w-4 h-4 text-green-400 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" /><path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" /></svg><a href="mailto:sigdelbibek9898@gmail.com" className="hover:text-white transition break-all">sigdelbibek9898@gmail.com</a></li>
+              <li className="flex items-center gap-2"><svg className="w-4 h-4 text-green-400 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" /></svg><a href="tel:9829396927" className="hover:text-white transition">9829396927</a></li>
+              <li className="flex items-center gap-2"><svg className="w-4 h-4 text-green-400 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" /></svg><span>Itahari-8, Sunsari, Nepal</span></li>
+            </ul>
+          </div>
         </div>
-        <div className="border-t border-gray-800 pt-4 flex justify-between items-center"><p className="text-gray-600 text-xs">© {new Date().getFullYear()} HealthHaul Nepal. All rights reserved.</p><p className="text-gray-700 text-xs">Made with ❤️ in Nepal</p></div>
+        <div className="border-t border-gray-800 pt-4 flex justify-between items-center">
+          <p className="text-gray-600 text-xs">© {new Date().getFullYear()} HealthHaul Nepal. All rights reserved.</p>
+          <p className="text-gray-700 text-xs">Made with ❤️ in Nepal</p>
+        </div>
       </div>
     </footer>
   );
@@ -59,7 +73,7 @@ function InputField({ label, type = "text", value, onChange, disabled, placehold
     <div>
       <label className="block text-[13px] font-bold text-gray-700 mb-1.5">{label}</label>
       <input type={type} value={value} onChange={onChange} disabled={disabled} placeholder={placeholder}
-        className={`w-full border rounded-xl px-3.5 py-2.5 text-[13px] focus:outline-none focus:ring-2 focus:ring-green-400/40 focus:border-green-400 transition ${disabled ? "border-gray-100 bg-gray-50 text-gray-400 cursor-not-allowed" : "border-gray-200 bg-gray-50/50"}`}/>
+        className={`w-full border rounded-xl px-3.5 py-2.5 text-[13px] focus:outline-none focus:ring-2 focus:ring-green-400/40 focus:border-green-400 transition ${disabled ? "border-gray-100 bg-gray-50 text-gray-400 cursor-not-allowed" : "border-gray-200 bg-gray-50/50"}`} />
       {hint && <p className="text-[11px] text-gray-400 mt-1.5">{hint}</p>}
     </div>
   );
@@ -73,67 +87,46 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState(null);
 
-  const showToast = (msg, type = "success") => {
-    setToast({ msg, type });
-    setTimeout(() => setToast(null), 3000);
-  };
+  const showToast = (msg, type = "success") => { setToast({ msg, type }); setTimeout(() => setToast(null), 3000); };
 
   useEffect(() => {
     const stored = JSON.parse(localStorage.getItem("user"));
     if (!stored) { navigate("/login"); return; }
     setUser(stored);
     setForm({ name: stored.name || "", email: stored.email || "", phone: stored.phone || "" });
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleLogout = async () => {
-    try { await api.post("/auth/logout"); } catch (_) {}
-    localStorage.removeItem("user");
-    localStorage.removeItem("token");
-    navigate("/login");
+    try { await api.post("/auth/logout"); } catch (_) { }
+    localStorage.removeItem("user"); localStorage.removeItem("token"); navigate("/login");
   };
 
-  // ── Calls the real API endpoint, syncs localStorage from the response ────────
   const handleSaveProfile = async () => {
-    if (!form.name.trim()) {
-      showToast("Name is required", "error");
-      return;
-    }
+    if (!form.name.trim()) { showToast("Name is required", "error"); return; }
     setSaving(true);
     try {
-      const { data } = await api.put("/auth/update-profile", {
-        name:  form.name.trim(),
-        phone: form.phone,
-      });
-
-      // Merge returned user with what's already stored (keeps token, roles, etc.)
+      const { data } = await api.put("/auth/update-profile", { name: form.name.trim(), phone: form.phone });
       const updated = { ...user, ...data.user };
       localStorage.setItem("user", JSON.stringify(updated));
       setUser(updated);
       setForm(f => ({ ...f, name: updated.name, phone: updated.phone || "" }));
       showToast("Profile updated successfully!");
-    } catch (err) {
-      showToast(err.response?.data?.message || "Failed to update profile", "error");
-    } finally {
-      setSaving(false);
-    }
+    } catch (err) { showToast(err.response?.data?.message || "Failed to update profile", "error"); }
+    finally { setSaving(false); }
   };
 
   if (!user) return null;
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      {toast && (
-        <div className={`fixed top-5 right-5 z-50 flex items-center gap-2.5 px-4 py-3 rounded-xl shadow-lg text-white text-[13px] font-medium ${toast.type === "error" ? "bg-red-500" : "bg-green-600"}`}>
-          {toast.msg}
-        </div>
-      )}
-      <Topbar user={user} cartCount={0} onLogout={handleLogout} navigate={navigate}/>
+      {toast && <div className={`fixed top-5 right-5 z-50 flex items-center gap-2.5 px-4 py-3 rounded-xl shadow-lg text-white text-[13px] font-medium ${toast.type === "error" ? "bg-red-500" : "bg-green-600"}`}>{toast.msg}</div>}
+      <Topbar user={user} onLogout={handleLogout} navigate={navigate} />
       <main className="flex-1 px-8 py-6 space-y-5">
         <div><h2 className="text-[22px] font-black text-gray-900 tracking-tight">My Profile</h2><p className="text-gray-400 text-[13px] mt-0.5">Manage your personal information</p></div>
         <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-gray-900 via-gray-800 to-emerald-950 px-7 py-6 flex items-center gap-5">
-          <div className="absolute inset-0 opacity-10"><div className="absolute top-0 right-0 w-48 h-48 rounded-full bg-green-400 blur-3xl"/></div>
+          <div className="absolute inset-0 opacity-10"><div className="absolute top-0 right-0 w-48 h-48 rounded-full bg-green-400 blur-3xl" /></div>
           <div className="w-14 h-14 rounded-full bg-white/20 flex items-center justify-center text-2xl font-black text-white flex-shrink-0 border border-white/20">{user.name?.[0]?.toUpperCase() || "U"}</div>
-          <div className="flex-1 relative"><h3 className="text-lg font-black text-white">{user.name}</h3><p className="text-white/50 text-[12px]">{user.email}</p><div className="flex items-center gap-1.5 mt-1.5"><span className="w-1.5 h-1.5 rounded-full bg-green-400"/><span className="text-[11px] text-green-300 font-medium">Verified Account</span></div></div>
+          <div className="flex-1 relative"><h3 className="text-lg font-black text-white">{user.name}</h3><p className="text-white/50 text-[12px]">{user.email}</p><div className="flex items-center gap-1.5 mt-1.5"><span className="w-1.5 h-1.5 rounded-full bg-green-400" /><span className="text-[11px] text-green-300 font-medium">Verified Account</span></div></div>
           <div className="text-right relative"><p className="text-[11px] text-white/40 uppercase tracking-wider font-semibold">Account Type</p><p className="font-black text-[13px] text-white capitalize mt-0.5">{user.roles?.[0] || user.roles || "Customer"}</p></div>
         </div>
         <div className="flex gap-1 bg-white rounded-xl p-1 shadow-sm border border-gray-100 w-fit">
@@ -146,31 +139,10 @@ export default function ProfilePage() {
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 max-w-md">
             <h3 className="text-[15px] font-black text-gray-900 mb-5">Edit Profile</h3>
             <div className="space-y-4">
-              <InputField
-                label="Full Name"
-                value={form.name}
-                onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
-                placeholder="Your full name"
-              />
-              <InputField
-                label="Email Address"
-                type="email"
-                value={form.email}
-                disabled
-                hint="Email cannot be changed"
-              />
-              <InputField
-                label="Phone Number"
-                type="tel"
-                value={form.phone}
-                onChange={e => setForm(p => ({ ...p, phone: e.target.value }))}
-                placeholder="98XXXXXXXX"
-              />
-              <button
-                onClick={handleSaveProfile}
-                disabled={saving}
-                className="w-full bg-gray-900 text-white py-2.5 rounded-xl font-black hover:bg-gray-800 disabled:opacity-50 transition text-[13px] mt-2"
-              >
+              <InputField label="Full Name" value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} placeholder="Your full name" />
+              <InputField label="Email Address" type="email" value={form.email} disabled hint="Email cannot be changed" />
+              <InputField label="Phone Number" type="tel" value={form.phone} onChange={e => setForm(p => ({ ...p, phone: e.target.value }))} placeholder="98XXXXXXXX" />
+              <button onClick={handleSaveProfile} disabled={saving} className="w-full bg-gray-900 text-white py-2.5 rounded-xl font-black hover:bg-gray-800 disabled:opacity-50 transition text-[13px] mt-2">
                 {saving ? "Saving…" : "Save Changes"}
               </button>
             </div>
@@ -181,13 +153,7 @@ export default function ProfilePage() {
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 max-w-md">
             <h3 className="text-[15px] font-black text-gray-900 mb-5">Account Information</h3>
             <div className="space-y-0.5 mb-6">
-              {[
-                { label: "Full Name",     value: user.name },
-                { label: "Email",         value: user.email },
-                { label: "Phone",         value: user.phone || "Not set" },
-                { label: "Account Type",  value: user.roles?.[0] || user.roles || "Customer" },
-                { label: "Account ID",    value: user._id || user.id || "N/A" },
-              ].map(({ label, value }) => (
+              {[{ label: "Full Name", value: user.name }, { label: "Email", value: user.email }, { label: "Phone", value: user.phone || "Not set" }, { label: "Account Type", value: user.roles?.[0] || user.roles || "Customer" }, { label: "Account ID", value: user._id || user.id || "N/A" }].map(({ label, value }) => (
                 <div key={label} className="flex items-center justify-between py-3 border-b border-gray-50 last:border-0">
                   <span className="text-[13px] text-gray-500 font-medium">{label}</span>
                   <span className="text-[13px] font-black text-gray-800 text-right max-w-[55%] break-all">{value}</span>
@@ -201,7 +167,7 @@ export default function ProfilePage() {
           </div>
         )}
       </main>
-      <Footer navigate={navigate}/>
+      <Footer navigate={navigate} />
     </div>
   );
 }
