@@ -73,7 +73,10 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState(null);
 
-  const showToast = (msg, type = "success") => { setToast({ msg, type }); setTimeout(() => setToast(null), 3000); };
+  const showToast = (msg, type = "success") => {
+    setToast({ msg, type });
+    setTimeout(() => setToast(null), 3000);
+  };
 
   useEffect(() => {
     const stored = JSON.parse(localStorage.getItem("user"));
@@ -89,22 +92,41 @@ export default function ProfilePage() {
     navigate("/login");
   };
 
+  // ── Calls the real API endpoint, syncs localStorage from the response ────────
   const handleSaveProfile = async () => {
+    if (!form.name.trim()) {
+      showToast("Name is required", "error");
+      return;
+    }
     setSaving(true);
     try {
-      const updated = { ...user, name: form.name, phone: form.phone };
+      const { data } = await api.put("/auth/update-profile", {
+        name:  form.name.trim(),
+        phone: form.phone,
+      });
+
+      // Merge returned user with what's already stored (keeps token, roles, etc.)
+      const updated = { ...user, ...data.user };
       localStorage.setItem("user", JSON.stringify(updated));
       setUser(updated);
+      setForm(f => ({ ...f, name: updated.name, phone: updated.phone || "" }));
       showToast("Profile updated successfully!");
-    } catch { showToast("Failed to update profile", "error"); }
-    finally { setSaving(false); }
+    } catch (err) {
+      showToast(err.response?.data?.message || "Failed to update profile", "error");
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (!user) return null;
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      {toast && <div className={`fixed top-5 right-5 z-50 flex items-center gap-2.5 px-4 py-3 rounded-xl shadow-lg text-white text-[13px] font-medium ${toast.type === "error" ? "bg-red-500" : "bg-green-600"}`}>{toast.msg}</div>}
+      {toast && (
+        <div className={`fixed top-5 right-5 z-50 flex items-center gap-2.5 px-4 py-3 rounded-xl shadow-lg text-white text-[13px] font-medium ${toast.type === "error" ? "bg-red-500" : "bg-green-600"}`}>
+          {toast.msg}
+        </div>
+      )}
       <Topbar user={user} cartCount={0} onLogout={handleLogout} navigate={navigate}/>
       <main className="flex-1 px-8 py-6 space-y-5">
         <div><h2 className="text-[22px] font-black text-gray-900 tracking-tight">My Profile</h2><p className="text-gray-400 text-[13px] mt-0.5">Manage your personal information</p></div>
@@ -119,26 +141,63 @@ export default function ProfilePage() {
             <button key={key} onClick={() => setActiveTab(key)} className={`px-4 py-2 rounded-lg text-[13px] font-medium transition-all ${activeTab === key ? "bg-gray-900 text-white shadow-sm" : "text-gray-500 hover:text-gray-800"}`}>{label}</button>
           ))}
         </div>
+
         {activeTab === "profile" && (
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 max-w-md">
             <h3 className="text-[15px] font-black text-gray-900 mb-5">Edit Profile</h3>
             <div className="space-y-4">
-              <InputField label="Full Name" value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} placeholder="Your full name"/>
-              <InputField label="Email Address" type="email" value={form.email} disabled hint="Email cannot be changed"/>
-              <InputField label="Phone Number" type="tel" value={form.phone} onChange={e => setForm(p => ({ ...p, phone: e.target.value }))} placeholder="98XXXXXXXX"/>
-              <button onClick={handleSaveProfile} disabled={saving} className="w-full bg-gray-900 text-white py-2.5 rounded-xl font-black hover:bg-gray-800 disabled:opacity-50 transition text-[13px] mt-2">{saving ? "Saving…" : "Save Changes"}</button>
+              <InputField
+                label="Full Name"
+                value={form.name}
+                onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
+                placeholder="Your full name"
+              />
+              <InputField
+                label="Email Address"
+                type="email"
+                value={form.email}
+                disabled
+                hint="Email cannot be changed"
+              />
+              <InputField
+                label="Phone Number"
+                type="tel"
+                value={form.phone}
+                onChange={e => setForm(p => ({ ...p, phone: e.target.value }))}
+                placeholder="98XXXXXXXX"
+              />
+              <button
+                onClick={handleSaveProfile}
+                disabled={saving}
+                className="w-full bg-gray-900 text-white py-2.5 rounded-xl font-black hover:bg-gray-800 disabled:opacity-50 transition text-[13px] mt-2"
+              >
+                {saving ? "Saving…" : "Save Changes"}
+              </button>
             </div>
           </div>
         )}
+
         {activeTab === "account" && (
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 max-w-md">
             <h3 className="text-[15px] font-black text-gray-900 mb-5">Account Information</h3>
             <div className="space-y-0.5 mb-6">
-              {[{ label: "Full Name", value: user.name }, { label: "Email", value: user.email }, { label: "Phone", value: form.phone || "Not set" }, { label: "Account Type", value: user.roles?.[0] || user.roles || "Customer" }, { label: "Account ID", value: user._id || user.id || "N/A" }].map(({ label, value }) => (
-                <div key={label} className="flex items-center justify-between py-3 border-b border-gray-50 last:border-0"><span className="text-[13px] text-gray-500 font-medium">{label}</span><span className="text-[13px] font-black text-gray-800 text-right max-w-[55%] break-all">{value}</span></div>
+              {[
+                { label: "Full Name",     value: user.name },
+                { label: "Email",         value: user.email },
+                { label: "Phone",         value: user.phone || "Not set" },
+                { label: "Account Type",  value: user.roles?.[0] || user.roles || "Customer" },
+                { label: "Account ID",    value: user._id || user.id || "N/A" },
+              ].map(({ label, value }) => (
+                <div key={label} className="flex items-center justify-between py-3 border-b border-gray-50 last:border-0">
+                  <span className="text-[13px] text-gray-500 font-medium">{label}</span>
+                  <span className="text-[13px] font-black text-gray-800 text-right max-w-[55%] break-all">{value}</span>
+                </div>
               ))}
             </div>
-            <div className="border border-red-100 rounded-xl p-4 bg-red-50/50"><p className="text-[11px] text-gray-400 mb-3">This action will sign you out of all sessions.</p><button onClick={handleLogout} className="bg-red-500 text-white px-4 py-2 rounded-xl text-[13px] font-bold hover:bg-red-600 transition">Sign Out of Account</button></div>
+            <div className="border border-red-100 rounded-xl p-4 bg-red-50/50">
+              <p className="text-[11px] text-gray-400 mb-3">This action will sign you out of all sessions.</p>
+              <button onClick={handleLogout} className="bg-red-500 text-white px-4 py-2 rounded-xl text-[13px] font-bold hover:bg-red-600 transition">Sign Out of Account</button>
+            </div>
           </div>
         )}
       </main>

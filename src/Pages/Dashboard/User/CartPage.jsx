@@ -3,6 +3,12 @@ import { useNavigate } from "react-router-dom";
 import api from "../../../api/axios";
 import { io } from "socket.io-client";
 
+// Image URL helper 
+function imgSrc(url) {
+  if (!url) return null;
+  if (url.startsWith("http")) return url;
+  return `http://localhost:3000/uploads/${url}`;
+}
 
 const TYPE_META_N = { ORDER_PLACED: { icon: "📦", color: "bg-blue-50 text-blue-600" }, ORDER_STATUS: { icon: "🚚", color: "bg-green-50 text-green-600" }, PAYMENT_SUCCESS: { icon: "💰", color: "bg-amber-50 text-amber-600" } };
 const notifMetaN = (type) => TYPE_META_N[type] || { icon: "🔔", color: "bg-gray-50 text-gray-600" };
@@ -47,7 +53,7 @@ function Topbar({ user, cartCount, onLogout, navigate }) {
 
 function Footer({ navigate }) {
   const quickLinks = [{ label: "Search Medicines", path: "/user/search" }, { label: "My Orders", path: "/user/orders" }, { label: "My Cart", path: "/user/cart" }, { label: "Profile", path: "/user/profile" }];
-  const supportLinks = [{ label: "Help Center", path: "/user/support" }, { label: "Contact Us", path: "/user/support" }, { label: "Refund Policy", path: "/user/support" }, { label: "Terms of Service", path: "/user/support" }];
+  const supportLinks = [{ label: "Help Center", path: "/user/support" }, { label: "Contact Us", path: "/user/support" }];
   return (
     <footer className="bg-gray-950 text-white mt-auto">
       <div className="px-8 pt-8 pb-5">
@@ -71,16 +77,11 @@ function Footer({ navigate }) {
   );
 }
 
-// Payment method options — Khalti added
 const PAYMENT_METHODS = [
   {
     val: "cod",
     label: "Cash on Delivery",
-    icon: (
-      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-      </svg>
-    ),
+    icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" /></svg>,
   },
   {
     val: "khalti",
@@ -103,11 +104,9 @@ export default function CartPage() {
     phoneNumber: "",
     paymentMethod: "cod",
   });
+  const [phoneError, setPhoneError] = useState("");
 
-  const showToast = (msg, type = "success") => {
-    setToast({ msg, type });
-    setTimeout(() => setToast(null), 3000);
-  };
+  const showToast = (msg, type = "success") => { setToast({ msg, type }); setTimeout(() => setToast(null), 3000); };
 
   useEffect(() => {
     const stored = JSON.parse(localStorage.getItem("user"));
@@ -117,7 +116,7 @@ export default function CartPage() {
       .then(r => setCartItems(r.data || []))
       .catch(() => { })
       .finally(() => setLoading(false));
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const updateQty = async (id, qty) => {
     if (qty < 1) return;
@@ -137,9 +136,7 @@ export default function CartPage() {
       await api.delete(`/cart/remove/cartitem/${id}`);
       setCartItems(p => p.filter(i => i._id !== id));
       showToast("Item removed");
-    } catch {
-      showToast("Failed to remove item", "error");
-    }
+    } catch { showToast("Failed to remove item", "error"); }
   };
 
   const clearCart = async () => {
@@ -147,34 +144,52 @@ export default function CartPage() {
       await api.delete("/cart/clear/cart");
       setCartItems([]);
       showToast("Cart cleared");
-    } catch {
-      showToast("Failed to clear cart", "error");
+    } catch { showToast("Failed to clear cart", "error"); }
+  };
+
+  // ── Phone validation — exactly 10 digits ────────────────────────────────────
+  const validatePhone = (phone) => {
+    const digits = phone.replace(/\D/g, "");
+    if (digits.length !== 10) return "Phone number must be exactly 10 digits";
+    return "";
+  };
+
+  const handlePhoneChange = (e) => {
+    const val = e.target.value;
+    // Only allow digits, max 10
+    if (/^\d{0,10}$/.test(val)) {
+      setCheckoutForm(p => ({ ...p, phoneNumber: val }));
+      setPhoneError(val.length > 0 && val.length < 10 ? "Phone number must be 10 digits" : "");
     }
   };
 
   const handleCheckout = async (e) => {
     e.preventDefault();
-    if (!checkoutForm.shippingAddress.trim() || !checkoutForm.phoneNumber.trim()) {
-      showToast("Please fill in all fields", "error");
-      return;
+
+    if (!checkoutForm.shippingAddress.trim()) {
+      showToast("Please enter your shipping address", "error"); return;
     }
+
+    // Validate phone
+    const phoneErr = validatePhone(checkoutForm.phoneNumber);
+    if (phoneErr) { setPhoneError(phoneErr); showToast(phoneErr, "error"); return; }
+
     setCheckoutLoading(true);
     try {
-      // Step 1: create the order
+      // Create the order
       const { data: orderData } = await api.post("/orders/checkout/cart", checkoutForm);
 
-      // Step 2: if Khalti selected, initiate payment and redirect
       if (checkoutForm.paymentMethod === "khalti") {
         const orderId = orderData?.order?._id;
         if (!orderId) throw new Error("Order ID missing from response");
 
+        // Initiate Khalti and redirect — order stays pending until verified
         const { data: khaltiData } = await api.post("/payment/khalti/initiate", { orderId });
-        // Redirect to Khalti — user returns to /payment/result
         window.location.href = khaltiData.payment_url;
-        return; // stop here — page will unload
+        return;
       }
 
-      // COD / khalti — normal success flow
+      // COD — success
       setCartItems([]);
       setShowCheckout(false);
       showToast("Order placed successfully! 🎉");
@@ -206,7 +221,6 @@ export default function CartPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      {/* Toast */}
       {toast && (
         <div className={`fixed top-5 right-5 z-50 flex items-center gap-2.5 px-4 py-3 rounded-xl shadow-lg text-white text-[13px] font-medium ${toast.type === "error" ? "bg-red-500" : "bg-green-600"}`}>
           {toast.msg}
@@ -238,17 +252,24 @@ export default function CartPage() {
                   required />
               </div>
 
-              {/* Phone */}
+              {/* Phone — 10 digits only */}
               <div>
-                <label className="block text-[13px] font-bold text-gray-700 mb-1.5">Phone Number</label>
-                <input type="tel" placeholder="98XXXXXXXX"
+                <label className="block text-[13px] font-bold text-gray-700 mb-1.5">Phone Number <span className="text-[11px] text-gray-400 font-normal">(10 digits)</span></label>
+                <input
+                  type="tel"
+                  placeholder="98XXXXXXXX"
                   value={checkoutForm.phoneNumber}
-                  onChange={e => setCheckoutForm(p => ({ ...p, phoneNumber: e.target.value }))}
-                  className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-[13px] focus:outline-none focus:ring-2 focus:ring-green-400/40 focus:border-green-400 bg-gray-50/50 transition"
+                  onChange={handlePhoneChange}
+                  maxLength={10}
+                  className={`w-full border rounded-xl px-3.5 py-2.5 text-[13px] focus:outline-none focus:ring-2 focus:ring-green-400/40 bg-gray-50/50 transition ${phoneError ? "border-red-300 focus:border-red-400" : "border-gray-200 focus:border-green-400"}`}
                   required />
+                {phoneError && <p className="text-[11px] text-red-500 mt-1 font-medium">{phoneError}</p>}
+                {!phoneError && checkoutForm.phoneNumber.length === 10 && (
+                  <p className="text-[11px] text-green-600 mt-1 font-medium">✓ Valid phone number</p>
+                )}
               </div>
 
-              {/* Payment Method — 3 options including Khalti */}
+              {/* Payment Method */}
               <div>
                 <label className="block text-[13px] font-bold text-gray-700 mb-2">Payment Method</label>
                 <div className="grid grid-cols-2 gap-2">
@@ -256,23 +277,18 @@ export default function CartPage() {
                     <button key={val} type="button"
                       onClick={() => setCheckoutForm(p => ({ ...p, paymentMethod: val }))}
                       className={`flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl border-2 text-[11px] font-bold transition-all ${checkoutForm.paymentMethod === val
-                          ? val === "khalti"
-                            ? "border-purple-500 bg-purple-50 text-purple-700"
-                            : "border-gray-800 bg-gray-900 text-white"
-                          : "border-gray-200 text-gray-500 hover:border-gray-300"
-                        }`}>
-                      {icon}
-                      {label}
+                        ? val === "khalti" ? "border-purple-500 bg-purple-50 text-purple-700" : "border-gray-800 bg-gray-900 text-white"
+                        : "border-gray-200 text-gray-500 hover:border-gray-300"}`}>
+                      {icon}{label}
                     </button>
                   ))}
                 </div>
 
-                {/* Khalti info note */}
                 {checkoutForm.paymentMethod === "khalti" && (
                   <div className="mt-2 flex items-start gap-2 bg-purple-50 border border-purple-100 rounded-xl px-3.5 py-2.5">
                     <span className="text-purple-500 mt-0.5 flex-shrink-0">💜</span>
                     <p className="text-[11px] text-purple-700 leading-relaxed">
-                      You'll be redirected to Khalti to complete payment. Your order is created first, then payment is processed.
+                      You'll be redirected to Khalti. <strong>Your order will be cancelled if payment is not completed.</strong>
                     </p>
                   </div>
                 )}
@@ -285,17 +301,11 @@ export default function CartPage() {
               </div>
 
               {/* Submit */}
-              <button type="submit" disabled={checkoutLoading}
-                className={`w-full py-3 rounded-xl font-black disabled:opacity-50 transition text-[13px] text-white flex items-center justify-center gap-2 ${checkoutForm.paymentMethod === "khalti"
-                    ? "bg-[#5C2D8B] hover:bg-[#4a2470]"
-                    : "bg-gray-900 hover:bg-gray-800"
-                  }`}>
+              <button type="submit" disabled={checkoutLoading || checkoutForm.phoneNumber.length !== 10}
+                className={`w-full py-3 rounded-xl font-black disabled:opacity-50 transition text-[13px] text-white flex items-center justify-center gap-2 ${checkoutForm.paymentMethod === "khalti" ? "bg-[#5C2D8B] hover:bg-[#4a2470]" : "bg-gray-900 hover:bg-gray-800"}`}>
                 {checkoutLoading
                   ? <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />Processing…</>
-                  : checkoutForm.paymentMethod === "khalti"
-                    ? "Pay with Khalti 💜"
-                    : "Place Order →"
-                }
+                  : checkoutForm.paymentMethod === "khalti" ? "Pay with Khalti 💜" : "Place Order →"}
               </button>
             </form>
           </div>
@@ -329,9 +339,7 @@ export default function CartPage() {
             <div className="text-5xl mb-4">🛒</div>
             <h3 className="text-[15px] font-bold text-gray-700 mb-2">Your cart is empty</h3>
             <p className="text-gray-400 text-[13px] mb-6">Search for medicines and add them to your cart</p>
-            <button onClick={() => navigate("/user/search")} className="bg-gray-900 text-white px-6 py-2.5 rounded-xl font-bold text-[13px] hover:bg-gray-800 transition">
-              Search Medicines →
-            </button>
+            <button onClick={() => navigate("/user/search")} className="bg-gray-900 text-white px-6 py-2.5 rounded-xl font-bold text-[13px] hover:bg-gray-800 transition">Search Medicines →</button>
           </div>
         ) : (
           <div className="flex gap-5 items-start">
@@ -339,22 +347,26 @@ export default function CartPage() {
             <div className="flex-1 space-y-2.5">
               {cartItems.map(item => {
                 const p = item.productId;
+                const outOfStock = p?.productTotalStockQuantity === 0;
+                const src = imgSrc(p?.productImageUrl);
                 return (
-                  <div key={item._id} className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex items-center gap-4 hover:shadow-md transition-shadow">
+                  <div key={item._id} className={`bg-white rounded-xl border shadow-sm p-4 flex items-center gap-4 transition-shadow ${outOfStock ? "border-red-100 opacity-70" : "border-gray-100 hover:shadow-md"}`}>
                     <div className="w-14 h-14 rounded-xl bg-green-50 flex items-center justify-center flex-shrink-0 overflow-hidden border border-green-100">
-                      {p?.productImageUrl
-                        ? <img src={p.productImageUrl} alt={p.productName} className="w-full h-full object-cover rounded-xl" onError={e => { e.target.style.display = "none"; }} />
+                      {src
+                        ? <img src={src} alt={p?.productName} className="w-full h-full object-cover rounded-xl" onError={e => { e.target.style.display = "none"; }} />
                         : <span className="text-2xl">💊</span>}
                     </div>
                     <div className="flex-1 min-w-0">
                       <h4 className="font-bold text-gray-800 text-[13px] truncate">{p?.productName || "Product"}</h4>
                       <p className="text-green-600 font-black text-[13px] mt-0.5">Rs. {p?.productPrice?.toLocaleString()}</p>
-                      <p className="text-[11px] text-gray-400 mt-0.5">{p?.productTotalStockQuantity} in stock</p>
+                      {outOfStock
+                        ? <p className="text-[11px] text-red-500 font-semibold mt-0.5">Out of stock — please remove</p>
+                        : <p className="text-[11px] text-gray-400 mt-0.5">{p?.productTotalStockQuantity} in stock</p>}
                     </div>
-                    <div className="flex items-center border border-gray-200 rounded-xl overflow-hidden">
-                      <button onClick={() => updateQty(item._id, item.quantity - 1)} disabled={item.quantity <= 1 || updating[item._id]} className="w-8 h-8 flex items-center justify-center text-gray-500 hover:bg-gray-50 disabled:opacity-30 font-bold text-base transition">−</button>
+                    <div className={`flex items-center border rounded-xl overflow-hidden ${outOfStock ? "border-gray-100 opacity-40 pointer-events-none" : "border-gray-200"}`}>
+                      <button onClick={() => updateQty(item._id, item.quantity - 1)} disabled={item.quantity <= 1 || updating[item._id] || outOfStock} className="w-8 h-8 flex items-center justify-center text-gray-500 hover:bg-gray-50 disabled:opacity-30 font-bold text-base transition">−</button>
                       <span className="w-8 text-center font-black text-gray-800 text-[13px]">{item.quantity}</span>
-                      <button onClick={() => updateQty(item._id, item.quantity + 1)} disabled={item.quantity >= p?.productTotalStockQuantity || updating[item._id]} className="w-8 h-8 flex items-center justify-center text-gray-500 hover:bg-gray-50 disabled:opacity-30 font-bold text-base transition">+</button>
+                      <button onClick={() => updateQty(item._id, item.quantity + 1)} disabled={item.quantity >= p?.productTotalStockQuantity || updating[item._id] || outOfStock} className="w-8 h-8 flex items-center justify-center text-gray-500 hover:bg-gray-50 disabled:opacity-30 font-bold text-base transition">+</button>
                     </div>
                     <p className="font-black text-gray-800 w-24 text-right text-[13px]">Rs. {((p?.productPrice || 0) * item.quantity).toLocaleString()}</p>
                     <button onClick={() => removeItem(item._id)} className="w-8 h-8 flex items-center justify-center text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition flex-shrink-0">
@@ -365,7 +377,7 @@ export default function CartPage() {
               })}
             </div>
 
-            {/* Order summary sidebar */}
+            {/* Order summary */}
             <div className="w-72 flex-shrink-0 sticky top-20">
               <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
                 <h3 className="text-[15px] font-black text-gray-900 mb-4">Order Summary</h3>
@@ -384,9 +396,16 @@ export default function CartPage() {
                   </div>
                   <p className="text-[11px] text-gray-400">Delivery charges may apply</p>
                 </div>
-                <button onClick={() => setShowCheckout(true)} className="w-full bg-gray-900 text-white py-2.5 rounded-xl font-black hover:bg-gray-800 transition mb-2 text-[13px]">
-                  Checkout →
-                </button>
+                {/* Disable checkout if any out-of-stock items */}
+                {cartItems.some(i => i.productId?.productTotalStockQuantity === 0) ? (
+                  <div className="bg-red-50 border border-red-100 rounded-xl px-3.5 py-3 mb-2 text-center">
+                    <p className="text-[12px] text-red-600 font-semibold">Remove out-of-stock items to checkout</p>
+                  </div>
+                ) : (
+                  <button onClick={() => setShowCheckout(true)} className="w-full bg-gray-900 text-white py-2.5 rounded-xl font-black hover:bg-gray-800 transition mb-2 text-[13px]">
+                    Checkout →
+                  </button>
+                )}
                 <button onClick={() => navigate("/user/search")} className="w-full border border-gray-200 text-gray-500 py-2 rounded-xl text-[12px] font-medium hover:bg-gray-50 transition">
                   Continue Shopping
                 </button>
