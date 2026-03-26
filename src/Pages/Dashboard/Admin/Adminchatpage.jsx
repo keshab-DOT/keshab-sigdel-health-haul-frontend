@@ -5,7 +5,7 @@ import { io } from "socket.io-client";
 import { AdminSidebar } from "./Admindashboard";
 
 function Avatar({ name, size = "md", online = false }) {
-  const sizes = { sm: "w-8 h-8 text-[11px]", md: "w-10 h-10 text-[13px]", lg: "w-12 h-12 text-[15px]" };
+  const sizes    = { sm: "w-8 h-8 text-[11px]", md: "w-10 h-10 text-[13px]", lg: "w-12 h-12 text-[15px]" };
   const dotSizes = { sm: "w-2 h-2", md: "w-2.5 h-2.5", lg: "w-3 h-3" };
   return (
     <div className="relative flex-shrink-0">
@@ -18,9 +18,9 @@ function Avatar({ name, size = "md", online = false }) {
 }
 
 function MessageBubble({ msg, isMine, onDelete }) {
-  const [hovered, setHovered] = useState(false);
+  const [hovered,    setHovered]    = useState(false);
   const [confirming, setConfirming] = useState(false);
-  const [deleting, setDeleting] = useState(false);
+  const [deleting,   setDeleting]   = useState(false);
   const time = new Date(msg.createdAt).toLocaleTimeString("en-NP", { hour: "2-digit", minute: "2-digit" });
 
   const handleConfirm = async () => {
@@ -82,25 +82,25 @@ function MessageBubble({ msg, isMine, onDelete }) {
 
 export default function AdminChatPage() {
   const navigate = useNavigate();
-  const [admin, setAdmin] = useState(null);
-  const [chatUsers, setChatUsers] = useState([]);
-  const [selected, setSelected] = useState(null);
-  const [messages, setMessages] = useState([]);
-  const [text, setText] = useState("");
-  const [imageFile, setImageFile] = useState(null);
+  const [admin,        setAdmin]        = useState(null);
+  const [chatUsers,    setChatUsers]    = useState([]);
+  const [selected,     setSelected]     = useState(null);
+  const [messages,     setMessages]     = useState([]);
+  const [text,         setText]         = useState("");
+  const [imageFile,    setImageFile]    = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
-  const [onlineUsers, setOnlineUsers] = useState([]);
+  const [onlineUsers,  setOnlineUsers]  = useState([]);
   const [loadingUsers, setLoadingUsers] = useState(true);
-  const [loadingMsgs, setLoadingMsgs] = useState(false);
-  const [sending, setSending] = useState(false);
-  const [search, setSearch] = useState("");
-  const [toast, setToast] = useState(null);
+  const [loadingMsgs,  setLoadingMsgs]  = useState(false);
+  const [sending,      setSending]      = useState(false);
+  const [search,       setSearch]       = useState("");
+  const [toast,        setToast]        = useState(null);
 
-  const socketRef = useRef(null);
-  const bottomRef = useRef(null);
+  const socketRef    = useRef(null);
+  const bottomRef    = useRef(null);
   const fileInputRef = useRef(null);
   // Stable ref to selected so socket handler reads latest value without stale closure
-  const selectedRef = useRef(null);
+  const selectedRef  = useRef(null);
   selectedRef.current = selected;
 
   const showToast = (msg, type = "success") => { setToast({ msg, type }); setTimeout(() => setToast(null), 3000); };
@@ -126,17 +126,29 @@ export default function AdminChatPage() {
 
     socket.on("newMessage", (msg) => {
       setMessages(prev => prev.some(m => m._id === msg._id) ? prev : [...prev, msg]);
-      // Increment unread for sender if not the currently open conversation
+      // Update sender in list: bump lastMessage, increment unread if not active, move to top
       const senderId = msg.senderId?._id || msg.senderId;
-      if (!selectedRef.current || selectedRef.current._id !== senderId) {
-        setChatUsers(prev =>
-          prev.map(u =>
-            u._id === senderId
-              ? { ...u, unreadCount: (u.unreadCount || 0) + 1, lastMessage: msg.image ? "📷 Image" : msg.text || "" }
-              : u
-          )
+      const isActive = selectedRef.current && selectedRef.current._id === senderId;
+      setChatUsers(prev => {
+        const updated = prev.map(u =>
+          u._id === senderId
+            ? {
+                ...u,
+                lastMessage:   msg.image ? "📷 Image" : msg.text || "",
+                lastMessageAt: Date.now(),
+                hasConversation: true,
+                unreadCount: isActive ? (u.unreadCount || 0) : (u.unreadCount || 0) + 1,
+              }
+            : u
         );
-      }
+        // Re-sort: most recent conversation first
+        return [...updated].sort((a, b) => {
+          if (a.hasConversation && !b.hasConversation) return -1;
+          if (!a.hasConversation && b.hasConversation) return 1;
+          if (a.hasConversation && b.hasConversation) return (b.lastMessageAt || 0) - (a.lastMessageAt || 0);
+          return a.name.localeCompare(b.name);
+        });
+      });
     });
 
     socket.on("messageDeleted", ({ messageId }) => {
@@ -181,20 +193,32 @@ export default function AdminChatPage() {
     try {
       const fd = new FormData();
       if (text.trim()) fd.append("text", text.trim());
-      if (imageFile) fd.append("image", imageFile);
+      if (imageFile)   fd.append("image", imageFile);
       const r = await api.post(`/chat/send/${selected._id}`, fd);
       const newMsg = r.data?.message;
       if (newMsg) setMessages(prev => prev.some(m => m._id === newMsg._id) ? prev : [...prev, newMsg]);
       setText(""); setImageFile(null); setImagePreview(null);
-      setChatUsers(prev => prev.map(u => u._id === selected._id ? { ...u, lastMessage: text.trim() || "📷 Image", hasConversation: true } : u));
+      setChatUsers(prev => {
+        const updated = prev.map(u =>
+          u._id === selected._id
+            ? { ...u, lastMessage: text.trim() || "📷 Image", hasConversation: true, lastMessageAt: Date.now() }
+            : u
+        );
+        return [...updated].sort((a, b) => {
+          if (a.hasConversation && !b.hasConversation) return -1;
+          if (!a.hasConversation && b.hasConversation) return 1;
+          if (a.hasConversation && b.hasConversation) return (b.lastMessageAt || 0) - (a.lastMessageAt || 0);
+          return a.name.localeCompare(b.name);
+        });
+      });
     } catch (err) { showToast(err.response?.data?.message || "Failed to send message", "error"); }
     finally { setSending(false); }
   }, [text, imageFile, selected, sending]);
 
-  const handleKeyDown = (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); } };
+  const handleKeyDown   = (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); } };
   const handleImagePick = (e) => { const file = e.target.files[0]; if (!file) return; setImageFile(file); setImagePreview(URL.createObjectURL(file)); };
-  const clearImage = () => { setImageFile(null); setImagePreview(null); if (fileInputRef.current) fileInputRef.current.value = ""; };
-  const logout = () => { localStorage.removeItem("user"); navigate("/login", { replace: true }); };
+  const clearImage      = () => { setImageFile(null); setImagePreview(null); if (fileInputRef.current) fileInputRef.current.value = ""; };
+  const logout          = () => { localStorage.removeItem("user"); navigate("/login", { replace: true }); };
 
   const filteredUsers = chatUsers.filter(u =>
     !search.trim() || u.name?.toLowerCase().includes(search.toLowerCase()) || u.email?.toLowerCase().includes(search.toLowerCase())
@@ -249,22 +273,23 @@ export default function AdminChatPage() {
                     <p className="text-[11px] text-gray-400 mt-1">Pharmacies will appear here once registered</p>
                   </div>
                 ) : filteredUsers.map(u => {
-                  const online = isOnline(u._id);
+                  const online     = isOnline(u._id);
                   const isSelected = selected?._id === u._id;
-                  const hasUnread = (u.unreadCount || 0) > 0;
+                  const hasUnread  = (u.unreadCount || 0) > 0;
                   return (
                     <button key={u._id} onClick={() => handleSelectUser(u)}
                       className={`w-full px-4 py-3.5 flex items-center gap-3 text-left transition-all border-b border-gray-50 last:border-0
-                        ${isSelected ? "bg-green-50 border-l-2 border-l-green-500"
-                          : hasUnread ? "bg-green-50/30 border-l-2 border-l-green-400"
-                            : "hover:bg-gray-50/70 border-l-2 border-l-transparent"}`}>
+                        ${isSelected  ? "bg-green-50 border-l-2 border-l-green-500"
+                        : hasUnread   ? "bg-green-50/30 border-l-2 border-l-green-400"
+                        : "hover:bg-gray-50/70 border-l-2 border-l-transparent"}`}>
                       <Avatar name={u.name} size="md" online={online} />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-1">
-                          <p className={`text-[13px] truncate ${isSelected ? "text-green-700 font-bold"
-                              : hasUnread ? "text-gray-900 font-black"
-                                : "text-gray-800 font-bold"
-                            }`}>{u.name}</p>
+                          <p className={`text-[13px] truncate ${
+                            isSelected  ? "text-green-700 font-bold"
+                            : hasUnread ? "text-gray-900 font-black"
+                            : "text-gray-800 font-bold"
+                          }`}>{u.name}</p>
 
                           {hasUnread ? (
                             <span className="min-w-[18px] h-[18px] bg-green-500 text-white text-[9px] font-black rounded-full flex items-center justify-center px-1 flex-shrink-0">

@@ -9,12 +9,12 @@ const getRole = (stored) => {
 };
 
 const TYPE_META = {
-  ORDER_PLACED: { icon: "📦", color: "bg-blue-50  text-blue-600" },
-  ORDER_STATUS: { icon: "🚚", color: "bg-green-50 text-green-600" },
+  ORDER_PLACED:     { icon: "📦", color: "bg-blue-50  text-blue-600" },
+  ORDER_STATUS:     { icon: "🚚", color: "bg-green-50 text-green-600" },
   PRODUCT_APPROVED: { icon: "✅", color: "bg-green-50  text-green-600" },
   PRODUCT_REJECTED: { icon: "❌", color: "bg-red-50   text-red-600" },
   PAYMENT_RECEIVED: { icon: "💰", color: "bg-amber-50 text-amber-600" },
-  LOW_STOCK: { icon: "🚨", color: "bg-red-50   text-red-600" },
+  LOW_STOCK:        { icon: "🚨", color: "bg-red-50   text-red-600" },
 };
 const notifMeta = (type) => TYPE_META[type] || { icon: "🔔", color: "bg-gray-50 text-gray-600" };
 function timeAgo(date) {
@@ -26,19 +26,19 @@ function timeAgo(date) {
 }
 
 function NotificationBell({ userId }) {
-  const [open, setOpen] = useState(false);
+  const [open,   setOpen]   = useState(false);
   const [notifs, setNotifs] = useState([]);
   const [unread, setUnread] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const [loading,setLoading]= useState(true);
   const dropdownRef = useRef(null);
-  const socketRef = useRef(null);
+  const socketRef   = useRef(null);
 
   const fetchNotifs = useCallback(async () => {
     try {
       const { data } = await api.get("/notifications");
       setNotifs(data.notifications || []);
       setUnread(data.unreadCount || 0);
-    } catch { }
+    } catch {}
     finally { setLoading(false); }
   }, []);
 
@@ -67,7 +67,7 @@ function NotificationBell({ userId }) {
       await api.put(`/notifications/${id}/read`);
       setNotifs(prev => prev.map(n => n._id === id ? { ...n, isRead: true } : n));
       setUnread(prev => Math.max(0, prev - 1));
-    } catch { }
+    } catch {}
   };
 
   const markAllRead = async (e) => {
@@ -76,7 +76,7 @@ function NotificationBell({ userId }) {
       await api.put("/notifications/read-all");
       setNotifs(prev => prev.map(n => ({ ...n, isRead: true })));
       setUnread(0);
-    } catch { }
+    } catch {}
   };
 
   return (
@@ -139,13 +139,13 @@ function NotificationBell({ userId }) {
 
 function Sidebar({ user, onLogout, navigate }) {
   const NAV = [
-    { key: "dashboard", label: "Dashboard", path: "/pharmacy/dashboard", icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg> },
-    { key: "orders", label: "Orders", path: "/pharmacy/orders", icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg> },
-    { key: "products", label: "Products", path: "/pharmacy/products", icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg> },
-    { key: "reviews", label: "Reviews", path: "/pharmacy/reviews", icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg> },
-    { key: "chat", label: "Messages", path: "/pharmacy/chat", icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M8 12h.01M12 12h.01M16 12h.01M21 3H3a2 2 0 00-2 2v13a2 2 0 002 2h5l3 3 3-3h7a2 2 0 002-2V5a2 2 0 00-2-2z" /></svg> },
+    { key: "dashboard",     label: "Dashboard",     path: "/pharmacy/dashboard", icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg> },
+    { key: "orders",        label: "Orders",        path: "/pharmacy/orders",    icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg> },
+    { key: "products",      label: "Products",      path: "/pharmacy/products",  icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg> },
+    { key: "reviews",       label: "Reviews",       path: "/pharmacy/reviews",   icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg> },
+    { key: "chat",          label: "Messages",      path: "/pharmacy/chat",      icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M8 12h.01M12 12h.01M16 12h.01M21 3H3a2 2 0 00-2 2v13a2 2 0 002 2h5l3 3 3-3h7a2 2 0 002-2V5a2 2 0 00-2-2z" /></svg> },
     { key: "notifications", label: "Notifications", path: null, icon: null },
-    { key: "profile", label: "Profile", path: "/pharmacy/profile", icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg> },
+    { key: "profile",       label: "Profile",       path: "/pharmacy/profile",   icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg> },
   ];
   const active = "chat";
   return (
@@ -191,7 +191,7 @@ function Sidebar({ user, onLogout, navigate }) {
 }
 
 function Avatar({ name, role, size = "md", online = false }) {
-  const sizes = { sm: "w-8 h-8 text-[11px]", md: "w-10 h-10 text-[13px]", lg: "w-12 h-12 text-[15px]" };
+  const sizes    = { sm: "w-8 h-8 text-[11px]", md: "w-10 h-10 text-[13px]", lg: "w-12 h-12 text-[15px]" };
   const dotSizes = { sm: "w-2 h-2", md: "w-2.5 h-2.5", lg: "w-3 h-3" };
   const gradient = role === "admin" ? "from-gray-700 to-gray-900" : "from-blue-500 to-indigo-600";
   return (
@@ -205,9 +205,9 @@ function Avatar({ name, role, size = "md", online = false }) {
 }
 
 function MessageBubble({ msg, isMine, onDelete }) {
-  const [hovered, setHovered] = useState(false);
+  const [hovered,    setHovered]    = useState(false);
   const [confirming, setConfirming] = useState(false);
-  const [deleting, setDeleting] = useState(false);
+  const [deleting,   setDeleting]   = useState(false);
   const time = new Date(msg.createdAt).toLocaleTimeString("en-NP", { hour: "2-digit", minute: "2-digit" });
 
   const handleConfirm = async () => {
@@ -275,25 +275,25 @@ function RoleBadge({ roles }) {
 
 export default function PharmacyChatPage() {
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
-  const [chatUsers, setChatUsers] = useState([]);
-  const [selected, setSelected] = useState(null);
-  const [messages, setMessages] = useState([]);
-  const [text, setText] = useState("");
-  const [imageFile, setImageFile] = useState(null);
+  const [user,         setUser]         = useState(null);
+  const [chatUsers,    setChatUsers]    = useState([]);
+  const [selected,     setSelected]     = useState(null);
+  const [messages,     setMessages]     = useState([]);
+  const [text,         setText]         = useState("");
+  const [imageFile,    setImageFile]    = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
-  const [onlineUsers, setOnlineUsers] = useState([]);
+  const [onlineUsers,  setOnlineUsers]  = useState([]);
   const [loadingUsers, setLoadingUsers] = useState(true);
-  const [loadingMsgs, setLoadingMsgs] = useState(false);
-  const [sending, setSending] = useState(false);
-  const [search, setSearch] = useState("");
-  const [toast, setToast] = useState(null);
+  const [loadingMsgs,  setLoadingMsgs]  = useState(false);
+  const [sending,      setSending]      = useState(false);
+  const [search,       setSearch]       = useState("");
+  const [toast,        setToast]        = useState(null);
 
-  const socketRef = useRef(null);
-  const bottomRef = useRef(null);
+  const socketRef    = useRef(null);
+  const bottomRef    = useRef(null);
   const fileInputRef = useRef(null);
   // Keep a stable ref to selected so socket handler can read latest value
-  const selectedRef = useRef(null);
+  const selectedRef  = useRef(null);
   selectedRef.current = selected;
 
   const showToast = (msg, type = "success") => { setToast({ msg, type }); setTimeout(() => setToast(null), 3000); };
@@ -318,17 +318,29 @@ export default function PharmacyChatPage() {
 
     socket.on("newMessage", (msg) => {
       setMessages(prev => prev.some(m => m._id === msg._id) ? prev : [...prev, msg]);
-      // Increment unread for sender if not the open conversation
+      // Update sender in list: bump lastMessage, increment unread if not active, move to top
       const senderId = msg.senderId?._id || msg.senderId;
-      if (!selectedRef.current || selectedRef.current._id !== senderId) {
-        setChatUsers(prev =>
-          prev.map(u =>
-            u._id === senderId
-              ? { ...u, unreadCount: (u.unreadCount || 0) + 1, lastMessage: msg.image ? "📷 Image" : msg.text || "" }
-              : u
-          )
+      const isActive = selectedRef.current && selectedRef.current._id === senderId;
+      setChatUsers(prev => {
+        const updated = prev.map(u =>
+          u._id === senderId
+            ? {
+                ...u,
+                lastMessage:   msg.image ? "📷 Image" : msg.text || "",
+                lastMessageAt: Date.now(),
+                hasConversation: true,
+                unreadCount: isActive ? (u.unreadCount || 0) : (u.unreadCount || 0) + 1,
+              }
+            : u
         );
-      }
+        // Re-sort: most recent conversation first
+        return [...updated].sort((a, b) => {
+          if (a.hasConversation && !b.hasConversation) return -1;
+          if (!a.hasConversation && b.hasConversation) return 1;
+          if (a.hasConversation && b.hasConversation) return (b.lastMessageAt || 0) - (a.lastMessageAt || 0);
+          return a.name.localeCompare(b.name);
+        });
+      });
     });
 
     socket.on("messageDeleted", ({ messageId }) => {
@@ -373,26 +385,38 @@ export default function PharmacyChatPage() {
     try {
       const fd = new FormData();
       if (text.trim()) fd.append("text", text.trim());
-      if (imageFile) fd.append("image", imageFile);
+      if (imageFile)   fd.append("image", imageFile);
       const r = await api.post(`/chat/send/${selected._id}`, fd);
       const newMsg = r.data?.message;
       if (newMsg) setMessages(prev => prev.some(m => m._id === newMsg._id) ? prev : [...prev, newMsg]);
       setText(""); setImageFile(null); setImagePreview(null);
-      setChatUsers(prev => prev.map(u => u._id === selected._id ? { ...u, lastMessage: text.trim() || "📷 Image", hasConversation: true } : u));
+      setChatUsers(prev => {
+        const updated = prev.map(u =>
+          u._id === selected._id
+            ? { ...u, lastMessage: text.trim() || "📷 Image", hasConversation: true, lastMessageAt: Date.now() }
+            : u
+        );
+        return [...updated].sort((a, b) => {
+          if (a.hasConversation && !b.hasConversation) return -1;
+          if (!a.hasConversation && b.hasConversation) return 1;
+          if (a.hasConversation && b.hasConversation) return (b.lastMessageAt || 0) - (a.lastMessageAt || 0);
+          return a.name.localeCompare(b.name);
+        });
+      });
     } catch (err) { showToast(err.response?.data?.message || "Failed to send message", "error"); }
     finally { setSending(false); }
   }, [text, imageFile, selected, sending]);
 
-  const handleKeyDown = (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); } };
+  const handleKeyDown   = (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); } };
   const handleImagePick = (e) => { const file = e.target.files[0]; if (!file) return; setImageFile(file); setImagePreview(URL.createObjectURL(file)); };
-  const clearImage = () => { setImageFile(null); setImagePreview(null); if (fileInputRef.current) fileInputRef.current.value = ""; };
-  const logout = async () => { try { await api.post("/auth/logout"); } catch (_) { } localStorage.removeItem("user"); navigate("/login", { replace: true }); };
+  const clearImage      = () => { setImageFile(null); setImagePreview(null); if (fileInputRef.current) fileInputRef.current.value = ""; };
+  const logout          = async () => { try { await api.post("/auth/logout"); } catch (_) {} localStorage.removeItem("user"); navigate("/login", { replace: true }); };
 
   const filteredUsers = chatUsers.filter(u =>
     !search.trim() || u.name?.toLowerCase().includes(search.toLowerCase()) || u.email?.toLowerCase().includes(search.toLowerCase())
   );
-  const isOnline = (id) => onlineUsers.includes(id?.toString());
-  const getUserRole = (roles) => (Array.isArray(roles) ? roles[0] : roles || "").toLowerCase();
+  const isOnline     = (id) => onlineUsers.includes(id?.toString());
+  const getUserRole  = (roles) => (Array.isArray(roles) ? roles[0] : roles || "").toLowerCase();
 
   if (!user) return null;
 
@@ -442,23 +466,24 @@ export default function PharmacyChatPage() {
                     <p className="text-[11px] text-gray-400 mt-1">They will appear here when available</p>
                   </div>
                 ) : filteredUsers.map(u => {
-                  const online = isOnline(u._id);
+                  const online     = isOnline(u._id);
                   const isSelected = selected?._id === u._id;
-                  const role = getUserRole(u.roles);
-                  const hasUnread = (u.unreadCount || 0) > 0;
+                  const role       = getUserRole(u.roles);
+                  const hasUnread  = (u.unreadCount || 0) > 0;
                   return (
                     <button key={u._id} onClick={() => handleSelectUser(u)}
                       className={`w-full px-4 py-3.5 flex items-center gap-3 text-left transition-all border-b border-gray-50 last:border-0
-                        ${isSelected ? "bg-green-50 border-l-2 border-l-green-500"
-                          : hasUnread ? "bg-green-50/30 border-l-2 border-l-green-400"
-                            : "hover:bg-gray-50/70 border-l-2 border-l-transparent"}`}>
+                        ${isSelected  ? "bg-green-50 border-l-2 border-l-green-500"
+                        : hasUnread   ? "bg-green-50/30 border-l-2 border-l-green-400"
+                        : "hover:bg-gray-50/70 border-l-2 border-l-transparent"}`}>
                       <Avatar name={u.name} role={role} size="md" online={online} />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-1 mb-0.5">
-                          <p className={`text-[13px] truncate ${isSelected ? "text-green-700 font-bold"
-                              : hasUnread ? "text-gray-900 font-black"
-                                : "text-gray-800 font-bold"
-                            }`}>{u.name}</p>
+                          <p className={`text-[13px] truncate ${
+                            isSelected  ? "text-green-700 font-bold"
+                            : hasUnread ? "text-gray-900 font-black"
+                            : "text-gray-800 font-bold"
+                          }`}>{u.name}</p>
 
                           {hasUnread ? (
                             <span className="min-w-[18px] h-[18px] bg-green-500 text-white text-[9px] font-black rounded-full flex items-center justify-center px-1 flex-shrink-0">
