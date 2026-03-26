@@ -12,8 +12,7 @@ import SearchMedicines from "./Pages/Dashboard/User/SearchMedicines";
 import CartPage from "./Pages/Dashboard/User/CartPage";
 import UserOrderPage from "./Pages/Dashboard/User/UserOrderPage";
 import ProfilePage from "./Pages/Dashboard/User/ProfilePage";
-import SettingsPage from "./Pages/Dashboard/User/SettingsPage";
-import UserChatPage    from "./Pages/Dashboard/User/Userchatpage";
+import UserChatPage from "./Pages/Dashboard/User/Userchatpage";
 import KhaltiResultPage from "./Pages/payment/KhaltiResultPage";
 
 // Pharmacy
@@ -51,9 +50,7 @@ function App() {
           <Route path="/user/cart" element={<CartPage />} />
           <Route path="/user/orders" element={<UserOrderPage />} />
           <Route path="/user/profile" element={<ProfilePage />} />
-          <Route path="/user/settings" element={<SettingsPage />} />
-          <Route path="/user/support" element={<SettingsPage />} />
-          <Route path="/user/chat"     element={<UserChatPage />} />
+          <Route path="/user/chat" element={<UserChatPage />} />
           <Route path="/payment/result" element={<KhaltiResultPage />} />
 
           {/* Pharmacy Routes */}

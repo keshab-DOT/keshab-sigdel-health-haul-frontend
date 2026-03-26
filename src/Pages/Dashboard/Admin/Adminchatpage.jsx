@@ -9,7 +9,6 @@ function Avatar({ name, size = "md", online = false }) {
   const dotSizes = { sm: "w-2 h-2", md: "w-2.5 h-2.5", lg: "w-3 h-3" };
   return (
     <div className="relative flex-shrink-0">
-      {/* Green gradient — pharmacies only */}
       <div className={`${sizes[size]} rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white font-black`}>
         {name?.[0]?.toUpperCase() || "?"}
       </div>
@@ -100,8 +99,19 @@ export default function AdminChatPage() {
   const socketRef = useRef(null);
   const bottomRef = useRef(null);
   const fileInputRef = useRef(null);
+  // Stable ref to selected so socket handler reads latest value without stale closure
+  const selectedRef = useRef(null);
+  selectedRef.current = selected;
 
   const showToast = (msg, type = "success") => { setToast({ msg, type }); setTimeout(() => setToast(null), 3000); };
+
+  // Select a pharmacy and immediately clear their unread badge
+  const handleSelectUser = (u) => {
+    setSelected(u);
+    setChatUsers(prev =>
+      prev.map(x => x._id === u._id ? { ...x, unreadCount: 0 } : x)
+    );
+  };
 
   useEffect(() => {
     const stored = JSON.parse(localStorage.getItem("user"));
@@ -113,12 +123,26 @@ export default function AdminChatPage() {
     socketRef.current = socket;
     socket.emit("joinUserRoom", stored._id);
     socket.on("getOnlineUsers", (ids) => setOnlineUsers(ids));
+
     socket.on("newMessage", (msg) => {
       setMessages(prev => prev.some(m => m._id === msg._id) ? prev : [...prev, msg]);
+      // Increment unread for sender if not the currently open conversation
+      const senderId = msg.senderId?._id || msg.senderId;
+      if (!selectedRef.current || selectedRef.current._id !== senderId) {
+        setChatUsers(prev =>
+          prev.map(u =>
+            u._id === senderId
+              ? { ...u, unreadCount: (u.unreadCount || 0) + 1, lastMessage: msg.image ? "📷 Image" : msg.text || "" }
+              : u
+          )
+        );
+      }
     });
+
     socket.on("messageDeleted", ({ messageId }) => {
       setMessages(prev => prev.filter(m => m._id !== messageId));
     });
+
     return () => { socket.emit("leaveUserRoom", stored._id); socket.disconnect(); };
   }, []);
 
@@ -193,7 +217,6 @@ export default function AdminChatPage() {
         <main className="px-8 py-7 min-h-screen flex flex-col">
           <div className="mb-5">
             <h1 className="text-[26px] font-black text-gray-900 tracking-tight">Messages</h1>
-            {/* ✅ Admin only chats with pharmacies */}
             <p className="text-gray-400 text-[13px] mt-0.5">Chat with pharmacies across the platform</p>
           </div>
 
@@ -204,7 +227,6 @@ export default function AdminChatPage() {
               <div className="p-3.5 border-b border-gray-100">
                 <div className="relative">
                   <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-                  {/* ✅ Correct placeholder */}
                   <input type="text" placeholder="Search pharmacies…" value={search} onChange={e => setSearch(e.target.value)}
                     className="w-full pl-8 pr-3 py-2 border border-gray-200 rounded-xl text-[12px] focus:outline-none focus:ring-2 focus:ring-green-400/30 focus:border-green-400 bg-gray-50 transition" />
                 </div>
@@ -223,24 +245,38 @@ export default function AdminChatPage() {
                 ) : filteredUsers.length === 0 ? (
                   <div className="flex flex-col items-center justify-center h-full text-center p-6">
                     <div className="text-3xl mb-2">🏥</div>
-                    {/* ✅ Correct empty state */}
                     <p className="text-[13px] font-bold text-gray-600">No pharmacies found</p>
                     <p className="text-[11px] text-gray-400 mt-1">Pharmacies will appear here once registered</p>
                   </div>
                 ) : filteredUsers.map(u => {
                   const online = isOnline(u._id);
                   const isSelected = selected?._id === u._id;
+                  const hasUnread = (u.unreadCount || 0) > 0;
                   return (
-                    <button key={u._id} onClick={() => setSelected(u)}
+                    <button key={u._id} onClick={() => handleSelectUser(u)}
                       className={`w-full px-4 py-3.5 flex items-center gap-3 text-left transition-all border-b border-gray-50 last:border-0
-                        ${isSelected ? "bg-green-50 border-l-2 border-l-green-500" : "hover:bg-gray-50/70 border-l-2 border-l-transparent"}`}>
+                        ${isSelected ? "bg-green-50 border-l-2 border-l-green-500"
+                          : hasUnread ? "bg-green-50/30 border-l-2 border-l-green-400"
+                            : "hover:bg-gray-50/70 border-l-2 border-l-transparent"}`}>
                       <Avatar name={u.name} size="md" online={online} />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-1">
-                          <p className={`text-[13px] font-bold truncate ${isSelected ? "text-green-700" : "text-gray-800"}`}>{u.name}</p>
-                          {online && <span className="text-[9px] font-bold text-green-600 bg-green-100 px-1.5 py-0.5 rounded-full flex-shrink-0">Online</span>}
+                          <p className={`text-[13px] truncate ${isSelected ? "text-green-700 font-bold"
+                              : hasUnread ? "text-gray-900 font-black"
+                                : "text-gray-800 font-bold"
+                            }`}>{u.name}</p>
+
+                          {hasUnread ? (
+                            <span className="min-w-[18px] h-[18px] bg-green-500 text-white text-[9px] font-black rounded-full flex items-center justify-center px-1 flex-shrink-0">
+                              {u.unreadCount > 9 ? "9+" : u.unreadCount}
+                            </span>
+                          ) : online ? (
+                            <span className="text-[9px] font-bold text-green-600 bg-green-100 px-1.5 py-0.5 rounded-full flex-shrink-0">Online</span>
+                          ) : null}
                         </div>
-                        <p className="text-[11px] text-gray-400 truncate mt-0.5">{u.lastMessage || "No messages yet"}</p>
+                        <p className={`text-[11px] truncate mt-0.5 ${hasUnread ? "text-gray-700 font-semibold" : "text-gray-400"}`}>
+                          {u.lastMessage || "No messages yet"}
+                        </p>
                       </div>
                     </button>
                   );
@@ -254,7 +290,6 @@ export default function AdminChatPage() {
                 <div className="w-16 h-16 bg-green-50 rounded-2xl flex items-center justify-center mb-4 border border-green-100">
                   <svg className="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 3H3a2 2 0 00-2 2v13a2 2 0 002 2h5l3 3 3-3h7a2 2 0 002-2V5a2 2 0 00-2-2z" /></svg>
                 </div>
-                {/* ✅ Correct empty state */}
                 <h3 className="text-[16px] font-black text-gray-800 mb-1">Select a pharmacy</h3>
                 <p className="text-[13px] text-gray-400 max-w-xs">Choose a pharmacy from the list to start a conversation.</p>
               </div>
