@@ -1,5 +1,6 @@
 import "./App.css";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import "leaflet/dist/leaflet.css";
 
 import Signup from "./Pages/auth/Signup";
 import Verify from "./Pages/auth/Verify";
@@ -14,6 +15,8 @@ import UserOrderPage from "./Pages/Dashboard/User/UserOrderPage";
 import ProfilePage from "./Pages/Dashboard/User/ProfilePage";
 import UserChatPage from "./Pages/Dashboard/User/Userchatpage";
 import KhaltiResultPage from "./Pages/payment/KhaltiResultPage";
+
+
 
 // Pharmacy
 import PharmacyDashboard from "./Pages/Dashboard/Pharmacy/PharmacyDashboard";
