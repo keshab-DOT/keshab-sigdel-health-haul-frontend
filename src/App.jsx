@@ -15,7 +15,7 @@ import UserOrderPage from "./Pages/Dashboard/User/UserOrderPage";
 import ProfilePage from "./Pages/Dashboard/User/ProfilePage";
 import UserChatPage from "./Pages/Dashboard/User/Userchatpage";
 import KhaltiResultPage from "./Pages/payment/KhaltiResultPage";
-
+import OrderMapCard from "./Pages/Dashboard/User/OrderMapCard";
 
 
 // Pharmacy
@@ -55,6 +55,7 @@ function App() {
           <Route path="/user/profile" element={<ProfilePage />} />
           <Route path="/user/chat" element={<UserChatPage />} />
           <Route path="/payment/result" element={<KhaltiResultPage />} />
+          <Route path="/user/order/:orderId/map" element={<OrderMapCard />} />  
 
           {/* Pharmacy Routes */}
           <Route path="/pharmacy/dashboard" element={<PharmacyDashboard />} />
