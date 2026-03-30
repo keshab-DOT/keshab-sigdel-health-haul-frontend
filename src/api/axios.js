@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "https://keshab-sigdel-health-haul-backend.onrender.com/api", 
+  baseURL: import.meta.env.VITE_API_URL,
   // backend URL
   withCredentials: true, // send cookies if needed
 });
