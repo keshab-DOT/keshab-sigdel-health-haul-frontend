@@ -25,7 +25,7 @@ function ProductDetail({ product, onApprove, onReject, acting }) {
     const imgSrc = product.productImageUrl
         ? product.productImageUrl.startsWith("http")
             ? product.productImageUrl
-            : `http://keshab-sigdel-health-haul-backend-production.up.railway.app/uploads/${product.productImageUrl}`
+            : `https://keshab-sigdel-health-haul-backend-production.up.railway.app/uploads/${product.productImageUrl}`
         : null;
 
     return (
@@ -307,7 +307,7 @@ export default function AdminProducts() {
                                 const isPending = product.approvalStatus === "Pending";
                                 const cfg = STATUS_CFG[product.approvalStatus] || STATUS_CFG.Pending;
                                 const imgSrc = product.productImageUrl
-                                    ? product.productImageUrl.startsWith("http") ? product.productImageUrl : `http://keshab-sigdel-health-haul-backend-production.up.railway.app/uploads/${product.productImageUrl}`
+                                    ? product.productImageUrl.startsWith("http") ? product.productImageUrl : `https://keshab-sigdel-health-haul-backend-production.up.railway.app/uploads/${product.productImageUrl}`
                                     : null;
 
                                 return (

@@ -46,7 +46,7 @@ function NotificationBell({ userId }) {
 
   useEffect(() => {
     if (!userId) return;
-    const socket = io("http://keshab-sigdel-health-haul-backend-production.up.railway.app", { query: { userId }, withCredentials: true });
+    const socket = io("https://keshab-sigdel-health-haul-backend-production.up.railway.app", { query: { userId }, withCredentials: true });
     socketRef.current = socket;
     socket.emit("joinUserRoom", userId);
     socket.on("newNotification", (n) => {
@@ -214,7 +214,7 @@ function ProductModal({ product, onClose, onSuccess }) {
     product?.productImageUrl
       ? product.productImageUrl.startsWith("http")
         ? product.productImageUrl
-        : `http://keshab-sigdel-health-haul-backend-production.up.railway.app/uploads/${product.productImageUrl}`
+        : `https://keshab-sigdel-health-haul-backend-production.up.railway.app/uploads/${product.productImageUrl}`
       : ""
   );
   const [saving, setSaving] = useState(false);
@@ -532,7 +532,7 @@ export default function PharmacyProducts() {
             <div className="grid grid-cols-2 gap-4">
               {filtered.map(product => {
                 const imgSrc = product.productImageUrl
-                  ? product.productImageUrl.startsWith("http") ? product.productImageUrl : `http://keshab-sigdel-health-haul-backend-production.up.railway.app/uploads/${product.productImageUrl}`
+                  ? product.productImageUrl.startsWith("http") ? product.productImageUrl : `https://keshab-sigdel-health-haul-backend-production.up.railway.app/uploads/${product.productImageUrl}`
                   : null;
                 return (
                   <div key={product._id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-shadow">

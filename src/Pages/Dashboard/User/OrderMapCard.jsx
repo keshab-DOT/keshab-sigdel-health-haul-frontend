@@ -124,7 +124,7 @@ export default function OrderMapCard({
       apiRef.current = api;
     });
 
-    const socket = io("http://keshab-sigdel-health-haul-backend-production.up.railway.app", {
+    const socket = io("https://keshab-sigdel-health-haul-backend-production.up.railway.app", {
       query: { userId, role },
       withCredentials: true,
     });

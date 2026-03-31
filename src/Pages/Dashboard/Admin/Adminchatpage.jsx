@@ -39,9 +39,9 @@ function MessageBubble({ msg, isMine, onDelete }) {
       <div className={`max-w-[70%] flex flex-col gap-1 ${isMine ? "items-end" : "items-start"}`}>
         {msg.image && (
           <div className={`rounded-2xl overflow-hidden border border-gray-100 shadow-sm ${isMine ? "rounded-br-sm" : "rounded-bl-sm"}`}>
-            <img src={msg.image.startsWith("http") ? msg.image : `http://keshab-sigdel-health-haul-backend-production.up.railway.app/uploads/${msg.image}`} alt="attachment"
+            <img src={msg.image.startsWith("http") ? msg.image : `https://keshab-sigdel-health-haul-backend-production.up.railway.app/uploads/${msg.image}`} alt="attachment"
               className="max-w-[200px] max-h-[200px] object-cover cursor-pointer hover:opacity-90 transition"
-              onClick={() => window.open(msg.image.startsWith("http") ? msg.image : `http://keshab-sigdel-health-haul-backend-production.up.railway.app/uploads/${msg.image}`, "_blank")} />
+              onClick={() => window.open(msg.image.startsWith("http") ? msg.image : `https://keshab-sigdel-health-haul-backend-production.up.railway.app/uploads/${msg.image}`, "_blank")} />
           </div>
         )}
         {msg.text && (
@@ -119,7 +119,7 @@ export default function AdminChatPage() {
     if (!stored || role !== "admin") { navigate("/login", { replace: true }); return; }
     setAdmin(stored);
 
-    const socket = io("http://keshab-sigdel-health-haul-backend-production.up.railway.app", { query: { userId: stored._id }, withCredentials: true });
+    const socket = io("https://keshab-sigdel-health-haul-backend-production.up.railway.app", { query: { userId: stored._id }, withCredentials: true });
     socketRef.current = socket;
     socket.emit("joinUserRoom", stored._id);
     socket.on("getOnlineUsers", (ids) => setOnlineUsers(ids));

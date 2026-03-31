@@ -44,7 +44,7 @@ function NotificationBell({ userId }) {
 
   useEffect(() => {
     if (!userId) return;
-    const socket = io("http://keshab-sigdel-health-haul-backend-production.up.railway.app", { query: { userId }, withCredentials: true });
+    const socket = io("https://keshab-sigdel-health-haul-backend-production.up.railway.app", { query: { userId }, withCredentials: true });
     socketRef.current = socket;
     socket.emit("joinUserRoom", userId);
     socket.on("newNotification", (n) => {

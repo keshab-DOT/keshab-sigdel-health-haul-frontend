@@ -6,7 +6,7 @@ import { io } from "socket.io-client";
 function imgSrc(url) {
   if (!url) return null;
   if (url.startsWith("http")) return url;
-  return `http://keshab-sigdel-health-haul-backend-production.up.railway.app/uploads/${url}`;
+  return `https://keshab-sigdel-health-haul-backend-production.up.railway.app/uploads/${url}`;
 }
 
 const TYPE_META_N = { ORDER_PLACED: { icon: "📦", color: "bg-blue-50 text-blue-600" }, ORDER_STATUS: { icon: "🚚", color: "bg-green-50 text-green-600" }, PAYMENT_SUCCESS: { icon: "💰", color: "bg-amber-50 text-amber-600" } };
@@ -21,7 +21,7 @@ function NotificationBell({ userId }) {
   const dropdownRef = useRef(null);
   const fetchNotifs = useCallback(async () => { try { const { data } = await api.get("/notifications"); setNotifs(data.notifications || []); setUnread(data.unreadCount || 0); } catch { } finally { setLoading(false); } }, []);
   useEffect(() => { fetchNotifs(); }, [fetchNotifs]);
-  useEffect(() => { if (!userId) return; const socket = io("http://keshab-sigdel-health-haul-backend-production.up.railway.app", { query: { userId }, withCredentials: true }); socket.emit("joinUserRoom", userId); socket.on("newNotification", (n) => { setNotifs(prev => prev.some(x => x._id === n._id) ? prev : [n, ...prev]); setUnread(prev => prev + 1); }); return () => { socket.emit("leaveUserRoom", userId); socket.disconnect(); }; }, [userId]);
+  useEffect(() => { if (!userId) return; const socket = io("https://keshab-sigdel-health-haul-backend-production.up.railway.app", { query: { userId }, withCredentials: true }); socket.emit("joinUserRoom", userId); socket.on("newNotification", (n) => { setNotifs(prev => prev.some(x => x._id === n._id) ? prev : [n, ...prev]); setUnread(prev => prev + 1); }); return () => { socket.emit("leaveUserRoom", userId); socket.disconnect(); }; }, [userId]);
   useEffect(() => { const h = (e) => { if (dropdownRef.current && !dropdownRef.current.contains(e.target)) setOpen(false); }; document.addEventListener("mousedown", h); return () => document.removeEventListener("mousedown", h); }, []);
   const markRead = async (id) => { try { await api.put(`/notifications/${id}/read`); setNotifs(prev => prev.map(n => n._id === id ? { ...n, isRead: true } : n)); setUnread(prev => Math.max(0, prev - 1)); } catch { } };
   const markAllRead = async (e) => { e.stopPropagation(); try { await api.put("/notifications/read-all"); setNotifs(prev => prev.map(n => ({ ...n, isRead: true }))); setUnread(0); } catch { } };
