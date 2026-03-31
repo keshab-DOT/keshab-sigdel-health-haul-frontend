@@ -25,7 +25,7 @@ function extractArray(data) {
 function imgSrc(url) {
   if (!url) return null;
   if (url.startsWith("http")) return url;
-  return `http://localhost:3000/uploads/${url}`;
+  return `http://keshab-sigdel-health-haul-backend-production.up.railway.app/uploads/${url}`;
 }
 
 const TYPE_META = {
@@ -66,7 +66,7 @@ function NotificationBell({ userId }) {
 
   useEffect(() => {
     if (!userId) return;
-    const socket = io("http://localhost:3000", { query: { userId }, withCredentials: true });
+    const socket = io("http://keshab-sigdel-health-haul-backend-production.up.railway.app", { query: { userId }, withCredentials: true });
     socketRef.current = socket;
     socket.emit("joinUserRoom", userId);
     socket.on("newNotification", (n) => {

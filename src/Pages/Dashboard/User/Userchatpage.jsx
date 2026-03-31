@@ -38,7 +38,7 @@ function NotificationBell({ userId }) {
 
   useEffect(() => {
     if (!userId) return;
-    const socket = io("http://localhost:3000", { query: { userId }, withCredentials: true });
+    const socket = io("http://keshab-sigdel-health-haul-backend-production.up.railway.app", { query: { userId }, withCredentials: true });
     socketRef.current = socket;
     socket.emit("joinUserRoom", userId);
     socket.on("newNotification", (n) => {
@@ -196,10 +196,10 @@ function MessageBubble({ msg, isMine, onDelete }) {
         {msg.image && (
           <div className={`rounded-2xl overflow-hidden border border-gray-100 shadow-sm ${isMine ? "rounded-br-sm" : "rounded-bl-sm"}`}>
             <img
-              src={msg.image.startsWith("http") ? msg.image : `http://localhost:3000/uploads/${msg.image}`}
+              src={msg.image.startsWith("http") ? msg.image : `http://keshab-sigdel-health-haul-backend-production.up.railway.app/uploads/${msg.image}`}
               alt="attachment"
               className="max-w-[200px] max-h-[200px] object-cover cursor-pointer hover:opacity-90 transition"
-              onClick={() => window.open(msg.image.startsWith("http") ? msg.image : `http://localhost:3000/uploads/${msg.image}`, "_blank")}
+              onClick={() => window.open(msg.image.startsWith("http") ? msg.image : `http://keshab-sigdel-health-haul-backend-production.up.railway.app/uploads/${msg.image}`, "_blank")}
             />
           </div>
         )}
@@ -277,7 +277,7 @@ export default function UserChatPage() {
     if (!stored) { navigate("/login"); return; }
     setUser(stored);
 
-    const socket = io("http://localhost:3000", { query: { userId: stored._id }, withCredentials: true });
+    const socket = io("http://keshab-sigdel-health-haul-backend-production.up.railway.app", { query: { userId: stored._id }, withCredentials: true });
     socketRef.current = socket;
     socket.emit("joinUserRoom", stored._id);
     socket.on("getOnlineUsers", (ids) => setOnlineUsers(ids));
