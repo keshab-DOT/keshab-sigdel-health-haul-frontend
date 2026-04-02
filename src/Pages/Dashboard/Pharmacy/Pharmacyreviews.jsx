@@ -9,36 +9,36 @@ const getRole = (stored) => {
 };
 
 const TYPE_META = {
-  ORDER_PLACED:     { icon: "📦", color: "bg-blue-50  text-blue-600"   },
-  ORDER_STATUS:     { icon: "🚚", color: "bg-green-50 text-green-600"  },
+  ORDER_PLACED: { icon: "📦", color: "bg-blue-50  text-blue-600" },
+  ORDER_STATUS: { icon: "🚚", color: "bg-green-50 text-green-600" },
   PRODUCT_APPROVED: { icon: "✅", color: "bg-green-50  text-green-600" },
-  PRODUCT_REJECTED: { icon: "❌", color: "bg-red-50   text-red-600"   },
+  PRODUCT_REJECTED: { icon: "❌", color: "bg-red-50   text-red-600" },
   PAYMENT_RECEIVED: { icon: "💰", color: "bg-amber-50 text-amber-600" },
-  LOW_STOCK:        { icon: "🚨", color: "bg-red-50   text-red-600"   },
+  LOW_STOCK: { icon: "🚨", color: "bg-red-50   text-red-600" },
 };
 const notifMeta = (type) => TYPE_META[type] || { icon: "🔔", color: "bg-gray-50 text-gray-600" };
 function timeAgo(date) {
   const diff = Math.floor((Date.now() - new Date(date)) / 1000);
-  if (diff < 60)    return "just now";
-  if (diff < 3600)  return `${Math.floor(diff / 60)}m ago`;
+  if (diff < 60) return "just now";
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
   if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
   return `${Math.floor(diff / 86400)}d ago`;
 }
 
 function NotificationBell({ userId }) {
-  const [open, setOpen]       = useState(false);
-  const [notifs, setNotifs]   = useState([]);
-  const [unread, setUnread]   = useState(0);
+  const [open, setOpen] = useState(false);
+  const [notifs, setNotifs] = useState([]);
+  const [unread, setUnread] = useState(0);
   const [loading, setLoading] = useState(true);
   const dropdownRef = useRef(null);
-  const socketRef   = useRef(null);
+  const socketRef = useRef(null);
 
   const fetchNotifs = useCallback(async () => {
     try {
       const { data } = await api.get("/notifications");
       setNotifs(data.notifications || []);
-      setUnread(data.unreadCount   || 0);
-    } catch {}
+      setUnread(data.unreadCount || 0);
+    } catch { }
     finally { setLoading(false); }
   }, []);
 
@@ -67,7 +67,7 @@ function NotificationBell({ userId }) {
       await api.put(`/notifications/${id}/read`);
       setNotifs(prev => prev.map(n => n._id === id ? { ...n, isRead: true } : n));
       setUnread(prev => Math.max(0, prev - 1));
-    } catch {}
+    } catch { }
   };
 
   const markAllRead = async (e) => {
@@ -76,7 +76,7 @@ function NotificationBell({ userId }) {
       await api.put("/notifications/read-all");
       setNotifs(prev => prev.map(n => ({ ...n, isRead: true })));
       setUnread(0);
-    } catch {}
+    } catch { }
   };
 
   return (
@@ -85,7 +85,7 @@ function NotificationBell({ userId }) {
         className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium text-gray-500 hover:bg-gray-50 hover:text-gray-800 transition-all duration-150">
         <span className="flex-shrink-0 opacity-50 relative">
           <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
           </svg>
           {unread > 0 && (
             <span className="absolute -top-1.5 -right-1.5 min-w-[14px] h-[14px] bg-red-500 text-white text-[8px] font-black rounded-full flex items-center justify-center px-[2px] leading-none">
@@ -107,7 +107,7 @@ function NotificationBell({ userId }) {
           </div>
           <div className="max-h-[380px] overflow-y-auto">
             {loading ? (
-              <div className="py-10 flex justify-center"><div className="w-6 h-6 border-2 border-green-500 border-t-transparent rounded-full animate-spin"/></div>
+              <div className="py-10 flex justify-center"><div className="w-6 h-6 border-2 border-green-500 border-t-transparent rounded-full animate-spin" /></div>
             ) : notifs.length === 0 ? (
               <div className="py-12 text-center"><div className="text-3xl mb-2">🔔</div><p className="text-[13px] font-bold text-gray-600">No notifications yet</p><p className="text-[11px] text-gray-400 mt-1">You're all caught up!</p></div>
             ) : notifs.slice(0, 20).map(n => {
@@ -121,7 +121,7 @@ function NotificationBell({ userId }) {
                     <p className="text-[11px] text-gray-400 mt-0.5 line-clamp-2 leading-relaxed">{n.message}</p>
                     <p className="text-[10px] text-gray-300 mt-1 font-medium">{timeAgo(n.createdAt)}</p>
                   </div>
-                  {!n.isRead && <div className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0 mt-1.5"/>}
+                  {!n.isRead && <div className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0 mt-1.5" />}
                 </button>
               );
             })}
@@ -134,20 +134,20 @@ function NotificationBell({ userId }) {
 
 function Sidebar({ user, active, onLogout, navigate }) {
   const NAV = [
-    { key: "dashboard",     label: "Dashboard", path: "/pharmacy/dashboard", icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg> },
-    { key: "orders",        label: "Orders",    path: "/pharmacy/orders",    icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg> },
-    { key: "products",      label: "Products",  path: "/pharmacy/products",  icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg> },
-    { key: "reviews",       label: "Reviews",   path: "/pharmacy/reviews",   icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg> },
-    { key: "chat",          label: "Messages",  path: "/pharmacy/chat",      icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M8 12h.01M12 12h.01M16 12h.01M21 3H3a2 2 0 00-2 2v13a2 2 0 002 2h5l3 3 3-3h7a2 2 0 002-2V5a2 2 0 00-2-2z"/></svg> },
+    { key: "dashboard", label: "Dashboard", path: "/pharmacy/dashboard", icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg> },
+    { key: "orders", label: "Orders", path: "/pharmacy/orders", icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg> },
+    { key: "products", label: "Products", path: "/pharmacy/products", icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg> },
+    { key: "reviews", label: "Reviews", path: "/pharmacy/reviews", icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg> },
+    { key: "chat", label: "Messages", path: "/pharmacy/chat", icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M8 12h.01M12 12h.01M16 12h.01M21 3H3a2 2 0 00-2 2v13a2 2 0 002 2h5l3 3 3-3h7a2 2 0 002-2V5a2 2 0 00-2-2z" /></svg> },
     { key: "notifications", label: "Notifications", path: null, icon: null },
-    { key: "profile",       label: "Profile",   path: "/pharmacy/profile",   icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg> },
+    { key: "profile", label: "Profile", path: "/pharmacy/profile", icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg> },
   ];
   return (
     <aside className="w-[200px] min-h-screen bg-white border-r border-gray-100 flex flex-col flex-shrink-0 fixed left-0 top-0 bottom-0 z-20">
       <div className="px-5 py-[18px] border-b border-gray-100">
         <div className="flex items-center gap-2.5">
           <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-sm flex-shrink-0">
-            <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+            <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
           </div>
           <span className="font-black text-[14px] text-gray-900 tracking-tight leading-tight">HealthHaul</span>
         </div>
@@ -164,7 +164,7 @@ function Sidebar({ user, active, onLogout, navigate }) {
       </div>
       <nav className="flex-1 px-3 py-3 space-y-0.5">
         {NAV.map(({ key, label, path, icon }) => {
-          if (key === "notifications") return <NotificationBell key="notifications" userId={user?._id}/>;
+          if (key === "notifications") return <NotificationBell key="notifications" userId={user?._id} />;
           return (
             <button key={key} onClick={() => navigate(path)}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-150 ${active === key ? "bg-gray-950 text-white shadow-sm" : "text-gray-500 hover:bg-gray-50 hover:text-gray-800"}`}>
@@ -176,7 +176,7 @@ function Sidebar({ user, active, onLogout, navigate }) {
       </nav>
       <div className="px-3 pb-4 pt-1 border-t border-gray-100">
         <button onClick={onLogout} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium text-red-500 hover:bg-red-50 hover:text-red-600 transition-all">
-          <span className="opacity-60 flex-shrink-0"><svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg></span>
+          <span className="opacity-60 flex-shrink-0"><svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg></span>
           Sign Out
         </button>
       </div>
@@ -189,7 +189,7 @@ function Stars({ rating }) {
     <div className="flex items-center gap-0.5">
       {[1, 2, 3, 4, 5].map(i => (
         <svg key={i} className={`w-3.5 h-3.5 ${i <= rating ? "text-amber-400" : "text-gray-200"}`} fill="currentColor" viewBox="0 0 20 20">
-          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
         </svg>
       ))}
     </div>
@@ -202,7 +202,7 @@ function RatingBar({ label, count, total, color }) {
     <div className="flex items-center gap-2.5">
       <span className="text-[11px] font-semibold text-gray-500 w-8 text-right flex-shrink-0">{label}★</span>
       <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-        <div className={`h-full rounded-full transition-all duration-500 ${color}`} style={{ width: `${pct}%` }}/>
+        <div className={`h-full rounded-full transition-all duration-500 ${color}`} style={{ width: `${pct}%` }} />
       </div>
       <span className="text-[11px] text-gray-400 w-6 flex-shrink-0">{count}</span>
     </div>
@@ -211,14 +211,14 @@ function RatingBar({ label, count, total, color }) {
 
 export default function PharmacyReviews() {
   const navigate = useNavigate();
-  const [user, setUser]         = useState(null);
-  const [reviews, setReviews]   = useState([]);
-  const [loading, setLoading]   = useState(true);
+  const [user, setUser] = useState(null);
+  const [reviews, setReviews] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [avgRating, setAvgRating] = useState(0);
   const [totalCount, setTotalCount] = useState(0);
   const [filterRating, setFilterRating] = useState("all");
-  const [search, setSearch]     = useState("");
-  const [toast, setToast]       = useState(null);
+  const [search, setSearch] = useState("");
+  const [toast, setToast] = useState(null);
 
   const showToast = (msg, type = "success") => { setToast({ msg, type }); setTimeout(() => setToast(null), 3000); };
 
@@ -244,7 +244,7 @@ export default function PharmacyReviews() {
   };
 
   const logout = async () => {
-    try { await api.post("/auth/logout"); } catch (_) {}
+    try { await api.post("/auth/logout"); } catch (_) { }
     localStorage.removeItem("user"); localStorage.removeItem("token");
     navigate("/login", { replace: true });
   };
@@ -275,7 +275,7 @@ export default function PharmacyReviews() {
         </div>
       )}
 
-      <Sidebar user={user} active="reviews" onLogout={logout} navigate={navigate}/>
+      <Sidebar user={user} active="reviews" onLogout={logout} navigate={navigate} />
 
       <div className="pl-[200px]">
         <main className="px-8 py-7 min-h-screen">
@@ -288,7 +288,7 @@ export default function PharmacyReviews() {
             </div>
             <button onClick={fetchReviews}
               className="flex items-center gap-2 border border-gray-200 bg-white text-gray-600 px-4 py-2.5 rounded-xl font-bold text-[13px] hover:border-green-300 hover:text-green-700 transition shadow-sm">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
               Refresh
             </button>
           </div>
@@ -302,7 +302,7 @@ export default function PharmacyReviews() {
                 <p className="text-5xl font-black text-gray-900 leading-none mb-2">
                   {avgRating > 0 ? avgRating.toFixed(1) : "—"}
                 </p>
-                <Stars rating={Math.round(avgRating)}/>
+                <Stars rating={Math.round(avgRating)} />
                 <p className="text-[11px] text-gray-400 mt-2">{totalCount} review{totalCount !== 1 ? "s" : ""}</p>
               </div>
 
@@ -311,7 +311,7 @@ export default function PharmacyReviews() {
                 <p className="text-[12px] font-bold text-gray-700 mb-4">Rating Breakdown</p>
                 <div className="space-y-2.5">
                   {dist.map(({ star, count }) => (
-                    <RatingBar key={star} label={star} count={count} total={totalCount} color={distColors[star]}/>
+                    <RatingBar key={star} label={star} count={count} total={totalCount} color={distColors[star]} />
                   ))}
                 </div>
               </div>
@@ -321,15 +321,15 @@ export default function PharmacyReviews() {
           {/* Filters */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-3.5 flex flex-col sm:flex-row gap-2.5 mb-5">
             <div className="relative flex-1">
-              <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+              <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
               <input type="text" placeholder="Search by customer name or comment…" value={search} onChange={e => setSearch(e.target.value)}
-                className="w-full pl-10 pr-9 py-2.5 border border-gray-200 rounded-xl text-[13px] focus:outline-none focus:ring-2 focus:ring-green-400/40 focus:border-green-400 transition bg-gray-50/50"/>
-              {search && <button onClick={() => setSearch("")} className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg></button>}
+                className="w-full pl-10 pr-9 py-2.5 border border-gray-200 rounded-xl text-[13px] focus:outline-none focus:ring-2 focus:ring-green-400/40 focus:border-green-400 transition bg-gray-50/50" />
+              {search && <button onClick={() => setSearch("")} className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>}
             </div>
             <select value={filterRating} onChange={e => setFilterRating(e.target.value)}
               className="border border-gray-200 rounded-xl px-3 py-2.5 text-[13px] focus:outline-none focus:ring-2 focus:ring-green-400/40 bg-gray-50/50 text-gray-600 min-w-[140px]">
               <option value="all">All Ratings</option>
-              {[5,4,3,2,1].map(s => <option key={s} value={s}>{s} Star{s !== 1 ? "s" : ""}</option>)}
+              {[5, 4, 3, 2, 1].map(s => <option key={s} value={s}>{s} Star{s !== 1 ? "s" : ""}</option>)}
             </select>
           </div>
 
@@ -338,8 +338,8 @@ export default function PharmacyReviews() {
             <div className="space-y-3">
               {[...Array(4)].map((_, i) => (
                 <div key={i} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 animate-pulse">
-                  <div className="flex items-center gap-3 mb-3"><div className="w-10 h-10 rounded-full bg-gray-100"/><div className="flex-1"><div className="h-3.5 bg-gray-100 rounded w-1/4 mb-2"/><div className="h-2.5 bg-gray-100 rounded w-1/3"/></div></div>
-                  <div className="h-3 bg-gray-100 rounded w-3/4"/>
+                  <div className="flex items-center gap-3 mb-3"><div className="w-10 h-10 rounded-full bg-gray-100" /><div className="flex-1"><div className="h-3.5 bg-gray-100 rounded w-1/4 mb-2" /><div className="h-2.5 bg-gray-100 rounded w-1/3" /></div></div>
+                  <div className="h-3 bg-gray-100 rounded w-3/4" />
                 </div>
               ))}
             </div>
@@ -378,7 +378,7 @@ export default function PharmacyReviews() {
                           <p className="text-[11px] text-gray-400">{review.userId?.email || ""}</p>
                         </div>
                         <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                          <Stars rating={review.rating}/>
+                          <Stars rating={review.rating} />
                           <span className="text-[10px] text-gray-400">{timeAgo(review.createdAt)}</span>
                         </div>
                       </div>
@@ -395,8 +395,8 @@ export default function PharmacyReviews() {
                       <div className="flex items-center gap-2 mt-2.5">
                         <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold border
                           ${review.rating >= 4 ? "bg-green-50 text-green-700 border-green-100"
-                          : review.rating === 3 ? "bg-yellow-50 text-yellow-700 border-yellow-100"
-                          : "bg-red-50 text-red-600 border-red-100"}`}>
+                            : review.rating === 3 ? "bg-yellow-50 text-yellow-700 border-yellow-100"
+                              : "bg-red-50 text-red-600 border-red-100"}`}>
                           <span>{'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}</span>
                           {review.rating}/5
                         </div>

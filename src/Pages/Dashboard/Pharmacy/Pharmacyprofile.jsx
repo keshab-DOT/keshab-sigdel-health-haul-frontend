@@ -5,7 +5,7 @@ import { io } from "socket.io-client";
 
 const getRole = (stored) => { const raw = Array.isArray(stored?.roles) ? stored.roles[0] : stored?.roles; return (raw || "").toLowerCase().trim(); };
 
-// ── Notification helpers ───────────────────────────────────────────────────────
+// Notification helpers
 const TYPE_META = {
   ORDER_PLACED: { icon: "📦", color: "bg-blue-50  text-blue-600" },
   ORDER_STATUS: { icon: "🚚", color: "bg-green-50 text-green-600" },
@@ -22,7 +22,7 @@ function timeAgo(date) {
   return `${Math.floor(diff / 86400)}d ago`;
 }
 
-// ── Notification Bell ──────────────────────────────────────────────────────────
+// Notification Bell
 function NotificationBell({ userId }) {
   const [open, setOpen] = useState(false);
   const [notifs, setNotifs] = useState([]);
@@ -150,7 +150,7 @@ function NotificationBell({ userId }) {
   );
 }
 
-// ── Sidebar ────────────────────────────────────────────────────────────────────
+// Sidebar 
 function Sidebar({ user, active, onLogout, navigate }) {
   const NAV = [
     { key: "dashboard", label: "Dashboard", path: "/pharmacy/dashboard", icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg> },

@@ -10,8 +10,8 @@ import L from "leaflet";
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-  iconUrl:       "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-  shadowUrl:     "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
 });
 
 const makeIcon = (emoji, bgColor) =>
@@ -25,7 +25,7 @@ const makeIcon = (emoji, bgColor) =>
   });
 
 const PHARMACY_ICON = makeIcon("🏥", "#16a34a");
-const USER_ICON     = makeIcon("📍", "#2563eb");
+const USER_ICON = makeIcon("📍", "#2563eb");
 
 function BoundsFitter({ positions }) {
   const map = useMap();
@@ -45,11 +45,11 @@ async function fetchOsrmRoute(from, to) {
     `${from[1]},${from[0]};${to[1]},${to[0]}` +
     `?overview=full&geometries=geojson`;
   try {
-    const res  = await fetch(url);
+    const res = await fetch(url);
     const data = await res.json();
     if (data.routes?.[0]) {
       return {
-        coords:   data.routes[0].geometry.coordinates.map(([lng, lat]) => [lat, lng]),
+        coords: data.routes[0].geometry.coordinates.map(([lng, lat]) => [lat, lng]),
         distance: (data.routes[0].distance / 1000).toFixed(1),
         duration: Math.round(data.routes[0].duration / 60),
       };
@@ -58,49 +58,39 @@ async function fetchOsrmRoute(from, to) {
   return null;
 }
 
-/**
- * Props:
- *   role             — "user" | "pharmacy" | "admin"
- *   userId           — logged-in user's _id
- *   orderId          — active order's _id
- *   pharmacyId       — pharmacy's _id (from order)
- *   pharmacyName     — pharmacy display name
- *   userDeliveryLat  — from order.deliveryAddress.lat (may be null)
- *   userDeliveryLng  — from order.deliveryAddress.lng (may be null)
- */
 export default function OrderMapCard({
   role, userId, orderId,
   pharmacyId, pharmacyName,
   userDeliveryLat, userDeliveryLng,
 }) {
-  const [pharmacyPos,  setPharmacyPos]  = useState(null);
-  const [userPos,      setUserPos]      = useState(null);
-  const [route,        setRoute]        = useState(null);
-  const [showRoute,    setShowRoute]    = useState(false);
+  const [pharmacyPos, setPharmacyPos] = useState(null);
+  const [userPos, setUserPos] = useState(null);
+  const [route, setRoute] = useState(null);
+  const [showRoute, setShowRoute] = useState(false);
   const [routeLoading, setRouteLoading] = useState(false);
-  const [routeError,   setRouteError]   = useState(null);
-  const [otherOnline,  setOtherOnline]  = useState(false);
-  const [sharing,      setSharing]      = useState(false);
-  const [locError,     setLocError]     = useState(null);
-  const [gpsLoading,   setGpsLoading]   = useState(false);
+  const [routeError, setRouteError] = useState(null);
+  const [otherOnline, setOtherOnline] = useState(false);
+  const [sharing, setSharing] = useState(false);
+  const [locError, setLocError] = useState(null);
+  const [gpsLoading, setGpsLoading] = useState(false);
 
   const socketRef = useRef(null);
-  const watchRef  = useRef(null);
-  const apiRef    = useRef(null);
+  const watchRef = useRef(null);
+  const apiRef = useRef(null);
 
-  const isUser     = role === "user";
+  const isUser = role === "user";
   const isPharmacy = role === "pharmacy";
-  const isAdmin    = role === "admin";
+  const isAdmin = role === "admin";
   const DEFAULT_CENTER = [27.7172, 85.324];
 
-  // ── 1. Load user delivery coords from props (if saved in order) ───────
+  // Load user delivery coords from props (if saved in order) 
   useEffect(() => {
     const lat = Number(userDeliveryLat);
     const lng = Number(userDeliveryLng);
     if (lat && lng) setUserPos([lat, lng]);
   }, [userDeliveryLat, userDeliveryLng]);
 
-  // ── 2. Load pharmacy saved coords from DB ─────────────────────────────
+  // Load pharmacy saved coords from DB 
   useEffect(() => {
     if (!pharmacyId || isPharmacy) return;
     import("../../../api/axios").then(({ default: api }) => {
@@ -112,11 +102,11 @@ export default function OrderMapCard({
           const lng = Number(loc?.longitude);
           if (lat && lng) setPharmacyPos([lat, lng]);
         })
-        .catch(() => {});
+        .catch(() => { });
     });
   }, [pharmacyId, isPharmacy]);
 
-  // ── 3. Socket: connect + listen for real-time location updates ─────────
+  // connect + listen for real-time location updates 
   useEffect(() => {
     if (!orderId || !userId) return;
 
@@ -130,7 +120,7 @@ export default function OrderMapCard({
     });
     socketRef.current = socket;
 
-    socket.emit("joinUserRoom",  userId);
+    socket.emit("joinUserRoom", userId);
     socket.emit("joinOrderRoom", orderId);
     if (isAdmin) socket.emit("joinAdminRoom");
 
@@ -158,13 +148,13 @@ export default function OrderMapCard({
 
     return () => {
       socket.emit("leaveOrderRoom", orderId);
-      socket.emit("leaveUserRoom",  userId);
+      socket.emit("leaveUserRoom", userId);
       socket.disconnect();
       if (watchRef.current) navigator.geolocation.clearWatch(watchRef.current);
     };
   }, [orderId, userId, role, isUser, isPharmacy, isAdmin]);
 
-  // ── 4. Share my live location ─────────────────────────────────────────
+  // Share my live location
   const handleStartSharing = useCallback(() => {
     if (!navigator.geolocation) {
       setLocError("Geolocation not supported in your browser.");
@@ -180,10 +170,10 @@ export default function OrderMapCard({
 
         // Update my own marker immediately
         if (isPharmacy) setPharmacyPos([latitude, longitude]);
-        if (isUser)     setUserPos([latitude, longitude]);
+        if (isUser) setUserPos([latitude, longitude]);
 
         // Broadcast to order room
-        const event   = isPharmacy ? "pharmacyShareLocation" : "userShareLocation";
+        const event = isPharmacy ? "pharmacyShareLocation" : "userShareLocation";
         const payload = isPharmacy
           ? { orderId, latitude, longitude, pharmacyName }
           : { orderId, latitude, longitude };
@@ -191,7 +181,7 @@ export default function OrderMapCard({
 
         // Pharmacy also persists to DB
         if (isPharmacy && apiRef.current) {
-          apiRef.current.put("/auth/update-location", { latitude, longitude }).catch(() => {});
+          apiRef.current.put("/auth/update-location", { latitude, longitude }).catch(() => { });
         }
       },
       (err) => {
@@ -211,13 +201,13 @@ export default function OrderMapCard({
     setGpsLoading(false);
   };
 
-  // ── 5. Get driving route ──────────────────────────────────────────────
+  // Get driving route 
   const handleGetRoute = useCallback(async () => {
     if (!pharmacyPos || !userPos) return;
     setRouteLoading(true);
     setRouteError(null);
-    const from   = isPharmacy ? pharmacyPos : userPos;
-    const to     = isPharmacy ? userPos     : pharmacyPos;
+    const from = isPharmacy ? pharmacyPos : userPos;
+    const to = isPharmacy ? userPos : pharmacyPos;
     const result = await fetchOsrmRoute(from, to);
     setRouteLoading(false);
     if (result) { setRoute(result); setShowRoute(true); }
@@ -228,7 +218,7 @@ export default function OrderMapCard({
 
   const visiblePositions = [pharmacyPos, userPos].filter(Boolean);
 
-  // ── Status label ──────────────────────────────────────────────────────
+  // Status label
   const otherLabel = isUser ? (pharmacyName || "Pharmacy") : "Customer";
   let statusText = `Waiting for ${otherLabel} to share location…`;
   if (otherOnline) statusText = `${otherLabel} is sharing live location`;
@@ -237,7 +227,7 @@ export default function OrderMapCard({
   return (
     <div className="mt-3 rounded-xl overflow-hidden border border-white/10">
 
-      {/* ── Status bar ────────────────────────────────────────────────── */}
+      {/* Status bar */}
       <div className="flex items-center justify-between px-3 py-2 bg-black/40 border-b border-white/10">
         <div className="flex items-center gap-1.5 min-w-0">
           <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${otherOnline ? "bg-green-400 animate-pulse" : "bg-gray-500"}`} />
@@ -264,7 +254,7 @@ export default function OrderMapCard({
         </div>
       </div>
 
-      {/* ── Route info strip ──────────────────────────────────────────── */}
+      {/* Route info strip  */}
       {route && showRoute && (
         <div className="flex items-center justify-center gap-5 px-3 py-1.5 bg-blue-600/20 border-b border-white/10">
           <span className="text-[11px] text-blue-200 font-bold">📏 {route.distance} km</span>
@@ -279,7 +269,7 @@ export default function OrderMapCard({
         </div>
       )}
 
-      {/* ── Map ───────────────────────────────────────────────────────── */}
+      {/* Map */}
       <MapContainer
         center={pharmacyPos || userPos || DEFAULT_CENTER}
         zoom={14}
@@ -323,7 +313,7 @@ export default function OrderMapCard({
         )}
       </MapContainer>
 
-      {/* ── Bottom action bar ─────────────────────────────────────────── */}
+      {/* Bottom action bar */}
       {!isAdmin && (
         <div className="px-3 py-2.5 bg-black/40 border-t border-white/10">
           {/* Not sharing yet */}

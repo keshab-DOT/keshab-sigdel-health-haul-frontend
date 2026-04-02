@@ -5,20 +5,20 @@ import { io } from "socket.io-client";
 import OrderMapCard from "./OrderMapCard";
 
 const CATEGORIES = [
-  { label: "Pain Relief",   icon: "💊" },
-  { label: "Antibiotics",   icon: "🧬" },
-  { label: "Vitamins",      icon: "🌿" },
-  { label: "Heart Care",    icon: "❤️" },
-  { label: "Skin Care",     icon: "✨" },
+  { label: "Pain Relief", icon: "💊" },
+  { label: "Antibiotics", icon: "🧬" },
+  { label: "Vitamins", icon: "🌿" },
+  { label: "Heart Care", icon: "❤️" },
+  { label: "Skin Care", icon: "✨" },
   { label: "All Medicines", icon: "🏥" },
 ];
 
 function extractArray(data) {
-  if (Array.isArray(data))                 return data;
+  if (Array.isArray(data)) return data;
   if (data && Array.isArray(data.products)) return data.products;
-  if (data && Array.isArray(data.data))     return data.data;
-  if (data && Array.isArray(data.items))    return data.items;
-  if (data && Array.isArray(data.results))  return data.results;
+  if (data && Array.isArray(data.data)) return data.data;
+  if (data && Array.isArray(data.items)) return data.items;
+  if (data && Array.isArray(data.results)) return data.results;
   return [];
 }
 
@@ -29,36 +29,36 @@ function imgSrc(url) {
 }
 
 const TYPE_META = {
-  ORDER_PLACED:     { icon: "📦", color: "bg-blue-50 text-blue-600" },
-  ORDER_STATUS:     { icon: "🚚", color: "bg-green-50 text-green-600" },
+  ORDER_PLACED: { icon: "📦", color: "bg-blue-50 text-blue-600" },
+  ORDER_STATUS: { icon: "🚚", color: "bg-green-50 text-green-600" },
   PRODUCT_APPROVED: { icon: "✅", color: "bg-green-50 text-green-600" },
   PRODUCT_REJECTED: { icon: "❌", color: "bg-red-50 text-red-600" },
-  PAYMENT_SUCCESS:  { icon: "💰", color: "bg-amber-50 text-amber-600" },
+  PAYMENT_SUCCESS: { icon: "💰", color: "bg-amber-50 text-amber-600" },
 };
 const notifMeta = (type) => TYPE_META[type] || { icon: "🔔", color: "bg-gray-50 text-gray-600" };
 
 function timeAgo(date) {
   const diff = Math.floor((Date.now() - new Date(date)) / 1000);
-  if (diff < 60)    return "just now";
-  if (diff < 3600)  return `${Math.floor(diff / 60)}m ago`;
+  if (diff < 60) return "just now";
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
   if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
   return `${Math.floor(diff / 86400)}d ago`;
 }
 
-// ── Notification Bell ─────────────────────────────────────────────────────────
+// Notification Bell
 function NotificationBell({ userId }) {
-  const [open,    setOpen]    = useState(false);
-  const [notifs,  setNotifs]  = useState([]);
-  const [unread,  setUnread]  = useState(0);
+  const [open, setOpen] = useState(false);
+  const [notifs, setNotifs] = useState([]);
+  const [unread, setUnread] = useState(0);
   const [loading, setLoading] = useState(true);
   const dropdownRef = useRef(null);
-  const socketRef   = useRef(null);
+  const socketRef = useRef(null);
 
   const fetchNotifs = useCallback(async () => {
     try {
       const { data } = await api.get("/notifications");
       setNotifs(data.notifications || []);
-      setUnread(data.unreadCount   || 0);
+      setUnread(data.unreadCount || 0);
     } catch { } finally { setLoading(false); }
   }, []);
 
@@ -165,7 +165,7 @@ function NotificationBell({ userId }) {
   );
 }
 
-// ── Topbar ────────────────────────────────────────────────────────────────────
+// Topbar 
 function Topbar({ user, cartCount, onLogout, navigate }) {
   return (
     <header className="bg-white border-b border-gray-100 px-6 py-0 flex items-center justify-between sticky top-0 z-30 h-[56px]">
@@ -181,9 +181,9 @@ function Topbar({ user, cartCount, onLogout, navigate }) {
 
       <nav className="flex items-center gap-1 ml-6">
         <button onClick={() => navigate("/user/dashboard")} className="px-3.5 py-1.5 text-[13px] font-semibold text-gray-900 bg-gray-100 rounded-lg">Dashboard</button>
-        <button onClick={() => navigate("/user/search")}    className="px-3.5 py-1.5 text-[13px] font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-50 rounded-lg transition">Browse Medicines</button>
-        <button onClick={() => navigate("/user/orders")}    className="px-3.5 py-1.5 text-[13px] font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-50 rounded-lg transition">My Orders</button>
-        <button onClick={() => navigate("/user/chat")}      className="px-3.5 py-1.5 text-[13px] font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-50 rounded-lg transition">Chat</button>
+        <button onClick={() => navigate("/user/search")} className="px-3.5 py-1.5 text-[13px] font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-50 rounded-lg transition">Browse Medicines</button>
+        <button onClick={() => navigate("/user/orders")} className="px-3.5 py-1.5 text-[13px] font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-50 rounded-lg transition">My Orders</button>
+        <button onClick={() => navigate("/user/chat")} className="px-3.5 py-1.5 text-[13px] font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-50 rounded-lg transition">Chat</button>
       </nav>
 
       <div className="flex items-center gap-2 ml-auto">
@@ -222,13 +222,13 @@ function Topbar({ user, cartCount, onLogout, navigate }) {
   );
 }
 
-// ── Footer ────────────────────────────────────────────────────────────────────
+// Footer 
 function Footer({ navigate }) {
   const quickLinks = [
     { label: "Search Medicines", path: "/user/search" },
-    { label: "My Orders",        path: "/user/orders" },
-    { label: "My Cart",          path: "/user/cart"   },
-    { label: "Profile",          path: "/user/profile"},
+    { label: "My Orders", path: "/user/orders" },
+    { label: "My Cart", path: "/user/cart" },
+    { label: "Profile", path: "/user/profile" },
   ];
   return (
     <footer className="bg-gray-900 text-white mt-auto">
@@ -290,12 +290,12 @@ function Footer({ navigate }) {
   );
 }
 
-// ── Status Pill ───────────────────────────────────────────────────────────────
+// Status Pill 
 function StatusPill({ status }) {
   const map = {
-    pending:   { cls: "bg-amber-100 text-amber-700", dot: "bg-amber-400",  label: "Pending"   },
-    delivered: { cls: "bg-green-100 text-green-700", dot: "bg-green-500",  label: "Delivered" },
-    cancelled: { cls: "bg-red-100 text-red-600",     dot: "bg-red-400",    label: "Cancelled" },
+    pending: { cls: "bg-amber-100 text-amber-700", dot: "bg-amber-400", label: "Pending" },
+    delivered: { cls: "bg-green-100 text-green-700", dot: "bg-green-500", label: "Delivered" },
+    cancelled: { cls: "bg-red-100 text-red-600", dot: "bg-red-400", label: "Cancelled" },
   };
   const s = map[status] || { cls: "bg-gray-100 text-gray-600", dot: "bg-gray-400", label: status };
   return (
@@ -305,14 +305,14 @@ function StatusPill({ status }) {
   );
 }
 
-// ── Featured Order Card ───────────────────────────────────────────────────────
+// Featured Order Card 
 function FeaturedOrderCard({ order, navigate }) {
-  const steps       = ["pending", "delivered"];
-  const idx         = steps.indexOf(order.orderStatus);
+  const steps = ["pending", "delivered"];
+  const idx = steps.indexOf(order.orderStatus);
   const isCancelled = order.orderStatus === "cancelled";
   const firstProduct = order.products?.[0]?.productId;
   const productImage = imgSrc(firstProduct?.productImageUrl);
-  const productName  = firstProduct?.productName;
+  const productName = firstProduct?.productName;
 
   return (
     <div className="relative rounded-2xl overflow-hidden h-full min-h-[260px] bg-gradient-to-br from-gray-900 via-gray-800 to-emerald-950 flex flex-col justify-between p-5">
@@ -353,9 +353,8 @@ function FeaturedOrderCard({ order, navigate }) {
             <div className="flex items-center mb-2">
               {steps.map((step, i) => (
                 <div key={step} className="flex items-center flex-1 last:flex-none">
-                  <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 text-[9px] font-black border-2 transition-all ${
-                    i < idx ? "bg-green-400 border-green-400 text-white" : i === idx ? "bg-white border-white text-gray-900" : "border-white/20 bg-white/5"
-                  }`}>
+                  <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 text-[9px] font-black border-2 transition-all ${i < idx ? "bg-green-400 border-green-400 text-white" : i === idx ? "bg-white border-white text-gray-900" : "border-white/20 bg-white/5"
+                    }`}>
                     {i < idx ? "✓" : i + 1}
                   </div>
                   {i < steps.length - 1 && <div className={`flex-1 h-0.5 mx-1 rounded-full ${i < idx ? "bg-green-400" : "bg-white/15"}`} />}
@@ -387,29 +386,27 @@ function FeaturedOrderCard({ order, navigate }) {
   );
 }
 
-// ── Live Tracking Section ─────────────────────────────────────────────────────
-// Extracts pharmacy + delivery info from the order and renders OrderMapCard.
-// Tries multiple field paths for deliveryAddress since the schema may vary.
+// Live Tracking Section 
 function LiveTrackingSection({ order, user, navigate }) {
   const firstProduct = order.products?.[0]?.productId;
 
-  // Pharmacy info — productId.userId is the pharmacy
-  const pharmacyId   = firstProduct?.userId?._id ?? firstProduct?.userId ?? null;
+  // Pharmacy 
+  const pharmacyId = firstProduct?.userId?._id ?? firstProduct?.userId ?? null;
   const pharmacyName = firstProduct?.userId?.name ?? null;
 
-  // Delivery coordinates — try all common field paths your backend might use
+  // Delivery coordinates 
   const deliveryLat =
-    order.deliveryAddress?.lat       ??
-    order.deliveryAddress?.latitude  ??
-    order.deliveryLat                ??
-    order.latitude                   ??
+    order.deliveryAddress?.lat ??
+    order.deliveryAddress?.latitude ??
+    order.deliveryLat ??
+    order.latitude ??
     null;
 
   const deliveryLng =
-    order.deliveryAddress?.lng       ??
+    order.deliveryAddress?.lng ??
     order.deliveryAddress?.longitude ??
-    order.deliveryLng                ??
-    order.longitude                  ??
+    order.deliveryLng ??
+    order.longitude ??
     null;
 
   return (
@@ -453,17 +450,17 @@ function LiveTrackingSection({ order, user, navigate }) {
   );
 }
 
-// ── UserDashboard ─────────────────────────────────────────────────────────────
+// UserDashboard 
 export default function UserDashboard() {
   const navigate = useNavigate();
-  const [user,       setUser]       = useState(null);
-  const [orders,     setOrders]     = useState([]);
-  const [products,   setProducts]   = useState([]);
-  const [cartCount,  setCartCount]  = useState(0);
-  const [loading,    setLoading]    = useState(true);
+  const [user, setUser] = useState(null);
+  const [orders, setOrders] = useState([]);
+  const [products, setProducts] = useState([]);
+  const [cartCount, setCartCount] = useState(0);
+  const [loading, setLoading] = useState(true);
   const [reordering, setReordering] = useState({});
-  const [toast,      setToast]      = useState(null);
-  const [greeting,   setGreeting]   = useState("Good morning");
+  const [toast, setToast] = useState(null);
+  const [greeting, setGreeting] = useState("Good morning");
 
   const showToast = (msg, type = "success") => {
     setToast({ msg, type });
@@ -520,9 +517,9 @@ export default function UserDashboard() {
 
   const activeOrders = orders.filter(o => o.orderStatus === "pending");
   const latestActive = activeOrders[0] || null;
-  const totalOrders  = orders.length;
-  const delivered    = orders.filter(o => o.orderStatus === "delivered").length;
-  const totalSpent   = orders
+  const totalOrders = orders.length;
+  const delivered = orders.filter(o => o.orderStatus === "delivered").length;
+  const totalSpent = orders
     .filter(o => o.orderStatus === "delivered")
     .reduce((s, o) => s + (o.totalAmount || 0), 0);
 
@@ -547,7 +544,7 @@ export default function UserDashboard() {
 
       <main className="flex-1">
 
-        {/* ── Hero ───────────────────────────────────────────────────────── */}
+        {/* Hero */}
         <section className="px-8 pt-7 pb-6">
           <div className="flex gap-5 items-stretch min-h-[270px]">
 
@@ -608,17 +605,17 @@ export default function UserDashboard() {
           </div>
         </section>
 
-        {/* ── Live Tracking Map ───────────────────────────────────────────── */}
+        {/* Live Tracking Map */}
         {latestActive && (
           <LiveTrackingSection order={latestActive} user={user} navigate={navigate} />
         )}
 
-        {/* ── Trust badges ────────────────────────────────────────────────── */}
+        {/* Trust badges */}
         <section className="px-8 pb-6">
           <div className="grid grid-cols-2 gap-3">
             {[
               { icon: "🏥", title: "Licensed Pharmacies", desc: "Every pharmacy verified" },
-              { icon: "📋", title: "Order Tracking",      desc: "Get medicines on time"  },
+              { icon: "📋", title: "Order Tracking", desc: "Get medicines on time" },
             ].map(({ icon, title, desc }) => (
               <div key={title} className="bg-white rounded-xl border border-gray-100 shadow-sm px-4 py-3.5 flex items-center gap-3 hover:border-green-200 hover:shadow-md transition-all group">
                 <div className="w-9 h-9 bg-green-50 rounded-xl flex items-center justify-center text-lg flex-shrink-0 group-hover:bg-green-100 transition">{icon}</div>
@@ -631,7 +628,7 @@ export default function UserDashboard() {
           </div>
         </section>
 
-        {/* ── Stats ──────────────────────────────────────────────────────── */}
+        {/*  Stats  */}
         <section className="px-8 pb-6">
           <div className="grid grid-cols-3 gap-3">
             <div onClick={() => navigate("/user/orders")} className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex items-center gap-3 cursor-pointer hover:border-green-200 hover:shadow-md transition-all group">
@@ -660,7 +657,7 @@ export default function UserDashboard() {
           </div>
         </section>
 
-        {/* ── Available Medicines ─────────────────────────────────────────── */}
+        {/*  Available Medicines */}
         <section className="px-8 pb-6">
           <div className="flex items-center justify-between mb-3">
             <div>
@@ -676,10 +673,10 @@ export default function UserDashboard() {
           </div>
           <div className="grid grid-cols-4 gap-3">
             {products.length > 0 ? products.map(product => {
-              const outOfStock   = product.productTotalStockQuantity === 0;
-              const lowStock     = !outOfStock && product.productTotalStockQuantity <= 5;
-              const pharmName    = product.userId?.name || null;
-              const src          = imgSrc(product.productImageUrl);
+              const outOfStock = product.productTotalStockQuantity === 0;
+              const lowStock = !outOfStock && product.productTotalStockQuantity <= 5;
+              const pharmName = product.userId?.name || null;
+              const src = imgSrc(product.productImageUrl);
               return (
                 <div key={product._id} className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all group flex flex-col">
                   <div className="h-32 bg-gradient-to-br from-green-50 to-emerald-50 flex items-center justify-center overflow-hidden relative">
@@ -714,9 +711,8 @@ export default function UserDashboard() {
                       <button
                         onClick={() => handleReorder(product._id)}
                         disabled={outOfStock || reordering[product._id]}
-                        className={`text-[10px] font-bold px-2.5 py-1.5 rounded-lg transition ${
-                          outOfStock ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "bg-green-50 text-green-700 hover:bg-green-600 hover:text-white"
-                        }`}
+                        className={`text-[10px] font-bold px-2.5 py-1.5 rounded-lg transition ${outOfStock ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "bg-green-50 text-green-700 hover:bg-green-600 hover:text-white"
+                          }`}
                       >
                         {reordering[product._id] ? "…" : outOfStock ? "N/A" : "+ Cart"}
                       </button>
@@ -737,7 +733,7 @@ export default function UserDashboard() {
           </div>
         </section>
 
-        {/* ── Categories ──────────────────────────────────────────────────── */}
+        {/* Categories */}
         <section className="px-8 pb-6">
           <h2 className="text-[15px] font-black text-gray-900 mb-3">Browse Categories</h2>
           <div className="grid grid-cols-6 gap-2.5">
@@ -750,7 +746,7 @@ export default function UserDashboard() {
           </div>
         </section>
 
-        {/* ── Order History ────────────────────────────────────────────────── */}
+        {/* Order History  */}
         <section className="px-8 pb-6">
           <div className="flex items-center justify-between mb-3">
             <div>
@@ -797,7 +793,7 @@ export default function UserDashboard() {
           )}
         </section>
 
-        {/* ── CTA Banner ──────────────────────────────────────────────────── */}
+        {/* CTA Banner  */}
         <section className="px-8 pb-8">
           <div className="bg-gradient-to-r from-green-600 to-emerald-700 rounded-2xl px-8 py-6 flex items-center justify-between relative overflow-hidden">
             <div className="absolute -top-8 -right-8 w-40 h-40 rounded-full bg-white/5" />
