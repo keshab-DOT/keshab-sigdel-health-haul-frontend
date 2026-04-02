@@ -45,7 +45,7 @@ function timeAgo(date) {
   return `${Math.floor(diff / 86400)}d ago`;
 }
 
-// Notification Bell
+// Notification Bell 
 function NotificationBell({ userId }) {
   const [open, setOpen] = useState(false);
   const [notifs, setNotifs] = useState([]);
@@ -119,7 +119,7 @@ function NotificationBell({ userId }) {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-[calc(100%+8px)] w-80 bg-white rounded-2xl shadow-xl border border-gray-100 z-[9999] overflow-hidden">
+        <div className="absolute right-0 top-[calc(100%+8px)] w-[calc(100vw-2rem)] max-w-xs sm:w-80 bg-white rounded-2xl shadow-xl border border-gray-100 z-[9999] overflow-hidden">
           <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <p className="text-[14px] font-black text-gray-900">Notifications</p>
@@ -165,60 +165,167 @@ function NotificationBell({ userId }) {
   );
 }
 
+// Mobile Nav Drawer 
+function MobileDrawer({ open, onClose, navigate, user, onLogout }) {
+  const links = [
+    { label: "Dashboard", path: "/user/dashboard", icon: "🏠" },
+    { label: "Browse Medicines", path: "/user/search", icon: "💊" },
+    { label: "My Orders", path: "/user/orders", icon: "📦" },
+    { label: "Chat", path: "/user/chat", icon: "💬" },
+    { label: "My Cart", path: "/user/cart", icon: "🛒" },
+    { label: "Profile", path: "/user/profile", icon: "👤" },
+  ];
+
+  if (!open) return null;
+  return (
+    <>
+      {/* Backdrop */}
+      <div className="fixed inset-0 bg-black/40 z-40 lg:hidden" onClick={onClose} />
+      {/* Drawer */}
+      <div className="fixed inset-y-0 left-0 w-72 bg-white z-50 lg:hidden flex flex-col shadow-2xl">
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-sm">
+              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5}
+                  d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+              </svg>
+            </div>
+            <span className="font-black text-[15px] text-gray-900 tracking-tight">HealthHaul</span>
+          </div>
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 transition">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        {/* User info */}
+        <div className="px-5 py-4 bg-green-50 border-b border-green-100">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white font-black text-[14px]">
+              {user?.name?.[0]?.toUpperCase() || "U"}
+            </div>
+            <div>
+              <p className="text-[13px] font-bold text-gray-800">{user?.name || "User"}</p>
+              <p className="text-[11px] text-gray-500 capitalize">{user?.roles?.[0] || "Customer"}</p>
+            </div>
+          </div>
+        </div>
+        {/* Links */}
+        <nav className="flex-1 overflow-y-auto py-3">
+          {links.map(({ label, path, icon }) => (
+            <button
+              key={path}
+              onClick={() => { navigate(path); onClose(); }}
+              className="w-full flex items-center gap-3 px-5 py-3 text-left text-gray-700 hover:bg-green-50 hover:text-green-700 transition"
+            >
+              <span className="text-lg w-6 text-center">{icon}</span>
+              <span className="text-[13px] font-semibold">{label}</span>
+            </button>
+          ))}
+        </nav>
+        {/* Logout */}
+        <div className="px-5 py-4 border-t border-gray-100">
+          <button
+            onClick={() => { onLogout(); onClose(); }}
+            className="w-full flex items-center gap-3 text-red-500 hover:text-red-700 transition py-2"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75}
+                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            <span className="text-[13px] font-semibold">Sign Out</span>
+          </button>
+        </div>
+      </div>
+    </>
+  );
+}
+
 // Topbar 
 function Topbar({ user, cartCount, onLogout, navigate }) {
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
   return (
-    <header className="bg-white border-b border-gray-100 px-6 py-0 flex items-center justify-between sticky top-0 z-30 h-[56px]">
-      <div className="flex items-center gap-2 cursor-pointer flex-shrink-0" onClick={() => navigate("/user/dashboard")}>
-        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-sm">
-          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5}
-              d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-          </svg>
+    <>
+      <MobileDrawer
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        navigate={navigate}
+        user={user}
+        onLogout={onLogout}
+      />
+      <header className="bg-white border-b border-gray-100 px-4 sm:px-6 py-0 flex items-center justify-between sticky top-0 z-30 h-[56px]">
+        {/* Mobile: hamburger + logo */}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setDrawerOpen(true)}
+            className="lg:hidden w-9 h-9 flex items-center justify-center text-gray-500 hover:bg-gray-50 rounded-xl transition"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+          <div
+            className="flex items-center gap-2 cursor-pointer flex-shrink-0"
+            onClick={() => navigate("/user/dashboard")}
+          >
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-sm">
+              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5}
+                  d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+              </svg>
+            </div>
+            <span className="font-black text-[15px] text-gray-900 tracking-tight">HealthHaul</span>
+          </div>
         </div>
-        <span className="font-black text-[15px] text-gray-900 tracking-tight">HealthHaul</span>
-      </div>
 
-      <nav className="flex items-center gap-1 ml-6">
-        <button onClick={() => navigate("/user/dashboard")} className="px-3.5 py-1.5 text-[13px] font-semibold text-gray-900 bg-gray-100 rounded-lg">Dashboard</button>
-        <button onClick={() => navigate("/user/search")} className="px-3.5 py-1.5 text-[13px] font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-50 rounded-lg transition">Browse Medicines</button>
-        <button onClick={() => navigate("/user/orders")} className="px-3.5 py-1.5 text-[13px] font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-50 rounded-lg transition">My Orders</button>
-        <button onClick={() => navigate("/user/chat")} className="px-3.5 py-1.5 text-[13px] font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-50 rounded-lg transition">Chat</button>
-      </nav>
+        {/* Desktop nav */}
+        <nav className="hidden lg:flex items-center gap-1 ml-6">
+          <button onClick={() => navigate("/user/dashboard")} className="px-3.5 py-1.5 text-[13px] font-semibold text-gray-900 bg-gray-100 rounded-lg">Dashboard</button>
+          <button onClick={() => navigate("/user/search")} className="px-3.5 py-1.5 text-[13px] font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-50 rounded-lg transition">Browse Medicines</button>
+          <button onClick={() => navigate("/user/orders")} className="px-3.5 py-1.5 text-[13px] font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-50 rounded-lg transition">My Orders</button>
+          <button onClick={() => navigate("/user/chat")} className="px-3.5 py-1.5 text-[13px] font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-50 rounded-lg transition">Chat</button>
+        </nav>
 
-      <div className="flex items-center gap-2 ml-auto">
-        <button onClick={() => navigate("/user/cart")} className="relative w-9 h-9 flex items-center justify-center text-gray-500 hover:text-gray-800 hover:bg-gray-50 rounded-xl transition">
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75}
-              d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-          </svg>
-          {cartCount > 0 && (
-            <span className="absolute top-1 right-1 w-[14px] h-[14px] bg-red-500 text-white text-[9px] font-black rounded-full flex items-center justify-center">
-              {cartCount > 9 ? "9+" : cartCount}
-            </span>
-          )}
-        </button>
+        <div className="flex items-center gap-1.5 sm:gap-2 ml-auto">
+          {/* Cart */}
+          <button onClick={() => navigate("/user/cart")} className="relative w-9 h-9 flex items-center justify-center text-gray-500 hover:text-gray-800 hover:bg-gray-50 rounded-xl transition">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75}
+                d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+            {cartCount > 0 && (
+              <span className="absolute top-1 right-1 w-[14px] h-[14px] bg-red-500 text-white text-[9px] font-black rounded-full flex items-center justify-center">
+                {cartCount > 9 ? "9+" : cartCount}
+              </span>
+            )}
+          </button>
 
-        <NotificationBell userId={user?._id} />
+          <NotificationBell userId={user?._id} />
 
-        <button onClick={() => navigate("/user/profile")} className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl px-2.5 py-1.5 hover:border-green-300 transition">
-          <div className="w-6 h-6 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white font-black text-[11px]">
-            {user?.name?.[0]?.toUpperCase() || "U"}
-          </div>
-          <div className="text-left">
-            <p className="text-[12px] font-bold text-gray-800 leading-tight">{user?.name?.split(" ")[0] || "User"}</p>
-            <p className="text-[10px] text-gray-400 leading-tight capitalize">{user?.roles?.[0] || "Customer"}</p>
-          </div>
-        </button>
+          {/* User pill — hidden on mobile (accessible via drawer) */}
+          <button onClick={() => navigate("/user/profile")} className="hidden sm:flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl px-2.5 py-1.5 hover:border-green-300 transition">
+            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white font-black text-[11px]">
+              {user?.name?.[0]?.toUpperCase() || "U"}
+            </div>
+            <div className="text-left hidden md:block">
+              <p className="text-[12px] font-bold text-gray-800 leading-tight">{user?.name?.split(" ")[0] || "User"}</p>
+              <p className="text-[10px] text-gray-400 leading-tight capitalize">{user?.roles?.[0] || "Customer"}</p>
+            </div>
+          </button>
 
-        <button onClick={onLogout} className="w-9 h-9 flex items-center justify-center text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition" title="Sign Out">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75}
-              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-          </svg>
-        </button>
-      </div>
-    </header>
+          {/* Logout — desktop only */}
+          <button onClick={onLogout} className="hidden lg:flex w-9 h-9 items-center justify-center text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition" title="Sign Out">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75}
+                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+          </button>
+        </div>
+      </header>
+    </>
   );
 }
 
@@ -232,8 +339,8 @@ function Footer({ navigate }) {
   ];
   return (
     <footer className="bg-gray-900 text-white mt-auto">
-      <div className="px-8 pt-8 pb-5">
-        <div className="grid grid-cols-3 gap-8 mb-6">
+      <div className="px-5 sm:px-8 pt-8 pb-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-6">
           <div>
             <div className="flex items-center gap-2 mb-3 cursor-pointer" onClick={() => navigate("/user/dashboard")}>
               <div className="w-6 h-6 rounded-md bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
@@ -256,7 +363,7 @@ function Footer({ navigate }) {
               ))}
             </ul>
           </div>
-          <div>
+          <div className="sm:col-span-2 lg:col-span-1">
             <h5 className="font-semibold mb-4">Contact Us</h5>
             <ul className="space-y-3 text-gray-400 text-sm">
               <li className="flex items-center gap-2">
@@ -281,7 +388,7 @@ function Footer({ navigate }) {
             </ul>
           </div>
         </div>
-        <div className="border-t border-gray-800 pt-4 flex justify-between items-center">
+        <div className="border-t border-gray-800 pt-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
           <p className="text-gray-600 text-xs">© {new Date().getFullYear()} HealthHaul Nepal. All rights reserved.</p>
           <p className="text-gray-700 text-xs">Made with ❤️ in Nepal</p>
         </div>
@@ -315,7 +422,7 @@ function FeaturedOrderCard({ order, navigate }) {
   const productName = firstProduct?.productName;
 
   return (
-    <div className="relative rounded-2xl overflow-hidden h-full min-h-[260px] bg-gradient-to-br from-gray-900 via-gray-800 to-emerald-950 flex flex-col justify-between p-5">
+    <div className="relative rounded-2xl overflow-hidden h-full min-h-[220px] sm:min-h-[260px] bg-gradient-to-br from-gray-900 via-gray-800 to-emerald-950 flex flex-col justify-between p-4 sm:p-5">
       <div className="absolute inset-0 opacity-10 pointer-events-none">
         <div className="absolute top-4 right-4 w-32 h-32 rounded-full bg-green-400 blur-3xl" />
         <div className="absolute bottom-4 left-4 w-24 h-24 rounded-full bg-emerald-500 blur-3xl" />
@@ -332,13 +439,13 @@ function FeaturedOrderCard({ order, navigate }) {
       <div className="relative flex items-start justify-between gap-3">
         <div>
           <p className="text-white/40 text-[10px] font-semibold uppercase tracking-widest mb-1">ORDER</p>
-          <p className="text-white font-black text-xl tracking-tight leading-none mb-1">#{order._id.slice(-8).toUpperCase()}</p>
+          <p className="text-white font-black text-lg sm:text-xl tracking-tight leading-none mb-1">#{order._id.slice(-8).toUpperCase()}</p>
           <p className="text-white/50 text-[11px]">
             {new Date(order.createdAt).toLocaleDateString("en-NP", { day: "numeric", month: "short", year: "numeric" })}
             &nbsp;·&nbsp;{order.products?.length} item{order.products?.length !== 1 ? "s" : ""}
           </p>
         </div>
-        <div className="w-14 h-14 rounded-xl overflow-hidden border border-white/20 bg-white/10 flex items-center justify-center flex-shrink-0">
+        <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl overflow-hidden border border-white/20 bg-white/10 flex items-center justify-center flex-shrink-0">
           {productImage
             ? <img src={productImage} alt={productName || "Medicine"} className="w-full h-full object-cover" onError={e => { e.target.style.display = "none"; }} />
             : <span className="text-2xl">💊</span>}
@@ -353,8 +460,7 @@ function FeaturedOrderCard({ order, navigate }) {
             <div className="flex items-center mb-2">
               {steps.map((step, i) => (
                 <div key={step} className="flex items-center flex-1 last:flex-none">
-                  <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 text-[9px] font-black border-2 transition-all ${i < idx ? "bg-green-400 border-green-400 text-white" : i === idx ? "bg-white border-white text-gray-900" : "border-white/20 bg-white/5"
-                    }`}>
+                  <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 text-[9px] font-black border-2 transition-all ${i < idx ? "bg-green-400 border-green-400 text-white" : i === idx ? "bg-white border-white text-gray-900" : "border-white/20 bg-white/5"}`}>
                     {i < idx ? "✓" : i + 1}
                   </div>
                   {i < steps.length - 1 && <div className={`flex-1 h-0.5 mx-1 rounded-full ${i < idx ? "bg-green-400" : "bg-white/15"}`} />}
@@ -375,7 +481,7 @@ function FeaturedOrderCard({ order, navigate }) {
           <p className="text-white/40 text-[10px] font-medium">Total</p>
           <p className="text-white font-black text-lg leading-tight">Rs. {order.totalAmount?.toLocaleString()}</p>
         </div>
-        <button onClick={() => navigate("/user/orders")} className="bg-green-500 hover:bg-green-400 text-white text-[12px] font-bold px-4 py-2 rounded-xl transition flex items-center gap-1">
+        <button onClick={() => navigate("/user/orders")} className="bg-green-500 hover:bg-green-400 text-white text-[12px] font-bold px-3 sm:px-4 py-2 rounded-xl transition flex items-center gap-1">
           Track Order
           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
@@ -389,31 +495,15 @@ function FeaturedOrderCard({ order, navigate }) {
 // Live Tracking Section 
 function LiveTrackingSection({ order, user, navigate }) {
   const firstProduct = order.products?.[0]?.productId;
-
-  // Pharmacy 
   const pharmacyId = firstProduct?.userId?._id ?? firstProduct?.userId ?? null;
   const pharmacyName = firstProduct?.userId?.name ?? null;
-
-  // Delivery coordinates 
-  const deliveryLat =
-    order.deliveryAddress?.lat ??
-    order.deliveryAddress?.latitude ??
-    order.deliveryLat ??
-    order.latitude ??
-    null;
-
-  const deliveryLng =
-    order.deliveryAddress?.lng ??
-    order.deliveryAddress?.longitude ??
-    order.deliveryLng ??
-    order.longitude ??
-    null;
+  const deliveryLat = order.deliveryAddress?.lat ?? order.deliveryAddress?.latitude ?? order.deliveryLat ?? order.latitude ?? null;
+  const deliveryLng = order.deliveryAddress?.lng ?? order.deliveryAddress?.longitude ?? order.deliveryLng ?? order.longitude ?? null;
 
   return (
-    <section className="px-8 pb-6">
+    <section className="px-4 sm:px-8 pb-6">
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-        {/* Header */}
-        <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+        <div className="px-4 sm:px-5 py-4 border-b border-gray-100 flex items-center justify-between">
           <div>
             <h2 className="text-[14px] font-black text-gray-900 flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse inline-block" />
@@ -434,8 +524,6 @@ function LiveTrackingSection({ order, user, navigate }) {
             </svg>
           </button>
         </div>
-
-        {/* Map */}
         <OrderMapCard
           role="user"
           userId={user?._id}
@@ -450,7 +538,7 @@ function LiveTrackingSection({ order, user, navigate }) {
   );
 }
 
-// UserDashboard 
+// UserDashboard
 export default function UserDashboard() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
@@ -534,8 +622,9 @@ export default function UserDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
+      {/* Toast */}
       {toast && (
-        <div className={`fixed top-5 right-5 z-[99999] flex items-center gap-2.5 px-4 py-3 rounded-xl shadow-lg text-white text-[13px] font-medium ${toast.type === "error" ? "bg-red-500" : "bg-green-600"}`}>
+        <div className={`fixed top-5 right-5 z-[99999] flex items-center gap-2.5 px-4 py-3 rounded-xl shadow-lg text-white text-[13px] font-medium max-w-[calc(100vw-2.5rem)] ${toast.type === "error" ? "bg-red-500" : "bg-green-600"}`}>
           {toast.msg}
         </div>
       )}
@@ -545,23 +634,24 @@ export default function UserDashboard() {
       <main className="flex-1">
 
         {/* Hero */}
-        <section className="px-8 pt-7 pb-6">
-          <div className="flex gap-5 items-stretch min-h-[270px]">
+        <section className="px-4 sm:px-8 pt-5 sm:pt-7 pb-5 sm:pb-6">
+          {/* Stack on mobile, side-by-side on lg+ */}
+          <div className="flex flex-col lg:flex-row gap-4 lg:gap-5 lg:items-stretch lg:min-h-[270px]">
 
             {/* Welcome card */}
-            <div className="flex-1 bg-white rounded-2xl border border-gray-100 shadow-sm px-8 py-7 flex flex-col justify-between relative overflow-hidden">
+            <div className="flex-1 bg-white rounded-2xl border border-gray-100 shadow-sm px-5 sm:px-8 py-6 sm:py-7 flex flex-col justify-between relative overflow-hidden">
               <div className="absolute -top-12 -right-12 w-40 h-40 rounded-full bg-green-50 border border-green-100" />
               <div className="absolute -bottom-8 -right-4 w-24 h-24 rounded-full bg-emerald-50" />
               <div className="relative">
                 <p className="text-gray-400 text-[13px] font-medium mb-1">{greeting},</p>
-                <h1 className="text-3xl font-black text-gray-900 leading-tight tracking-tight mb-1">Stay Healthy.</h1>
-                <h1 className="text-3xl font-black text-green-600 leading-tight tracking-tight mb-3">Delivered Fast.</h1>
+                <h1 className="text-2xl sm:text-3xl font-black text-gray-900 leading-tight tracking-tight mb-1">Stay Healthy.</h1>
+                <h1 className="text-2xl sm:text-3xl font-black text-green-600 leading-tight tracking-tight mb-3">Delivered Fast.</h1>
                 <p className="text-gray-500 text-[13px] leading-relaxed max-w-xs">
                   Welcome back, <span className="font-bold text-gray-800">{user?.name?.split(" ")[0]}</span>.
                   Browse medicines from licensed pharmacies and get them to your door.
                 </p>
               </div>
-              <div className="relative flex items-center gap-2.5 mt-5">
+              <div className="relative flex flex-wrap items-center gap-2.5 mt-5">
                 <button onClick={() => navigate("/user/search")} className="flex items-center gap-2 bg-gray-900 text-white px-5 py-2.5 rounded-xl font-bold text-[13px] hover:bg-gray-800 transition shadow-sm">
                   Browse Medicines
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -582,11 +672,11 @@ export default function UserDashboard() {
             </div>
 
             {/* Active order card */}
-            <div className="w-[340px] flex-shrink-0">
+            <div className="w-full lg:w-[340px] lg:flex-shrink-0">
               {latestActive ? (
                 <FeaturedOrderCard order={latestActive} navigate={navigate} />
               ) : (
-                <div className="relative rounded-2xl overflow-hidden h-full min-h-[270px] bg-gradient-to-br from-gray-900 via-gray-800 to-emerald-950 flex flex-col items-center justify-center p-6 text-center">
+                <div className="relative rounded-2xl overflow-hidden min-h-[200px] lg:min-h-[270px] bg-gradient-to-br from-gray-900 via-gray-800 to-emerald-950 flex flex-col items-center justify-center p-6 text-center">
                   <div className="absolute inset-0 opacity-10 pointer-events-none">
                     <div className="absolute top-4 right-4 w-32 h-32 rounded-full bg-green-400 blur-3xl" />
                     <div className="absolute bottom-4 left-4 w-24 h-24 rounded-full bg-emerald-500 blur-3xl" />
@@ -610,9 +700,9 @@ export default function UserDashboard() {
           <LiveTrackingSection order={latestActive} user={user} navigate={navigate} />
         )}
 
-        {/* Trust badges */}
-        <section className="px-8 pb-6">
-          <div className="grid grid-cols-2 gap-3">
+        {/* Trust Badges */}
+        <section className="px-4 sm:px-8 pb-5 sm:pb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {[
               { icon: "🏥", title: "Licensed Pharmacies", desc: "Every pharmacy verified" },
               { icon: "📋", title: "Order Tracking", desc: "Get medicines on time" },
@@ -628,37 +718,37 @@ export default function UserDashboard() {
           </div>
         </section>
 
-        {/*  Stats  */}
-        <section className="px-8 pb-6">
-          <div className="grid grid-cols-3 gap-3">
-            <div onClick={() => navigate("/user/orders")} className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex items-center gap-3 cursor-pointer hover:border-green-200 hover:shadow-md transition-all group">
-              <div className="w-10 h-10 rounded-xl bg-gray-50 group-hover:bg-green-50 flex items-center justify-center text-xl transition">📦</div>
-              <div>
-                <p className="text-2xl font-black text-gray-900 leading-none">{totalOrders}</p>
-                <p className="text-[11px] text-gray-400 font-medium mt-0.5">Total Orders</p>
+        {/* Stats */}
+        <section className="px-4 sm:px-8 pb-5 sm:pb-6">
+          <div className="grid grid-cols-3 gap-2 sm:gap-3">
+            <div onClick={() => navigate("/user/orders")} className="bg-white rounded-xl border border-gray-100 shadow-sm p-3 sm:p-4 flex items-center gap-2 sm:gap-3 cursor-pointer hover:border-green-200 hover:shadow-md transition-all group">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gray-50 group-hover:bg-green-50 flex items-center justify-center text-lg sm:text-xl transition flex-shrink-0">📦</div>
+              <div className="min-w-0">
+                <p className="text-xl sm:text-2xl font-black text-gray-900 leading-none">{totalOrders}</p>
+                <p className="text-[10px] sm:text-[11px] text-gray-400 font-medium mt-0.5 truncate">Total Orders</p>
               </div>
             </div>
-            <div onClick={() => navigate("/user/orders")} className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex items-center gap-3 cursor-pointer hover:border-green-200 hover:shadow-md transition-all group">
-              <div className="w-10 h-10 rounded-xl bg-green-50 flex items-center justify-center text-xl">✅</div>
-              <div>
-                <p className="text-2xl font-black text-green-600 leading-none">{delivered}</p>
-                <p className="text-[11px] text-gray-400 font-medium mt-0.5">Delivered</p>
+            <div onClick={() => navigate("/user/orders")} className="bg-white rounded-xl border border-gray-100 shadow-sm p-3 sm:p-4 flex items-center gap-2 sm:gap-3 cursor-pointer hover:border-green-200 hover:shadow-md transition-all group">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-green-50 flex items-center justify-center text-lg sm:text-xl flex-shrink-0">✅</div>
+              <div className="min-w-0">
+                <p className="text-xl sm:text-2xl font-black text-green-600 leading-none">{delivered}</p>
+                <p className="text-[10px] sm:text-[11px] text-gray-400 font-medium mt-0.5 truncate">Delivered</p>
               </div>
             </div>
-            <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-xl">💰</div>
-              <div>
-                <p className="text-xl font-black text-emerald-600 leading-none">
-                  Rs. {totalSpent > 999 ? `${(totalSpent / 1000).toFixed(1)}k` : totalSpent.toLocaleString()}
+            <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-3 sm:p-4 flex items-center gap-2 sm:gap-3">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-lg sm:text-xl flex-shrink-0">💰</div>
+              <div className="min-w-0">
+                <p className="text-base sm:text-xl font-black text-emerald-600 leading-none">
+                  Rs.{totalSpent > 999 ? `${(totalSpent / 1000).toFixed(1)}k` : totalSpent.toLocaleString()}
                 </p>
-                <p className="text-[11px] text-gray-400 font-medium mt-0.5">Total Spent</p>
+                <p className="text-[10px] sm:text-[11px] text-gray-400 font-medium mt-0.5 truncate">Total Spent</p>
               </div>
             </div>
           </div>
         </section>
 
-        {/*  Available Medicines */}
-        <section className="px-8 pb-6">
+        {/* Available Medicines */}
+        <section className="px-4 sm:px-8 pb-5 sm:pb-6">
           <div className="flex items-center justify-between mb-3">
             <div>
               <h2 className="text-[15px] font-black text-gray-900">Available Medicines</h2>
@@ -671,7 +761,8 @@ export default function UserDashboard() {
               </svg>
             </button>
           </div>
-          <div className="grid grid-cols-4 gap-3">
+          {/* 2 cols on mobile, 4 on lg */}
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {products.length > 0 ? products.map(product => {
               const outOfStock = product.productTotalStockQuantity === 0;
               const lowStock = !outOfStock && product.productTotalStockQuantity <= 5;
@@ -679,7 +770,7 @@ export default function UserDashboard() {
               const src = imgSrc(product.productImageUrl);
               return (
                 <div key={product._id} className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all group flex flex-col">
-                  <div className="h-32 bg-gradient-to-br from-green-50 to-emerald-50 flex items-center justify-center overflow-hidden relative">
+                  <div className="h-28 sm:h-32 bg-gradient-to-br from-green-50 to-emerald-50 flex items-center justify-center overflow-hidden relative">
                     {src
                       ? <img src={src} alt={product.productName} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" onError={e => { e.target.style.display = "none"; }} />
                       : <span className="text-4xl opacity-50">💊</span>
@@ -695,8 +786,8 @@ export default function UserDashboard() {
                       </div>
                     )}
                   </div>
-                  <div className="p-3 flex flex-col flex-1">
-                    <p className="text-[12px] font-bold text-gray-800 truncate mb-0.5">{product.productName}</p>
+                  <div className="p-2.5 sm:p-3 flex flex-col flex-1">
+                    <p className="text-[11px] sm:text-[12px] font-bold text-gray-800 truncate mb-0.5">{product.productName}</p>
                     <p className="text-[10px] text-gray-400 mb-2 line-clamp-1">{product.productDescription}</p>
                     {pharmName && (
                       <div className="flex items-center gap-1 mb-2">
@@ -707,12 +798,11 @@ export default function UserDashboard() {
                       </div>
                     )}
                     <div className="flex items-center justify-between mt-auto">
-                      <p className="text-green-600 font-black text-[13px]">Rs. {product.productPrice?.toLocaleString()}</p>
+                      <p className="text-green-600 font-black text-[12px] sm:text-[13px]">Rs. {product.productPrice?.toLocaleString()}</p>
                       <button
                         onClick={() => handleReorder(product._id)}
                         disabled={outOfStock || reordering[product._id]}
-                        className={`text-[10px] font-bold px-2.5 py-1.5 rounded-lg transition ${outOfStock ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "bg-green-50 text-green-700 hover:bg-green-600 hover:text-white"
-                          }`}
+                        className={`text-[10px] font-bold px-2 sm:px-2.5 py-1.5 rounded-lg transition ${outOfStock ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "bg-green-50 text-green-700 hover:bg-green-600 hover:text-white"}`}
                       >
                         {reordering[product._id] ? "…" : outOfStock ? "N/A" : "+ Cart"}
                       </button>
@@ -722,7 +812,7 @@ export default function UserDashboard() {
               );
             }) : [...Array(4)].map((_, i) => (
               <div key={i} className="bg-white rounded-xl border border-gray-100 overflow-hidden animate-pulse">
-                <div className="h-32 bg-gray-100" />
+                <div className="h-28 sm:h-32 bg-gray-100" />
                 <div className="p-3 space-y-2">
                   <div className="h-3 bg-gray-100 rounded w-3/4" />
                   <div className="h-2.5 bg-gray-100 rounded w-full" />
@@ -734,20 +824,21 @@ export default function UserDashboard() {
         </section>
 
         {/* Categories */}
-        <section className="px-8 pb-6">
+        <section className="px-4 sm:px-8 pb-5 sm:pb-6">
           <h2 className="text-[15px] font-black text-gray-900 mb-3">Browse Categories</h2>
-          <div className="grid grid-cols-6 gap-2.5">
+          {/* 3 cols mobile, 6 on lg */}
+          <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-2.5">
             {CATEGORIES.map(({ label, icon }) => (
-              <button key={label} onClick={() => navigate("/user/search")} className="bg-white rounded-xl border border-gray-100 shadow-sm p-3.5 flex flex-col items-center gap-2 hover:border-green-300 hover:shadow-md hover:-translate-y-0.5 transition-all group">
-                <div className="w-10 h-10 rounded-xl bg-green-50 group-hover:bg-green-100 flex items-center justify-center text-xl transition">{icon}</div>
-                <p className="text-[11px] font-semibold text-gray-700 text-center leading-tight">{label}</p>
+              <button key={label} onClick={() => navigate("/user/search")} className="bg-white rounded-xl border border-gray-100 shadow-sm p-2.5 sm:p-3.5 flex flex-col items-center gap-1.5 sm:gap-2 hover:border-green-300 hover:shadow-md hover:-translate-y-0.5 transition-all group">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-green-50 group-hover:bg-green-100 flex items-center justify-center text-lg sm:text-xl transition">{icon}</div>
+                <p className="text-[10px] sm:text-[11px] font-semibold text-gray-700 text-center leading-tight">{label}</p>
               </button>
             ))}
           </div>
         </section>
 
-        {/* Order History  */}
-        <section className="px-8 pb-6">
+        {/* Order History */}
+        <section className="px-4 sm:px-8 pb-5 sm:pb-6">
           <div className="flex items-center justify-between mb-3">
             <div>
               <h2 className="text-[15px] font-black text-gray-900">Order History</h2>
@@ -772,7 +863,7 @@ export default function UserDashboard() {
           ) : (
             <div className="bg-white rounded-xl border border-gray-100 shadow-sm divide-y divide-gray-50 overflow-hidden">
               {orders.slice(0, 5).map(order => (
-                <div key={order._id} onClick={() => navigate("/user/orders")} className="flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 transition cursor-pointer group">
+                <div key={order._id} onClick={() => navigate("/user/orders")} className="flex items-center gap-3 px-3 sm:px-4 py-3 sm:py-3.5 hover:bg-gray-50 transition cursor-pointer group">
                   <div className="w-8 h-8 bg-gray-50 group-hover:bg-green-50 rounded-lg flex items-center justify-center text-sm flex-shrink-0 transition">
                     {order.orderStatus === "delivered" ? "✅" : order.orderStatus === "cancelled" ? "❌" : "📦"}
                   </div>
@@ -783,7 +874,7 @@ export default function UserDashboard() {
                       <span className="mx-1">·</span>{order.products?.length} item{order.products?.length !== 1 ? "s" : ""}
                     </p>
                   </div>
-                  <div className="flex items-center gap-3 flex-shrink-0">
+                  <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
                     <p className="text-[12px] font-black text-gray-800">Rs. {order.totalAmount?.toLocaleString()}</p>
                     <StatusPill status={order.orderStatus} />
                   </div>
@@ -793,16 +884,16 @@ export default function UserDashboard() {
           )}
         </section>
 
-        {/* CTA Banner  */}
-        <section className="px-8 pb-8">
-          <div className="bg-gradient-to-r from-green-600 to-emerald-700 rounded-2xl px-8 py-6 flex items-center justify-between relative overflow-hidden">
+        {/* CTA Banner */}
+        <section className="px-4 sm:px-8 pb-7 sm:pb-8">
+          <div className="bg-gradient-to-r from-green-600 to-emerald-700 rounded-2xl px-5 sm:px-8 py-5 sm:py-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative overflow-hidden">
             <div className="absolute -top-8 -right-8 w-40 h-40 rounded-full bg-white/5" />
             <div className="absolute -bottom-8 right-40 w-32 h-32 rounded-full bg-white/5" />
             <div className="relative">
-              <h3 className="text-white font-black text-xl leading-tight">Don't miss your health essentials.</h3>
+              <h3 className="text-white font-black text-lg sm:text-xl leading-tight">Don't miss your health essentials.</h3>
               <p className="text-green-100/70 text-[13px] mt-1">New products added daily. Fast delivery to your door.</p>
             </div>
-            <button onClick={() => navigate("/user/search")} className="relative bg-white text-green-700 font-black text-[13px] px-6 py-3 rounded-xl hover:bg-green-50 transition shadow-md flex items-center gap-2 flex-shrink-0">
+            <button onClick={() => navigate("/user/search")} className="relative bg-white text-green-700 font-black text-[13px] px-5 sm:px-6 py-2.5 sm:py-3 rounded-xl hover:bg-green-50 transition shadow-md flex items-center gap-2 flex-shrink-0 w-full sm:w-auto justify-center">
               Browse Medicines
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
