@@ -18,7 +18,7 @@ export default function Verify() {
     setError("");
     setLoading(true);
     try {
-      await api.post("api/auth/verifyEmail", { email, verificationCode: code });
+      await api.post("/auth/verifyEmail", { email, verificationCode: code });
       setSuccess("Email verified successfully! Redirecting to login...");
       setTimeout(() => navigate("/login"), 1500);
     } catch (err) {
@@ -34,7 +34,7 @@ export default function Verify() {
     try {
 
       // Backend endpoint to resend OTP to the user's email
-      await api.post("api/auth/resendOtp", { email });
+      await api.post("/auth/resendOtp", { email });
       setSuccess("OTP resent successfully! Check your email.");
       setTimeout(() => setSuccess(""), 3000);
     } catch (err) {

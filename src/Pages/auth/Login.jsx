@@ -52,7 +52,7 @@ function ForgotPasswordModal({ onClose }) {
     if (newPass !== confirm) { setError("Passwords do not match"); return; }
     setLoading(true);
     try {
-      await api.post("api/auth/reset-password", { email, code: otp, newPassword: newPass, confirmPassword: confirm });
+      await api.post("auth/reset-password", { email, code: otp, newPassword: newPass, confirmPassword: confirm });
       setSuccess("Password reset successfully! You can now log in.");
       setTimeout(onClose, 2000);
     } catch (err) {
@@ -203,7 +203,7 @@ export default function Login() {
     e.preventDefault();
     setError(""); setLoading(true);
     try {
-      const res = await api.post("api/auth/login", form);
+      const res = await api.post("/auth/login", form);
       const user = res.data.user;
       if (!user || !user.roles) { setError("Invalid user data from server"); setLoading(false); return; }
 
