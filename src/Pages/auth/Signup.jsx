@@ -35,7 +35,7 @@ export default function Signup() {
     }
     setLoading(true);
     try {
-      await api.post("/auth/register", formData);
+      await api.post("auth/register", formData);
       navigate("/verify", { state: { email: formData.email } });
     } catch (err) {
       setError(err.response?.data?.message || "Signup failed");
