@@ -45,7 +45,7 @@ function timeAgo(date) {
   return `${Math.floor(diff / 86400)}d ago`;
 }
 
-// Notification Bell 
+// ─── Notification Bell ───────────────────────────────────────────────────────
 function NotificationBell({ userId }) {
   const [open, setOpen] = useState(false);
   const [notifs, setNotifs] = useState([]);
@@ -165,7 +165,7 @@ function NotificationBell({ userId }) {
   );
 }
 
-// Mobile Nav Drawer 
+// ─── Mobile Nav Drawer ────────────────────────────────────────────────────────
 function MobileDrawer({ open, onClose, navigate, user, onLogout }) {
   const links = [
     { label: "Dashboard", path: "/user/dashboard", icon: "🏠" },
@@ -243,7 +243,7 @@ function MobileDrawer({ open, onClose, navigate, user, onLogout }) {
   );
 }
 
-// Topbar 
+// ─── Topbar ───────────────────────────────────────────────────────────────────
 function Topbar({ user, cartCount, onLogout, navigate }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -329,7 +329,7 @@ function Topbar({ user, cartCount, onLogout, navigate }) {
   );
 }
 
-// Footer 
+// ─── Footer ───────────────────────────────────────────────────────────────────
 function Footer({ navigate }) {
   const quickLinks = [
     { label: "Search Medicines", path: "/user/search" },
@@ -397,7 +397,7 @@ function Footer({ navigate }) {
   );
 }
 
-// Status Pill 
+// ─── Status Pill ──────────────────────────────────────────────────────────────
 function StatusPill({ status }) {
   const map = {
     pending: { cls: "bg-amber-100 text-amber-700", dot: "bg-amber-400", label: "Pending" },
@@ -412,7 +412,7 @@ function StatusPill({ status }) {
   );
 }
 
-// Featured Order Card 
+// ─── Featured Order Card ──────────────────────────────────────────────────────
 function FeaturedOrderCard({ order, navigate }) {
   const steps = ["pending", "delivered"];
   const idx = steps.indexOf(order.orderStatus);
@@ -492,7 +492,7 @@ function FeaturedOrderCard({ order, navigate }) {
   );
 }
 
-// Live Tracking Section 
+// ─── Live Tracking Section ────────────────────────────────────────────────────
 function LiveTrackingSection({ order, user, navigate }) {
   const firstProduct = order.products?.[0]?.productId;
   const pharmacyId = firstProduct?.userId?._id ?? firstProduct?.userId ?? null;
@@ -538,7 +538,7 @@ function LiveTrackingSection({ order, user, navigate }) {
   );
 }
 
-// UserDashboard
+// ─── UserDashboard ────────────────────────────────────────────────────────────
 export default function UserDashboard() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
@@ -633,7 +633,7 @@ export default function UserDashboard() {
 
       <main className="flex-1">
 
-        {/* Hero */}
+        {/* ── Hero ─────────────────────────────────────────────────────────── */}
         <section className="px-4 sm:px-8 pt-5 sm:pt-7 pb-5 sm:pb-6">
           {/* Stack on mobile, side-by-side on lg+ */}
           <div className="flex flex-col lg:flex-row gap-4 lg:gap-5 lg:items-stretch lg:min-h-[270px]">
@@ -695,12 +695,12 @@ export default function UserDashboard() {
           </div>
         </section>
 
-        {/* Live Tracking Map */}
+        {/* ── Live Tracking Map ─────────────────────────────────────────────── */}
         {latestActive && (
           <LiveTrackingSection order={latestActive} user={user} navigate={navigate} />
         )}
 
-        {/* Trust Badges */}
+        {/* ── Trust Badges ─────────────────────────────────────────────────── */}
         <section className="px-4 sm:px-8 pb-5 sm:pb-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {[
@@ -718,7 +718,7 @@ export default function UserDashboard() {
           </div>
         </section>
 
-        {/* Stats */}
+        {/* ── Stats ────────────────────────────────────────────────────────── */}
         <section className="px-4 sm:px-8 pb-5 sm:pb-6">
           <div className="grid grid-cols-3 gap-2 sm:gap-3">
             <div onClick={() => navigate("/user/orders")} className="bg-white rounded-xl border border-gray-100 shadow-sm p-3 sm:p-4 flex items-center gap-2 sm:gap-3 cursor-pointer hover:border-green-200 hover:shadow-md transition-all group">
@@ -747,7 +747,7 @@ export default function UserDashboard() {
           </div>
         </section>
 
-        {/* Available Medicines */}
+        {/* ── Available Medicines ───────────────────────────────────────────── */}
         <section className="px-4 sm:px-8 pb-5 sm:pb-6">
           <div className="flex items-center justify-between mb-3">
             <div>
@@ -823,7 +823,7 @@ export default function UserDashboard() {
           </div>
         </section>
 
-        {/* Categories */}
+        {/* ── Categories ───────────────────────────────────────────────────── */}
         <section className="px-4 sm:px-8 pb-5 sm:pb-6">
           <h2 className="text-[15px] font-black text-gray-900 mb-3">Browse Categories</h2>
           {/* 3 cols mobile, 6 on lg */}
@@ -837,7 +837,7 @@ export default function UserDashboard() {
           </div>
         </section>
 
-        {/* Order History */}
+        {/* ── Order History ─────────────────────────────────────────────────── */}
         <section className="px-4 sm:px-8 pb-5 sm:pb-6">
           <div className="flex items-center justify-between mb-3">
             <div>
@@ -884,7 +884,7 @@ export default function UserDashboard() {
           )}
         </section>
 
-        {/* CTA Banner */}
+        {/* ── CTA Banner ────────────────────────────────────────────────────── */}
         <section className="px-4 sm:px-8 pb-7 sm:pb-8">
           <div className="bg-gradient-to-r from-green-600 to-emerald-700 rounded-2xl px-5 sm:px-8 py-5 sm:py-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative overflow-hidden">
             <div className="absolute -top-8 -right-8 w-40 h-40 rounded-full bg-white/5" />
