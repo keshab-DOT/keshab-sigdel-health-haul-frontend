@@ -773,7 +773,7 @@ function OrderSummaryCard({ cartItems, total, hasOutOfStock, onCheckout, onConti
         </button>
       )}
       <button onClick={onContinue} className="w-full border border-gray-200 text-gray-500 py-2 rounded-xl text-[12px] font-medium hover:bg-gray-50 transition">
-        Continue Shopping
+        Buying Medicine
       </button>
     </div>
   );
