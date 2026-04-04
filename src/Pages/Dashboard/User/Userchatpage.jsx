@@ -87,7 +87,7 @@ function NotificationBell({ userId }) {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-[calc(100%+8px)] w-80 bg-white rounded-2xl shadow-xl border border-gray-100 z-50 overflow-hidden">
+        <div className="absolute right-0 top-[calc(100%+8px)] w-[calc(100vw-2rem)] sm:w-80 max-w-[320px] bg-white rounded-2xl shadow-xl border border-gray-100 z-50 overflow-hidden">
           <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <p className="text-[14px] font-black text-gray-900">Notifications</p>
@@ -126,36 +126,76 @@ function NotificationBell({ userId }) {
 }
 
 function Topbar({ user, onLogout, navigate }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const navItems = [
+    { key: "dashboard", label: "Dashboard", path: "/user/dashboard" },
+    { key: "search", label: "Browse Medicines", path: "/user/search" },
+    { key: "orders", label: "My Orders", path: "/user/orders" },
+    { key: "chat", label: "Chat", path: "/user/chat" },
+  ];
   return (
-    <header className="bg-white border-b border-gray-100 px-6 py-0 flex items-center justify-between sticky top-0 z-30 h-[56px]">
+    <header className="bg-white border-b border-gray-100 px-4 sm:px-6 sticky top-0 z-30 h-[56px] flex items-center justify-between gap-2">
       <div className="flex items-center gap-2 cursor-pointer flex-shrink-0" onClick={() => navigate("/user/dashboard")}>
         <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-sm">
           <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
         </div>
-        <span className="font-black text-[15px] text-gray-900 tracking-tight">HealthHaul</span>
+        <span className="font-black text-[15px] text-gray-900 tracking-tight hidden xs:inline">HealthHaul</span>
       </div>
-      <nav className="flex items-center gap-1 ml-6">
-        <button onClick={() => navigate("/user/dashboard")} className="px-3.5 py-1.5 text-[13px] font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-50 rounded-lg transition">Dashboard</button>
-        <button onClick={() => navigate("/user/search")} className="px-3.5 py-1.5 text-[13px] font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-50 rounded-lg transition">Browse Medicines</button>
-        <button onClick={() => navigate("/user/orders")} className="px-3.5 py-1.5 text-[13px] font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-50 rounded-lg transition">My Orders</button>
-        <button onClick={() => navigate("/user/chat")} className="px-3.5 py-1.5 text-[13px] font-semibold text-gray-900 bg-gray-100 rounded-lg">Chat</button>
+
+      <nav className="hidden md:flex items-center gap-1 ml-4">
+        {navItems.map(({ key, label, path }) => (
+          <button key={key} onClick={() => navigate(path)}
+            className={`px-3.5 py-1.5 text-[13px] rounded-lg transition ${key === "chat" ? "font-semibold text-gray-900 bg-gray-100" : "font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-50"}`}>
+            {label}
+          </button>
+        ))}
       </nav>
-      <div className="flex items-center gap-2 ml-auto">
+
+      <div className="flex items-center gap-1.5 ml-auto">
         <button onClick={() => navigate("/user/cart")} className="relative w-9 h-9 flex items-center justify-center text-gray-500 hover:text-gray-800 hover:bg-gray-50 rounded-xl transition">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
         </button>
         <NotificationBell userId={user?._id} />
-        <button onClick={() => navigate("/user/profile")} className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl px-2.5 py-1.5 hover:border-green-300 transition">
+        <button onClick={() => navigate("/user/profile")} className="hidden sm:flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl px-2.5 py-1.5 hover:border-green-300 transition">
           <div className="w-6 h-6 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white font-black text-[11px]">{user?.name?.[0]?.toUpperCase() || "U"}</div>
           <div className="text-left">
             <p className="text-[12px] font-bold text-gray-800 leading-tight">{user?.name?.split(" ")[0] || "User"}</p>
             <p className="text-[10px] text-gray-400 leading-tight capitalize">{user?.roles?.[0] || "Customer"}</p>
           </div>
         </button>
-        <button onClick={onLogout} className="w-9 h-9 flex items-center justify-center text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition" title="Sign Out">
+        <button onClick={onLogout} className="hidden sm:flex w-9 h-9 items-center justify-center text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition" title="Sign Out">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
         </button>
+        <button onClick={() => setMenuOpen(o => !o)} className="md:hidden w-9 h-9 flex items-center justify-center text-gray-500 hover:bg-gray-50 rounded-xl transition">
+          {menuOpen
+            ? <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+            : <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>}
+        </button>
       </div>
+
+      {menuOpen && (
+        <div className="md:hidden absolute top-[56px] left-0 right-0 bg-white border-b border-gray-100 shadow-lg z-40 py-2 px-4 flex flex-col gap-1">
+          {navItems.map(({ key, label, path }) => (
+            <button key={key} onClick={() => { navigate(path); setMenuOpen(false); }}
+              className={`w-full text-left px-3 py-2.5 text-[13px] rounded-lg transition ${key === "chat" ? "font-semibold text-gray-900 bg-gray-100" : "font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-50"}`}>
+              {label}
+            </button>
+          ))}
+          <div className="border-t border-gray-100 mt-1 pt-2 flex items-center justify-between">
+            <button onClick={() => { navigate("/user/profile"); setMenuOpen(false); }} className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 transition">
+              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white font-black text-[12px]">{user?.name?.[0]?.toUpperCase() || "U"}</div>
+              <div className="text-left">
+                <p className="text-[13px] font-bold text-gray-800">{user?.name?.split(" ")[0] || "User"}</p>
+                <p className="text-[11px] text-gray-400 capitalize">{user?.roles?.[0] || "Customer"}</p>
+              </div>
+            </button>
+            <button onClick={() => { onLogout(); setMenuOpen(false); }} className="flex items-center gap-1.5 text-[13px] font-medium text-red-500 hover:text-red-700 px-3 py-2 rounded-lg hover:bg-red-50 transition">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+              Sign out
+            </button>
+          </div>
+        </div>
+      )}
     </header>
   );
 }
@@ -187,31 +227,28 @@ function MessageBubble({ msg, isMine, onDelete }) {
   };
 
   return (
-    <div
-      className={`flex items-end gap-1.5 ${isMine ? "flex-row-reverse" : "flex-row"}`}
+    <div className={`flex items-end gap-1.5 ${isMine ? "flex-row-reverse" : "flex-row"}`}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => { setHovered(false); setConfirming(false); }}
-    >
-      <div className={`max-w-[70%] flex flex-col gap-1 ${isMine ? "items-end" : "items-start"}`}>
+      onTouchStart={() => setHovered(true)}>
+      <div className={`max-w-[80%] sm:max-w-[70%] flex flex-col gap-1 ${isMine ? "items-end" : "items-start"}`}>
         {msg.image && (
           <div className={`rounded-2xl overflow-hidden border border-gray-100 shadow-sm ${isMine ? "rounded-br-sm" : "rounded-bl-sm"}`}>
             <img
               src={msg.image.startsWith("http") ? msg.image : `https://keshab-sigdel-health-haul-backend-production.up.railway.app/uploads/${msg.image}`}
               alt="attachment"
-              className="max-w-[200px] max-h-[200px] object-cover cursor-pointer hover:opacity-90 transition"
+              className="max-w-[180px] sm:max-w-[200px] max-h-[200px] object-cover cursor-pointer hover:opacity-90 transition"
               onClick={() => window.open(msg.image.startsWith("http") ? msg.image : `https://keshab-sigdel-health-haul-backend-production.up.railway.app/uploads/${msg.image}`, "_blank")}
             />
           </div>
         )}
         {msg.text && (
-          <div className={`px-3.5 py-2.5 rounded-2xl text-[13px] leading-relaxed shadow-sm
-            ${isMine ? "bg-gray-900 text-white rounded-br-sm" : "bg-white text-gray-800 border border-gray-100 rounded-bl-sm"}`}>
+          <div className={`px-3.5 py-2.5 rounded-2xl text-[13px] leading-relaxed shadow-sm ${isMine ? "bg-gray-900 text-white rounded-br-sm" : "bg-white text-gray-800 border border-gray-100 rounded-bl-sm"}`}>
             {msg.text}
           </div>
         )}
         <span className="text-[10px] text-gray-400 px-1">{time}</span>
       </div>
-
       {isMine && (
         <div className="flex items-center mb-5 flex-shrink-0">
           {hovered && !confirming && (
@@ -223,14 +260,8 @@ function MessageBubble({ msg, isMine, onDelete }) {
           {confirming && (
             <div className="flex items-center gap-1.5 bg-white border border-gray-200 rounded-xl shadow-md px-2.5 py-1.5">
               <span className="text-[11px] text-gray-600 font-medium whitespace-nowrap">Delete?</span>
-              <button onClick={handleConfirm} disabled={deleting}
-                className="text-[11px] font-bold text-white bg-red-500 hover:bg-red-600 px-2 py-0.5 rounded-lg transition disabled:opacity-50">
-                {deleting ? "…" : "Yes"}
-              </button>
-              <button onClick={() => setConfirming(false)}
-                className="text-[11px] font-bold text-gray-500 hover:text-gray-700 px-2 py-0.5 rounded-lg hover:bg-gray-100 transition">
-                No
-              </button>
+              <button onClick={handleConfirm} disabled={deleting} className="text-[11px] font-bold text-white bg-red-500 hover:bg-red-600 px-2 py-0.5 rounded-lg transition disabled:opacity-50">{deleting ? "…" : "Yes"}</button>
+              <button onClick={() => setConfirming(false)} className="text-[11px] font-bold text-gray-500 hover:text-gray-700 px-2 py-0.5 rounded-lg hover:bg-gray-100 transition">No</button>
             </div>
           )}
         </div>
@@ -254,52 +285,40 @@ export default function UserChatPage() {
   const [sending, setSending] = useState(false);
   const [search, setSearch] = useState("");
   const [toast, setToast] = useState(null);
+  const [showSidebar, setShowSidebar] = useState(true);
 
   const socketRef = useRef(null);
   const bottomRef = useRef(null);
   const fileInputRef = useRef(null);
-  // Keep a ref to selected so the socket handler can read the latest value
   const selectedRef = useRef(null);
   selectedRef.current = selected;
 
   const showToast = (msg, type = "success") => { setToast({ msg, type }); setTimeout(() => setToast(null), 3000); };
 
-  // Select a user and immediately clear their unread badge
   const handleSelectUser = (u) => {
     setSelected(u);
-    setChatUsers(prev =>
-      prev.map(x => x._id === u._id ? { ...x, unreadCount: 0 } : x)
-    );
+    setShowSidebar(false);
+    setChatUsers(prev => prev.map(x => x._id === u._id ? { ...x, unreadCount: 0 } : x));
   };
 
   useEffect(() => {
     const stored = JSON.parse(localStorage.getItem("user"));
     if (!stored) { navigate("/login"); return; }
     setUser(stored);
-
     const socket = io("https://keshab-sigdel-health-haul-backend-production.up.railway.app", { query: { userId: stored._id }, withCredentials: true });
     socketRef.current = socket;
     socket.emit("joinUserRoom", stored._id);
     socket.on("getOnlineUsers", (ids) => setOnlineUsers(ids));
-
     socket.on("newMessage", (msg) => {
       setMessages(prev => prev.some(m => m._id === msg._id) ? prev : [...prev, msg]);
-      // Update sender in list: bump lastMessage, increment unread if not active, move to top
       const senderId = msg.senderId?._id || msg.senderId;
       const isActive = selectedRef.current && selectedRef.current._id === senderId;
       setChatUsers(prev => {
         const updated = prev.map(u =>
           u._id === senderId
-            ? {
-              ...u,
-              lastMessage: msg.image ? "📷 Image" : msg.text || "",
-              lastMessageAt: Date.now(),
-              hasConversation: true,
-              unreadCount: isActive ? (u.unreadCount || 0) : (u.unreadCount || 0) + 1,
-            }
+            ? { ...u, lastMessage: msg.image ? "📷 Image" : msg.text || "", lastMessageAt: Date.now(), hasConversation: true, unreadCount: isActive ? (u.unreadCount || 0) : (u.unreadCount || 0) + 1 }
             : u
         );
-        // Re-sort: most recent conversation first
         return [...updated].sort((a, b) => {
           if (a.hasConversation && !b.hasConversation) return -1;
           if (!a.hasConversation && b.hasConversation) return 1;
@@ -308,31 +327,21 @@ export default function UserChatPage() {
         });
       });
     });
-
-    socket.on("messageDeleted", ({ messageId }) => {
-      setMessages(prev => prev.filter(m => m._id !== messageId));
-    });
-
+    socket.on("messageDeleted", ({ messageId }) => { setMessages(prev => prev.filter(m => m._id !== messageId)); });
     return () => { socket.emit("leaveUserRoom", stored._id); socket.disconnect(); };
   }, []);
 
   useEffect(() => {
     if (!user) return;
     setLoadingUsers(true);
-    api.get("/chat/users")
-      .then(r => setChatUsers(r.data?.users || []))
-      .catch(() => setChatUsers([]))
-      .finally(() => setLoadingUsers(false));
+    api.get("/chat/users").then(r => setChatUsers(r.data?.users || [])).catch(() => setChatUsers([])).finally(() => setLoadingUsers(false));
   }, [user]);
 
   useEffect(() => {
     if (!selected) return;
     setLoadingMsgs(true);
     setMessages([]);
-    api.get(`/chat/messages/${selected._id}`)
-      .then(r => setMessages(r.data?.messages || []))
-      .catch(() => setMessages([]))
-      .finally(() => setLoadingMsgs(false));
+    api.get(`/chat/messages/${selected._id}`).then(r => setMessages(r.data?.messages || [])).catch(() => setMessages([])).finally(() => setLoadingMsgs(false));
   }, [selected]);
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
@@ -357,11 +366,7 @@ export default function UserChatPage() {
       if (newMsg) setMessages(prev => prev.some(m => m._id === newMsg._id) ? prev : [...prev, newMsg]);
       setText(""); setImageFile(null); setImagePreview(null);
       setChatUsers(prev => {
-        const updated = prev.map(u =>
-          u._id === selected._id
-            ? { ...u, lastMessage: text.trim() || "📷 Image", hasConversation: true, lastMessageAt: Date.now() }
-            : u
-        );
+        const updated = prev.map(u => u._id === selected._id ? { ...u, lastMessage: text.trim() || "📷 Image", hasConversation: true, lastMessageAt: Date.now() } : u);
         return [...updated].sort((a, b) => {
           if (a.hasConversation && !b.hasConversation) return -1;
           if (!a.hasConversation && b.hasConversation) return 1;
@@ -377,10 +382,7 @@ export default function UserChatPage() {
   const handleImagePick = (e) => { const file = e.target.files[0]; if (!file) return; setImageFile(file); setImagePreview(URL.createObjectURL(file)); };
   const clearImage = () => { setImageFile(null); setImagePreview(null); if (fileInputRef.current) fileInputRef.current.value = ""; };
   const handleLogout = async () => { try { await api.post("/auth/logout"); } catch (_) { } localStorage.removeItem("user"); navigate("/login"); };
-
-  const filteredUsers = chatUsers.filter(u =>
-    !search.trim() || u.name?.toLowerCase().includes(search.toLowerCase()) || u.email?.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredUsers = chatUsers.filter(u => !search.trim() || u.name?.toLowerCase().includes(search.toLowerCase()) || u.email?.toLowerCase().includes(search.toLowerCase()));
   const isOnline = (id) => onlineUsers.includes(id?.toString());
 
   if (!user) return null;
@@ -395,16 +397,16 @@ export default function UserChatPage() {
 
       <Topbar user={user} onLogout={handleLogout} navigate={navigate} />
 
-      <main className="flex-1 px-8 py-6">
+      <main className="flex-1 px-4 sm:px-8 py-4 sm:py-6 flex flex-col">
         <div className="mb-4">
-          <h2 className="text-[22px] font-black text-gray-900 tracking-tight">Messages</h2>
+          <h2 className="text-[20px] sm:text-[22px] font-black text-gray-900 tracking-tight">Messages</h2>
           <p className="text-gray-400 text-[13px] mt-0.5">Chat with pharmacies about your orders or medicines</p>
         </div>
 
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex" style={{ height: "calc(100vh - 220px)", minHeight: "500px" }}>
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-1" style={{ height: "calc(100vh - 220px)", minHeight: "500px" }}>
 
-          {/* LEFT: Pharmacy list */}
-          <div className="w-72 flex-shrink-0 border-r border-gray-100 flex flex-col">
+          {/* Sidebar */}
+          <div className={`flex-shrink-0 border-r border-gray-100 flex flex-col bg-white w-full md:w-72 ${!showSidebar ? "hidden md:flex" : "flex"}`}>
             <div className="p-3.5 border-b border-gray-100">
               <div className="relative">
                 <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
@@ -412,7 +414,6 @@ export default function UserChatPage() {
                   className="w-full pl-8 pr-3 py-2 border border-gray-200 rounded-xl text-[12px] focus:outline-none focus:ring-2 focus:ring-green-400/30 focus:border-green-400 bg-gray-50 transition" />
               </div>
             </div>
-
             <div className="flex-1 overflow-y-auto">
               {loadingUsers ? (
                 <div className="p-4 space-y-3">
@@ -440,22 +441,14 @@ export default function UserChatPage() {
                     <Avatar name={u.name} size="md" online={online} />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-1">
-                        <p className={`text-[13px] truncate ${isSelected ? "text-green-700 font-bold"
-                            : hasUnread ? "text-gray-900 font-black"
-                              : "text-gray-800 font-bold"
-                          }`}>{u.name}</p>
-
+                        <p className={`text-[13px] truncate ${isSelected ? "text-green-700 font-bold" : hasUnread ? "text-gray-900 font-black" : "text-gray-800 font-bold"}`}>{u.name}</p>
                         {hasUnread ? (
-                          <span className="min-w-[18px] h-[18px] bg-green-500 text-white text-[9px] font-black rounded-full flex items-center justify-center px-1 flex-shrink-0">
-                            {u.unreadCount > 9 ? "9+" : u.unreadCount}
-                          </span>
+                          <span className="min-w-[18px] h-[18px] bg-green-500 text-white text-[9px] font-black rounded-full flex items-center justify-center px-1 flex-shrink-0">{u.unreadCount > 9 ? "9+" : u.unreadCount}</span>
                         ) : online ? (
                           <span className="text-[9px] font-bold text-green-600 bg-green-100 px-1.5 py-0.5 rounded-full flex-shrink-0">Online</span>
                         ) : null}
                       </div>
-                      <p className={`text-[11px] truncate mt-0.5 ${hasUnread ? "text-gray-700 font-semibold" : "text-gray-400"}`}>
-                        {u.lastMessage || "Start a conversation"}
-                      </p>
+                      <p className={`text-[11px] truncate mt-0.5 ${hasUnread ? "text-gray-700 font-semibold" : "text-gray-400"}`}>{u.lastMessage || "Start a conversation"}</p>
                     </div>
                   </button>
                 );
@@ -463,33 +456,34 @@ export default function UserChatPage() {
             </div>
           </div>
 
-          {/* RIGHT: Chat window */}
+          {/* Chat panel */}
           {!selected ? (
-            <div className="flex-1 flex flex-col items-center justify-center text-center p-8">
+            <div className="hidden md:flex flex-1 flex-col items-center justify-center text-center p-8">
               <div className="w-16 h-16 bg-green-50 rounded-2xl flex items-center justify-center mb-4 border border-green-100">
                 <svg className="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 3H3a2 2 0 00-2 2v13a2 2 0 002 2h5l3 3 3-3h7a2 2 0 002-2V5a2 2 0 00-2-2z" /></svg>
               </div>
               <h3 className="text-[16px] font-black text-gray-800 mb-1">Select a pharmacy</h3>
-              <p className="text-[13px] text-gray-400 max-w-xs">Choose a pharmacy from the list to start chatting about medicines or your orders.</p>
+              <p className="text-[13px] text-gray-400 max-w-xs">Choose a pharmacy from the list to start chatting.</p>
             </div>
           ) : (
-            <div className="flex-1 flex flex-col min-w-0">
-              <div className="px-5 py-3.5 border-b border-gray-100 flex items-center gap-3 bg-white">
+            <div className={`flex-1 flex flex-col min-w-0 ${showSidebar ? "hidden md:flex" : "flex"}`}>
+              <div className="px-4 sm:px-5 py-3.5 border-b border-gray-100 flex items-center gap-3 bg-white">
+                <button onClick={() => setShowSidebar(true)} className="md:hidden w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition flex-shrink-0">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+                </button>
                 <Avatar name={selected.name} size="md" online={isOnline(selected._id)} />
                 <div className="flex-1 min-w-0">
-                  <p className="text-[14px] font-black text-gray-900">{selected.name}</p>
+                  <p className="text-[14px] font-black text-gray-900 truncate">{selected.name}</p>
                   <p className="text-[11px] text-gray-400">
-                    {isOnline(selected._id)
-                      ? <span className="text-green-500 font-semibold">● Online</span>
-                      : <span>Pharmacy · {selected.email}</span>}
+                    {isOnline(selected._id) ? <span className="text-green-500 font-semibold">● Online</span> : <span className="truncate">Pharmacy · {selected.email}</span>}
                   </p>
                 </div>
-                <div className="w-8 h-8 bg-green-50 rounded-xl flex items-center justify-center">
+                <div className="w-8 h-8 bg-green-50 rounded-xl flex items-center justify-center flex-shrink-0">
                   <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
                 </div>
               </div>
 
-              <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3 bg-gray-50/40">
+              <div className="flex-1 overflow-y-auto px-4 sm:px-5 py-4 space-y-3 bg-gray-50/40">
                 {loadingMsgs ? (
                   <div className="flex items-center justify-center h-full"><div className="w-7 h-7 border-[2.5px] border-green-500 border-t-transparent rounded-full animate-spin" /></div>
                 ) : messages.length === 0 ? (
@@ -499,15 +493,13 @@ export default function UserChatPage() {
                     <p className="text-[11px] text-gray-400 mt-1">Ask about medicines, availability, or your orders</p>
                   </div>
                 ) : messages.map(msg => (
-                  <MessageBubble key={msg._id} msg={msg}
-                    isMine={msg.senderId === user._id || msg.senderId?._id === user._id}
-                    onDelete={handleDeleteMessage} />
+                  <MessageBubble key={msg._id} msg={msg} isMine={msg.senderId === user._id || msg.senderId?._id === user._id} onDelete={handleDeleteMessage} />
                 ))}
                 <div ref={bottomRef} />
               </div>
 
               {imagePreview && (
-                <div className="px-5 py-2 border-t border-gray-100 bg-white flex items-center gap-3">
+                <div className="px-4 sm:px-5 py-2 border-t border-gray-100 bg-white flex items-center gap-3">
                   <div className="relative">
                     <img src={imagePreview} alt="preview" className="w-14 h-14 rounded-xl object-cover border border-gray-200" />
                     <button onClick={clearImage} className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-[10px] font-bold hover:bg-red-600 transition">×</button>
@@ -516,7 +508,7 @@ export default function UserChatPage() {
                 </div>
               )}
 
-              <div className="px-4 py-3 border-t border-gray-100 bg-white">
+              <div className="px-3 sm:px-4 py-3 border-t border-gray-100 bg-white">
                 <form onSubmit={handleSend} className="flex items-end gap-2">
                   <button type="button" onClick={() => fileInputRef.current?.click()}
                     className="w-9 h-9 flex items-center justify-center text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-xl transition flex-shrink-0">

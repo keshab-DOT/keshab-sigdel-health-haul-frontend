@@ -1,12 +1,10 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { io } from "socket.io-client";
 import {
-  MapContainer, TileLayer, Marker, Popup,
-  Polyline, useMap,
+  MapContainer, TileLayer, Marker, Popup, Polyline, useMap,
 } from "react-leaflet";
 import L from "leaflet";
 
-// ── Fix Leaflet's broken marker icons in Vite ─────────────────────────────
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
@@ -16,11 +14,7 @@ L.Icon.Default.mergeOptions({
 
 const makeIcon = (emoji, bgColor) =>
   L.divIcon({
-    html: `<div style="
-      background:${bgColor};color:white;border-radius:50%;
-      width:36px;height:36px;display:flex;align-items:center;justify-content:center;
-      font-size:17px;border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.3);
-    ">${emoji}</div>`,
+    html: `<div style="background:${bgColor};color:white;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:17px;border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.3);">${emoji}</div>`,
     className: "", iconSize: [36, 36], iconAnchor: [18, 36], popupAnchor: [0, -36],
   });
 
@@ -40,10 +34,7 @@ function BoundsFitter({ positions }) {
 }
 
 async function fetchOsrmRoute(from, to) {
-  const url =
-    `https://router.project-osrm.org/route/v1/driving/` +
-    `${from[1]},${from[0]};${to[1]},${to[0]}` +
-    `?overview=full&geometries=geojson`;
+  const url = `https://router.project-osrm.org/route/v1/driving/${from[1]},${from[0]};${to[1]},${to[0]}?overview=full&geometries=geojson`;
   try {
     const res = await fetch(url);
     const data = await res.json();
@@ -58,6 +49,12 @@ async function fetchOsrmRoute(from, to) {
   return null;
 }
 
+/**
+ * OrderMapCard — fully responsive.
+ *
+ * On small screens the map height shrinks to 180px and the status/action
+ * strips stack vertically. On md+ it behaves like the original design.
+ */
 export default function OrderMapCard({
   role, userId, orderId,
   pharmacyId, pharmacyName,
@@ -83,14 +80,12 @@ export default function OrderMapCard({
   const isAdmin = role === "admin";
   const DEFAULT_CENTER = [27.7172, 85.324];
 
-  // Load user delivery coords from props (if saved in order) 
   useEffect(() => {
     const lat = Number(userDeliveryLat);
     const lng = Number(userDeliveryLng);
     if (lat && lng) setUserPos([lat, lng]);
   }, [userDeliveryLat, userDeliveryLng]);
 
-  // Load pharmacy saved coords from DB 
   useEffect(() => {
     if (!pharmacyId || isPharmacy) return;
     import("../../../api/axios").then(({ default: api }) => {
@@ -106,17 +101,12 @@ export default function OrderMapCard({
     });
   }, [pharmacyId, isPharmacy]);
 
-  // connect + listen for real-time location updates 
   useEffect(() => {
     if (!orderId || !userId) return;
-
-    import("../../../api/axios").then(({ default: api }) => {
-      apiRef.current = api;
-    });
+    import("../../../api/axios").then(({ default: api }) => { apiRef.current = api; });
 
     const socket = io("https://keshab-sigdel-health-haul-backend-production.up.railway.app", {
-      query: { userId, role },
-      withCredentials: true,
+      query: { userId, role }, withCredentials: true,
     });
     socketRef.current = socket;
 
@@ -124,7 +114,6 @@ export default function OrderMapCard({
     socket.emit("joinOrderRoom", orderId);
     if (isAdmin) socket.emit("joinAdminRoom");
 
-    // User/admin receives pharmacy live GPS
     if (isUser || isAdmin) {
       socket.on("pharmacyLocation", ({ latitude, longitude }) => {
         setPharmacyPos([latitude, longitude]);
@@ -132,7 +121,6 @@ export default function OrderMapCard({
       });
     }
 
-    // Pharmacy/admin receives user live GPS
     if (isPharmacy || isAdmin) {
       socket.on("userLocation", ({ latitude, longitude }) => {
         setUserPos([latitude, longitude]);
@@ -141,9 +129,7 @@ export default function OrderMapCard({
     }
 
     socket.on("participantOffline", ({ role: r }) => {
-      if ((isUser && r === "pharmacy") || (isPharmacy && r === "user")) {
-        setOtherOnline(false);
-      }
+      if ((isUser && r === "pharmacy") || (isPharmacy && r === "user")) setOtherOnline(false);
     });
 
     return () => {
@@ -154,12 +140,8 @@ export default function OrderMapCard({
     };
   }, [orderId, userId, role, isUser, isPharmacy, isAdmin]);
 
-  // Share my live location
   const handleStartSharing = useCallback(() => {
-    if (!navigator.geolocation) {
-      setLocError("Geolocation not supported in your browser.");
-      return;
-    }
+    if (!navigator.geolocation) { setLocError("Geolocation not supported in your browser."); return; }
     setGpsLoading(true);
     setLocError(null);
 
@@ -167,19 +149,15 @@ export default function OrderMapCard({
       ({ coords: { latitude, longitude } }) => {
         setGpsLoading(false);
         setSharing(true);
-
-        // Update my own marker immediately
         if (isPharmacy) setPharmacyPos([latitude, longitude]);
         if (isUser) setUserPos([latitude, longitude]);
 
-        // Broadcast to order room
         const event = isPharmacy ? "pharmacyShareLocation" : "userShareLocation";
         const payload = isPharmacy
           ? { orderId, latitude, longitude, pharmacyName }
           : { orderId, latitude, longitude };
         socketRef.current?.emit(event, payload);
 
-        // Pharmacy also persists to DB
         if (isPharmacy && apiRef.current) {
           apiRef.current.put("/auth/update-location", { latitude, longitude }).catch(() => { });
         }
@@ -201,7 +179,6 @@ export default function OrderMapCard({
     setGpsLoading(false);
   };
 
-  // Get driving route 
   const handleGetRoute = useCallback(async () => {
     if (!pharmacyPos || !userPos) return;
     setRouteLoading(true);
@@ -217,23 +194,21 @@ export default function OrderMapCard({
   const handleClearRoute = () => { setRoute(null); setShowRoute(false); setRouteError(null); };
 
   const visiblePositions = [pharmacyPos, userPos].filter(Boolean);
-
-  // Status label
   const otherLabel = isUser ? (pharmacyName || "Pharmacy") : "Customer";
   let statusText = `Waiting for ${otherLabel} to share location…`;
   if (otherOnline) statusText = `${otherLabel} is sharing live location`;
-  else if ((isUser && pharmacyPos) || (isPharmacy && userPos)) statusText = `${otherLabel} location loaded from DB`;
+  else if ((isUser && pharmacyPos) || (isPharmacy && userPos)) statusText = `${otherLabel} location loaded`;
 
   return (
     <div className="mt-3 rounded-xl overflow-hidden border border-white/10">
 
       {/* Status bar */}
-      <div className="flex items-center justify-between px-3 py-2 bg-black/40 border-b border-white/10">
+      <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-2 bg-black/40 border-b border-white/10">
         <div className="flex items-center gap-1.5 min-w-0">
           <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${otherOnline ? "bg-green-400 animate-pulse" : "bg-gray-500"}`} />
           <span className="text-[11px] font-semibold text-white/70 truncate">{statusText}</span>
         </div>
-        <div className="flex items-center gap-1.5 flex-shrink-0 ml-2">
+        <div className="flex items-center gap-1.5 flex-shrink-0">
           {pharmacyPos && userPos && !showRoute && (
             <button
               onClick={handleGetRoute}
@@ -254,7 +229,7 @@ export default function OrderMapCard({
         </div>
       </div>
 
-      {/* Route info strip  */}
+      {/* Route info */}
       {route && showRoute && (
         <div className="flex items-center justify-center gap-5 px-3 py-1.5 bg-blue-600/20 border-b border-white/10">
           <span className="text-[11px] text-blue-200 font-bold">📏 {route.distance} km</span>
@@ -269,11 +244,11 @@ export default function OrderMapCard({
         </div>
       )}
 
-      {/* Map */}
+      {/* Map — taller on larger screens */}
       <MapContainer
         center={pharmacyPos || userPos || DEFAULT_CENTER}
         zoom={14}
-        style={{ height: "220px", width: "100%" }}
+        style={{ height: "clamp(180px, 35vw, 260px)", width: "100%" }}
         zoomControl={false}
         scrollWheelZoom={false}
       >
@@ -313,12 +288,11 @@ export default function OrderMapCard({
         )}
       </MapContainer>
 
-      {/* Bottom action bar */}
+      {/* Action bar */}
       {!isAdmin && (
         <div className="px-3 py-2.5 bg-black/40 border-t border-white/10">
-          {/* Not sharing yet */}
           {!sharing && !gpsLoading && (
-            <div className="flex items-center justify-between gap-2">
+            <div className="flex flex-col xs:flex-row xs:items-center justify-between gap-2">
               <p className="text-[11px] text-white/40 leading-tight">
                 {isUser
                   ? "Share your live location so the pharmacy can find you"
@@ -326,36 +300,29 @@ export default function OrderMapCard({
               </p>
               <button
                 onClick={handleStartSharing}
-                className="flex items-center gap-1.5 bg-green-500 hover:bg-green-400 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg transition flex-shrink-0"
+                className="flex items-center justify-center gap-1.5 bg-green-500 hover:bg-green-400 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg transition w-full xs:w-auto flex-shrink-0"
               >
                 📡 Share Location
               </button>
             </div>
           )}
 
-          {/* GPS acquiring */}
           {gpsLoading && !sharing && (
             <div className="flex items-center gap-2">
               <span className="w-3 h-3 border-2 border-green-400 border-t-transparent rounded-full animate-spin flex-shrink-0" />
               <p className="text-[11px] text-green-400 font-medium">Acquiring GPS signal…</p>
-              <button onClick={handleStopSharing} className="ml-auto text-[10px] text-white/30 hover:text-white/60 px-2 py-1 rounded transition">
-                Cancel
-              </button>
+              <button onClick={handleStopSharing} className="ml-auto text-[10px] text-white/30 hover:text-white/60 px-2 py-1 rounded transition">Cancel</button>
             </div>
           )}
 
-          {/* Actively sharing */}
           {sharing && (
             <div className="flex items-center gap-2">
               <div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse flex-shrink-0" />
               <p className="text-[11px] text-green-400 font-medium">Broadcasting live location…</p>
-              <button onClick={handleStopSharing} className="ml-auto text-[10px] text-white/30 hover:text-white/60 px-2 py-1 rounded transition">
-                Stop
-              </button>
+              <button onClick={handleStopSharing} className="ml-auto text-[10px] text-white/30 hover:text-white/60 px-2 py-1 rounded transition">Stop</button>
             </div>
           )}
 
-          {/* Location error */}
           {locError && (
             <p className="text-[11px] text-red-400 font-medium text-center mt-1">{locError}</p>
           )}
