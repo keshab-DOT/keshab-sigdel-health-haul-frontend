@@ -3,12 +3,13 @@ import { useNavigate } from "react-router-dom";
 import api from "../../../api/axios";
 import { io } from "socket.io-client";
 
-// ── Notification helpers ───────────────────────────────────────────────────────
+const getRole = (stored) => { const raw = Array.isArray(stored?.roles) ? stored.roles[0] : stored?.roles; return (raw || "").toLowerCase().trim(); };
+
 const TYPE_META = {
-  ORDER_PLACED: { icon: "📦", color: "bg-blue-50  text-blue-600" },
+  ORDER_PLACED: { icon: "📦", color: "bg-blue-50 text-blue-600" },
   ORDER_STATUS: { icon: "🚚", color: "bg-green-50 text-green-600" },
-  PRODUCT_APPROVED: { icon: "✅", color: "bg-green-50  text-green-600" },
-  PRODUCT_REJECTED: { icon: "❌", color: "bg-red-50   text-red-600" },
+  PRODUCT_APPROVED: { icon: "✅", color: "bg-green-50 text-green-600" },
+  PRODUCT_REJECTED: { icon: "❌", color: "bg-red-50 text-red-600" },
   PAYMENT_RECEIVED: { icon: "💰", color: "bg-amber-50 text-amber-600" },
 };
 const notifMeta = (type) => TYPE_META[type] || { icon: "🔔", color: "bg-gray-50 text-gray-600" };
@@ -20,7 +21,6 @@ function timeAgo(date) {
   return `${Math.floor(diff / 86400)}d ago`;
 }
 
-// ── Notification Bell ──────────────────────────────────────────────────────────
 function NotificationBell({ userId }) {
   const [open, setOpen] = useState(false);
   const [notifs, setNotifs] = useState([]);
@@ -28,119 +28,54 @@ function NotificationBell({ userId }) {
   const [loading, setLoading] = useState(true);
   const dropdownRef = useRef(null);
   const socketRef = useRef(null);
-
   const fetchNotifs = useCallback(async () => {
-    try {
-      const { data } = await api.get("/notifications");
-      setNotifs(data.notifications || []);
-      setUnread(data.unreadCount || 0);
-    } catch { }
-    finally { setLoading(false); }
+    try { const { data } = await api.get("/notifications"); setNotifs(data.notifications || []); setUnread(data.unreadCount || 0); } catch { } finally { setLoading(false); }
   }, []);
-
   useEffect(() => { fetchNotifs(); }, [fetchNotifs]);
-
   useEffect(() => {
     if (!userId) return;
     const socket = io("https://keshab-sigdel-health-haul-backend-production.up.railway.app", { query: { userId }, withCredentials: true });
-    socketRef.current = socket;
-    socket.emit("joinUserRoom", userId);
-    socket.on("newNotification", (n) => {
-      setNotifs(prev => prev.some(x => x._id === n._id) ? prev : [n, ...prev]);
-      setUnread(prev => prev + 1);
-    });
+    socketRef.current = socket; socket.emit("joinUserRoom", userId);
+    socket.on("newNotification", (n) => { setNotifs(prev => prev.some(x => x._id === n._id) ? prev : [n, ...prev]); setUnread(prev => prev + 1); });
     return () => { socket.emit("leaveUserRoom", userId); socket.disconnect(); };
   }, [userId]);
-
   useEffect(() => {
-    const handler = (e) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) setOpen(false);
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
+    const handler = (e) => { if (dropdownRef.current && !dropdownRef.current.contains(e.target)) setOpen(false); };
+    document.addEventListener("mousedown", handler); return () => document.removeEventListener("mousedown", handler);
   }, []);
-
   const markRead = async (id) => {
-    try {
-      await api.put(`/notifications/${id}/read`);
-      setNotifs(prev => prev.map(n => n._id === id ? { ...n, isRead: true } : n));
-      setUnread(prev => Math.max(0, prev - 1));
-    } catch { }
+    try { await api.put(`/notifications/${id}/read`); setNotifs(prev => prev.map(n => n._id === id ? { ...n, isRead: true } : n)); setUnread(prev => Math.max(0, prev - 1)); } catch { }
   };
-
   const markAllRead = async (e) => {
     e.stopPropagation();
-    try {
-      await api.put("/notifications/read-all");
-      setNotifs(prev => prev.map(n => ({ ...n, isRead: true })));
-      setUnread(0);
-    } catch { }
+    try { await api.put("/notifications/read-all"); setNotifs(prev => prev.map(n => ({ ...n, isRead: true }))); setUnread(0); } catch { }
   };
-
   return (
     <div className="relative" ref={dropdownRef}>
-      <button onClick={() => setOpen(o => !o)}
-        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium text-gray-500 hover:bg-gray-50 hover:text-gray-800 transition-all duration-150">
+      <button onClick={() => setOpen(o => !o)} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium text-gray-500 hover:bg-gray-50 hover:text-gray-800 transition-all duration-150">
         <span className="flex-shrink-0 opacity-50 relative">
-          <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-          </svg>
-          {unread > 0 && (
-            <span className="absolute -top-1.5 -right-1.5 min-w-[14px] h-[14px] bg-red-500 text-white text-[8px] font-black rounded-full flex items-center justify-center px-[2px] leading-none">
-              {unread > 9 ? "9+" : unread}
-            </span>
-          )}
+          <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+          {unread > 0 && <span className="absolute -top-1.5 -right-1.5 min-w-[14px] h-[14px] bg-red-500 text-white text-[8px] font-black rounded-full flex items-center justify-center px-[2px] leading-none">{unread > 9 ? "9+" : unread}</span>}
         </span>
         <span>Notifications</span>
-        {unread > 0 && (
-          <span className="ml-auto bg-red-100 text-red-600 text-[10px] font-black px-1.5 py-0.5 rounded-full">
-            {unread}
-          </span>
-        )}
+        {unread > 0 && <span className="ml-auto bg-red-100 text-red-600 text-[10px] font-black px-1.5 py-0.5 rounded-full">{unread}</span>}
       </button>
-
       {open && (
         <div className="absolute left-full top-0 ml-2 w-80 bg-white rounded-2xl shadow-xl border border-gray-100 z-50 overflow-hidden">
           <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <p className="text-[14px] font-black text-gray-900">Notifications</p>
-              {unread > 0 && <span className="bg-red-100 text-red-600 text-[10px] font-black px-1.5 py-0.5 rounded-full">{unread} new</span>}
-            </div>
-            {unread > 0 && (
-              <button onClick={markAllRead} className="text-[11px] font-bold text-green-600 hover:text-green-700 transition">
-                Mark all read
-              </button>
-            )}
+            <div className="flex items-center gap-2"><p className="text-[14px] font-black text-gray-900">Notifications</p>{unread > 0 && <span className="bg-red-100 text-red-600 text-[10px] font-black px-1.5 py-0.5 rounded-full">{unread} new</span>}</div>
+            {unread > 0 && <button onClick={markAllRead} className="text-[11px] font-bold text-green-600 hover:text-green-700 transition">Mark all read</button>}
           </div>
           <div className="max-h-[380px] overflow-y-auto">
-            {loading ? (
-              <div className="py-10 flex justify-center">
-                <div className="w-6 h-6 border-2 border-green-500 border-t-transparent rounded-full animate-spin" />
-              </div>
-            ) : notifs.length === 0 ? (
-              <div className="py-12 text-center">
-                <div className="text-3xl mb-2">🔔</div>
-                <p className="text-[13px] font-bold text-gray-600">No notifications yet</p>
-                <p className="text-[11px] text-gray-400 mt-1">You're all caught up!</p>
-              </div>
-            ) : (
-              notifs.slice(0, 20).map(n => {
-                const m = notifMeta(n.type);
-                return (
-                  <button key={n._id}
-                    onClick={() => { if (!n.isRead) markRead(n._id); setOpen(false); }}
-                    className={`w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-gray-50 transition border-b border-gray-50 last:border-0 ${!n.isRead ? "bg-green-50/40" : ""}`}>
-                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-base flex-shrink-0 mt-0.5 ${m.color}`}>{m.icon}</div>
-                    <div className="flex-1 min-w-0">
-                      <p className={`text-[12px] leading-snug ${n.isRead ? "text-gray-700 font-medium" : "text-gray-900 font-bold"}`}>{n.title}</p>
-                      <p className="text-[11px] text-gray-400 mt-0.5 line-clamp-2 leading-relaxed">{n.message}</p>
-                      <p className="text-[10px] text-gray-300 mt-1 font-medium">{timeAgo(n.createdAt)}</p>
-                    </div>
-                    {!n.isRead && <div className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0 mt-1.5" />}
-                  </button>
-                );
-              })
-            )}
+            {loading ? <div className="py-10 flex justify-center"><div className="w-6 h-6 border-2 border-green-500 border-t-transparent rounded-full animate-spin" /></div>
+              : notifs.length === 0 ? <div className="py-12 text-center"><div className="text-3xl mb-2">🔔</div><p className="text-[13px] font-bold text-gray-600">No notifications yet</p></div>
+              : notifs.slice(0, 20).map(n => { const m = notifMeta(n.type); return (
+                <button key={n._id} onClick={() => { if (!n.isRead) markRead(n._id); setOpen(false); }} className={`w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-gray-50 transition border-b border-gray-50 last:border-0 ${!n.isRead ? "bg-green-50/40" : ""}`}>
+                  <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-base flex-shrink-0 mt-0.5 ${m.color}`}>{m.icon}</div>
+                  <div className="flex-1 min-w-0"><p className={`text-[12px] leading-snug ${n.isRead ? "text-gray-700 font-medium" : "text-gray-900 font-bold"}`}>{n.title}</p><p className="text-[11px] text-gray-400 mt-0.5 line-clamp-2">{n.message}</p><p className="text-[10px] text-gray-300 mt-1">{timeAgo(n.createdAt)}</p></div>
+                  {!n.isRead && <div className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0 mt-1.5" />}
+                </button>
+              );})}
           </div>
         </div>
       )}
@@ -148,8 +83,7 @@ function NotificationBell({ userId }) {
   );
 }
 
-// Sidebar
-function Sidebar({ user, active, onLogout, navigate }) {
+function Sidebar({ user, active, onLogout, navigate, sidebarOpen, setSidebarOpen }) {
   const NAV = [
     { key: "dashboard", label: "Dashboard", path: "/pharmacy/dashboard", icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg> },
     { key: "orders", label: "Orders", path: "/pharmacy/orders", icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg> },
@@ -160,19 +94,19 @@ function Sidebar({ user, active, onLogout, navigate }) {
     { key: "profile", label: "Profile", path: "/pharmacy/profile", icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg> },
   ];
   return (
-    <aside className="w-[200px] min-h-screen bg-white border-r border-gray-100 flex flex-col flex-shrink-0 fixed left-0 top-0 bottom-0 z-20">
+    <aside className={`fixed left-0 top-0 bottom-0 z-30 w-[200px] bg-white border-r border-gray-100 flex flex-col flex-shrink-0 transition-transform duration-300 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0`}>
+      <button onClick={() => setSidebarOpen(false)} className="absolute top-4 right-4 lg:hidden text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100 transition">
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+      </button>
       <div className="px-5 py-[18px] border-b border-gray-100"><div className="flex items-center gap-2.5"><div className="w-7 h-7 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-sm flex-shrink-0"><svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg></div><span className="font-black text-[14px] text-gray-900 tracking-tight leading-tight">HealthHaul</span></div></div>
       <div className="px-4 py-3.5 border-b border-gray-100"><p className="text-[10px] text-gray-400 font-medium uppercase tracking-wider mb-2">Logged in as</p><div className="flex items-center gap-2.5"><div className="w-7 h-7 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white font-black text-[11px] flex-shrink-0">{user?.name?.[0]?.toUpperCase() || "P"}</div><div className="min-w-0"><p className="text-[13px] font-bold text-gray-800 truncate leading-tight">{user?.name || "Pharmacy"}</p><p className="text-[11px] text-green-600 font-semibold capitalize">Pharmacy</p></div></div></div>
       <nav className="flex-1 px-3 py-3 space-y-0.5">
         {NAV.map(({ key, label, path, icon }) => {
-          if (key === "notifications") {
-            return <NotificationBell key="notifications" userId={user?._id} />;
-          }
+          if (key === "notifications") return <NotificationBell key="notifications" userId={user?._id} />;
           return (
-            <button key={key} onClick={() => navigate(path)}
+            <button key={key} onClick={() => { navigate(path); setSidebarOpen(false); }}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-150 ${active === key ? "bg-gray-950 text-white shadow-sm" : "text-gray-500 hover:bg-gray-50 hover:text-gray-800"}`}>
-              <span className={`flex-shrink-0 ${active === key ? "opacity-100" : "opacity-50"}`}>{icon}</span>
-              {label}
+              <span className={`flex-shrink-0 ${active === key ? "opacity-100" : "opacity-50"}`}>{icon}</span>{label}
             </button>
           );
         })}
@@ -195,8 +129,8 @@ function StatusSelect({ orderId, current, onUpdate, updating }) {
 function OrderDetail({ order }) {
   const payLabel = { cod: "Cash on Delivery", khalti: "Khalti", esewa: "eSewa" };
   return (
-    <div className="border-t border-gray-100 px-5 py-5 bg-gray-50/60">
-      <div className="grid md:grid-cols-2 gap-5">
+    <div className="border-t border-gray-100 px-4 sm:px-5 py-5 bg-gray-50/60">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <div>
           <h4 className="text-[13px] font-bold text-gray-700 mb-3">Items in Order</h4>
           <div className="space-y-2">
@@ -232,6 +166,7 @@ export default function PharmacyOrders() {
   const [expanded, setExpanded] = useState(null);
   const [updating, setUpdating] = useState({});
   const [toast, setToast] = useState(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const showToast = (msg, type = "success") => { setToast({ msg, type }); setTimeout(() => setToast(null), 3000); };
 
@@ -239,15 +174,13 @@ export default function PharmacyOrders() {
     const stored = JSON.parse(localStorage.getItem("user"));
     const role = (Array.isArray(stored?.roles) ? stored.roles[0] : stored?.roles || "").toLowerCase().trim();
     if (!stored || role !== "pharmacy") { navigate("/login", { replace: true }); return; }
-    setUser(stored);
-    fetchOrders();
+    setUser(stored); fetchOrders();
   }, []);
 
   const fetchOrders = async () => {
     setLoading(true);
     try { const r = await api.get("/orders/get/orders"); const data = (r.data || []).map(o => ({ ...o, orderStatus: o.orderStatus?.toLowerCase() || "pending" })); setOrders(data); }
-    catch (_) { setOrders([]); }
-    finally { setLoading(false); }
+    catch (_) { setOrders([]); } finally { setLoading(false); }
   };
 
   const handleStatusUpdate = async (orderId, newStatus) => {
@@ -259,8 +192,7 @@ export default function PharmacyOrders() {
 
   const logout = async () => {
     try { await api.post("/auth/logout"); } catch (_) { }
-    localStorage.removeItem("user"); localStorage.removeItem("token");
-    navigate("/login", { replace: true });
+    localStorage.removeItem("user"); localStorage.removeItem("token"); navigate("/login", { replace: true });
   };
 
   const FILTERS = [{ key: "all", label: "All" }, { key: "pending", label: "Pending" }, { key: "delivered", label: "Delivered" }, { key: "cancalled", label: "Cancelled" }];
@@ -273,42 +205,53 @@ export default function PharmacyOrders() {
   return (
     <div className="min-h-screen bg-[#f7f8fa]">
       {toast && <div className={`fixed top-5 right-5 z-50 flex items-center gap-2.5 px-4 py-3 rounded-xl shadow-lg text-white text-[13px] font-bold ${toast.type === "error" ? "bg-red-500" : "bg-green-600"}`}>{toast.msg}</div>}
-      <Sidebar user={user} active="orders" onLogout={logout} navigate={navigate} />
-      <div className="pl-[200px]">
-        <main className="px-8 py-7 min-h-screen">
-          <div className="mb-6"><h1 className="text-[26px] font-black text-gray-900 tracking-tight leading-tight">Orders</h1><p className="text-gray-400 text-[13px] mt-0.5">Manage and update customer order statuses</p></div>
-          <div className="grid grid-cols-4 gap-0 bg-white rounded-2xl border border-gray-100 shadow-sm mb-5 overflow-hidden">
+      {sidebarOpen && <div className="fixed inset-0 bg-black/30 z-20 lg:hidden" onClick={() => setSidebarOpen(false)} />}
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-10 bg-white border-b border-gray-100 px-4 py-3 flex items-center gap-3">
+        <button onClick={() => setSidebarOpen(true)} className="text-gray-600 p-1"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg></button>
+        <span className="font-black text-[14px] text-gray-900">HealthHaul</span>
+      </div>
+      <Sidebar user={user} active="orders" onLogout={logout} navigate={navigate} sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+      <div className="lg:pl-[200px] pt-[52px] lg:pt-0">
+        <main className="px-4 sm:px-8 py-7 min-h-screen">
+          <div className="mb-6"><h1 className="text-[22px] sm:text-[26px] font-black text-gray-900 tracking-tight leading-tight">Orders</h1><p className="text-gray-400 text-[13px] mt-0.5">Manage and update customer order statuses</p></div>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-0 bg-white rounded-2xl border border-gray-100 shadow-sm mb-5 overflow-hidden">
             {[{ label: "Total Orders", count: orders.length, color: "text-gray-900", bg: "bg-gray-50" }, { label: "Pending", count: orders.filter(o => o.orderStatus === "pending").length, color: "text-amber-600", bg: "bg-amber-50" }, { label: "Delivered", count: orders.filter(o => o.orderStatus === "delivered").length, color: "text-green-600", bg: "bg-green-50" }, { label: "Revenue (Rs.)", count: totalRevenue.toLocaleString(), color: "text-green-700", bg: "bg-emerald-50" }].map((s, i) => (
-              <div key={s.label} className={`${s.bg} px-6 py-4 ${i < 3 ? "border-r border-gray-100" : ""}`}><p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-1">{s.label}</p><p className={`text-2xl font-black ${s.color}`}>{s.count}</p></div>
+              <div key={s.label} className={`${s.bg} px-4 sm:px-6 py-4 ${i < 3 ? "border-r border-gray-100" : ""}`}><p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 truncate">{s.label}</p><p className={`text-xl sm:text-2xl font-black ${s.color}`}>{s.count}</p></div>
             ))}
           </div>
-          <div className="flex gap-1.5 mb-4">
+          <div className="flex flex-wrap gap-1.5 mb-4">
             {FILTERS.map(({ key, label }) => { const count = key === "all" ? orders.length : orders.filter(o => o.orderStatus === key).length; return (<button key={key} onClick={() => setFilter(key)} className={`px-3.5 py-2 rounded-xl text-[13px] font-medium transition-all flex items-center gap-1.5 ${filter === key ? "bg-gray-950 text-white shadow-sm" : "bg-white text-gray-500 border border-gray-200 hover:border-green-300 hover:text-green-600"}`}>{label}<span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${filter === key ? "bg-white/20 text-white" : "bg-gray-100 text-gray-400"}`}>{count}</span></button>); })}
           </div>
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
             {filtered.length === 0 ? (
-              <div className="py-20 text-center"><div className="text-4xl mb-3">📋</div><h3 className="text-[15px] font-bold text-gray-700 mb-1">No orders found</h3><p className="text-[13px] text-gray-400">{filter === "all" ? "No orders placed yet" : `No ${FILTERS.find(f => f.key === filter)?.label} orders`}</p></div>
+              <div className="py-20 text-center"><div className="text-4xl mb-3">📋</div><h3 className="text-[15px] font-bold text-gray-700 mb-1">No orders found</h3></div>
             ) : (
               <>
-                <div className="border-b border-gray-100 bg-gray-50/50 px-5 py-3 grid grid-cols-[1.2fr_1fr_1.2fr_90px_100px_130px_28px] gap-3 items-center">{["ORDER", "CUSTOMER", "SHIPPING ADDRESS", "ITEMS", "AMOUNT", "STATUS", ""].map(col => (<p key={col} className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{col}</p>))}</div>
-                <div className="divide-y divide-gray-50">
-                  {filtered.map(order => {
-                    const customerName = order.userId?.name || order.customerName || "Customer";
-                    return (
-                      <div key={order._id}>
-                        <div className="px-5 py-4 grid grid-cols-[1.2fr_1fr_1.2fr_90px_100px_130px_28px] gap-3 items-center hover:bg-gray-50/60 transition-colors cursor-pointer" onClick={() => setExpanded(expanded === order._id ? null : order._id)}>
-                          <div className="flex items-center gap-3 min-w-0"><div className="w-8 h-8 bg-green-50 border border-green-100 rounded-xl flex items-center justify-center text-sm flex-shrink-0">{order.orderStatus === "delivered" ? "✅" : order.orderStatus === "cancalled" ? "❌" : "📦"}</div><div className="min-w-0"><p className="text-[13px] font-bold text-gray-800">#{order._id.slice(-8).toUpperCase()}</p><p className="text-[10px] text-gray-400">{new Date(order.createdAt).toLocaleDateString("en-NP", { day: "numeric", month: "short", year: "numeric" })}</p></div></div>
-                          <div className="min-w-0"><p className="text-[13px] font-medium text-gray-700 truncate">{customerName}</p></div>
-                          <p className="text-[13px] text-gray-500 truncate">{order.shippingAddress || "—"}</p>
-                          <p className="text-[13px] text-gray-600">{order.products?.length || 0} item{(order.products?.length || 0) !== 1 ? "s" : ""}</p>
-                          <p className="text-[13px] font-black text-green-600">Rs. {order.totalAmount?.toLocaleString()}</p>
-                          <div onClick={e => e.stopPropagation()}><StatusSelect orderId={order._id} current={order.orderStatus} onUpdate={handleStatusUpdate} updating={updating[order._id]} /></div>
-                          <svg className={`w-4 h-4 text-gray-400 transition-transform duration-200 flex-shrink-0 ${expanded === order._id ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                        </div>
-                        {expanded === order._id && <OrderDetail order={order} />}
-                      </div>
-                    );
-                  })}
+                <div className="overflow-x-auto">
+                  <div className="min-w-[640px]">
+                    <div className="border-b border-gray-100 bg-gray-50/50 px-5 py-3 grid grid-cols-[1.2fr_1fr_1.2fr_90px_100px_130px_28px] gap-3 items-center">
+                      {["ORDER", "CUSTOMER", "SHIPPING ADDRESS", "ITEMS", "AMOUNT", "STATUS", ""].map(col => <p key={col} className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{col}</p>)}
+                    </div>
+                    <div className="divide-y divide-gray-50">
+                      {filtered.map(order => {
+                        const customerName = order.userId?.name || order.customerName || "Customer";
+                        return (
+                          <div key={order._id}>
+                            <div className="px-5 py-4 grid grid-cols-[1.2fr_1fr_1.2fr_90px_100px_130px_28px] gap-3 items-center hover:bg-gray-50/60 transition-colors cursor-pointer" onClick={() => setExpanded(expanded === order._id ? null : order._id)}>
+                              <div className="flex items-center gap-3 min-w-0"><div className="w-8 h-8 bg-green-50 border border-green-100 rounded-xl flex items-center justify-center text-sm flex-shrink-0">{order.orderStatus === "delivered" ? "✅" : order.orderStatus === "cancalled" ? "❌" : "📦"}</div><div className="min-w-0"><p className="text-[13px] font-bold text-gray-800">#{order._id.slice(-8).toUpperCase()}</p><p className="text-[10px] text-gray-400">{new Date(order.createdAt).toLocaleDateString("en-NP", { day: "numeric", month: "short", year: "numeric" })}</p></div></div>
+                              <div className="min-w-0"><p className="text-[13px] font-medium text-gray-700 truncate">{customerName}</p></div>
+                              <p className="text-[13px] text-gray-500 truncate">{order.shippingAddress || "—"}</p>
+                              <p className="text-[13px] text-gray-600">{order.products?.length || 0} item{(order.products?.length || 0) !== 1 ? "s" : ""}</p>
+                              <p className="text-[13px] font-black text-green-600">Rs. {order.totalAmount?.toLocaleString()}</p>
+                              <div onClick={e => e.stopPropagation()}><StatusSelect orderId={order._id} current={order.orderStatus} onUpdate={handleStatusUpdate} updating={updating[order._id]} /></div>
+                              <svg className={`w-4 h-4 text-gray-400 transition-transform duration-200 flex-shrink-0 ${expanded === order._id ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                            </div>
+                            {expanded === order._id && <OrderDetail order={order} />}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
                 </div>
                 <div className="px-5 py-3 border-t border-gray-100 bg-gray-50/40"><p className="text-[12px] text-gray-400">{filtered.length} of {orders.length} orders shown</p></div>
               </>
