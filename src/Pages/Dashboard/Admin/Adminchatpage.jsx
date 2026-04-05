@@ -5,14 +5,24 @@ import { io } from "socket.io-client";
 import { AdminSidebar } from "./Admindashboard";
 
 function Avatar({ name, size = "md", online = false }) {
-  const sizes = { sm: "w-8 h-8 text-[11px]", md: "w-10 h-10 text-[13px]", lg: "w-12 h-12 text-[15px]" };
+  const sizes = {
+    sm: "w-8 h-8 text-[11px]",
+    md: "w-10 h-10 text-[13px]",
+    lg: "w-12 h-12 text-[15px]",
+  };
   const dotSizes = { sm: "w-2 h-2", md: "w-2.5 h-2.5", lg: "w-3 h-3" };
   return (
     <div className="relative flex-shrink-0">
-      <div className={`${sizes[size]} rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white font-black`}>
+      <div
+        className={`${sizes[size]} rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white font-black`}
+      >
         {name?.[0]?.toUpperCase() || "?"}
       </div>
-      {online && <span className={`absolute -bottom-0.5 -right-0.5 ${dotSizes[size]} bg-green-400 rounded-full border-2 border-white`} />}
+      {online && (
+        <span
+          className={`absolute -bottom-0.5 -right-0.5 ${dotSizes[size]} bg-green-400 rounded-full border-2 border-white`}
+        />
+      )}
     </div>
   );
 }
@@ -21,7 +31,10 @@ function MessageBubble({ msg, isMine, onDelete }) {
   const [hovered, setHovered] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const time = new Date(msg.createdAt).toLocaleTimeString("en-NP", { hour: "2-digit", minute: "2-digit" });
+  const time = new Date(msg.createdAt).toLocaleTimeString("en-NP", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 
   const handleConfirm = async () => {
     setDeleting(true);
@@ -34,19 +47,42 @@ function MessageBubble({ msg, isMine, onDelete }) {
     <div
       className={`flex items-end gap-1.5 ${isMine ? "flex-row-reverse" : "flex-row"}`}
       onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => { setHovered(false); setConfirming(false); }}
+      onMouseLeave={() => {
+        setHovered(false);
+        setConfirming(false);
+      }}
     >
-      <div className={`max-w-[70%] flex flex-col gap-1 ${isMine ? "items-end" : "items-start"}`}>
+      <div
+        className={`max-w-[80%] sm:max-w-[70%] flex flex-col gap-1 ${isMine ? "items-end" : "items-start"}`}
+      >
         {msg.image && (
-          <div className={`rounded-2xl overflow-hidden border border-gray-100 shadow-sm ${isMine ? "rounded-br-sm" : "rounded-bl-sm"}`}>
-            <img src={msg.image.startsWith("http") ? msg.image : `https://keshab-sigdel-health-haul-backend-production.up.railway.app/uploads/${msg.image}`} alt="attachment"
-              className="max-w-[200px] max-h-[200px] object-cover cursor-pointer hover:opacity-90 transition"
-              onClick={() => window.open(msg.image.startsWith("http") ? msg.image : `https://keshab-sigdel-health-haul-backend-production.up.railway.app/uploads/${msg.image}`, "_blank")} />
+          <div
+            className={`rounded-2xl overflow-hidden border border-gray-100 shadow-sm ${isMine ? "rounded-br-sm" : "rounded-bl-sm"}`}
+          >
+            <img
+              src={
+                msg.image.startsWith("http")
+                  ? msg.image
+                  : `https://keshab-sigdel-health-haul-backend-production.up.railway.app/uploads/${msg.image}`
+              }
+              alt="attachment"
+              className="max-w-[160px] sm:max-w-[200px] max-h-[160px] sm:max-h-[200px] object-cover cursor-pointer hover:opacity-90 transition"
+              onClick={() =>
+                window.open(
+                  msg.image.startsWith("http")
+                    ? msg.image
+                    : `https://keshab-sigdel-health-haul-backend-production.up.railway.app/uploads/${msg.image}`,
+                  "_blank",
+                )
+              }
+            />
           </div>
         )}
         {msg.text && (
-          <div className={`px-3.5 py-2.5 rounded-2xl text-[13px] leading-relaxed shadow-sm
-            ${isMine ? "bg-gray-900 text-white rounded-br-sm" : "bg-white text-gray-800 border border-gray-100 rounded-bl-sm"}`}>
+          <div
+            className={`px-3.5 py-2.5 rounded-2xl text-[13px] leading-relaxed shadow-sm
+            ${isMine ? "bg-gray-900 text-white rounded-br-sm" : "bg-white text-gray-800 border border-gray-100 rounded-bl-sm"}`}
+          >
             {msg.text}
           </div>
         )}
@@ -56,20 +92,41 @@ function MessageBubble({ msg, isMine, onDelete }) {
       {isMine && (
         <div className="flex items-center mb-5 flex-shrink-0">
           {hovered && !confirming && (
-            <button onClick={() => setConfirming(true)}
-              className="w-6 h-6 flex items-center justify-center text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition" title="Delete message">
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+            <button
+              onClick={() => setConfirming(true)}
+              className="w-6 h-6 flex items-center justify-center text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition"
+            >
+              <svg
+                className="w-3.5 h-3.5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                />
+              </svg>
             </button>
           )}
           {confirming && (
             <div className="flex items-center gap-1.5 bg-white border border-gray-200 rounded-xl shadow-md px-2.5 py-1.5">
-              <span className="text-[11px] text-gray-600 font-medium whitespace-nowrap">Delete?</span>
-              <button onClick={handleConfirm} disabled={deleting}
-                className="text-[11px] font-bold text-white bg-red-500 hover:bg-red-600 px-2 py-0.5 rounded-lg transition disabled:opacity-50">
+              <span className="text-[11px] text-gray-600 font-medium whitespace-nowrap">
+                Delete?
+              </span>
+              <button
+                onClick={handleConfirm}
+                disabled={deleting}
+                className="text-[11px] font-bold text-white bg-red-500 hover:bg-red-600 px-2 py-0.5 rounded-lg transition disabled:opacity-50"
+              >
                 {deleting ? "…" : "Yes"}
               </button>
-              <button onClick={() => setConfirming(false)}
-                className="text-[11px] font-bold text-gray-500 hover:text-gray-700 px-2 py-0.5 rounded-lg hover:bg-gray-100 transition">
+              <button
+                onClick={() => setConfirming(false)}
+                className="text-[11px] font-bold text-gray-500 hover:text-gray-700 px-2 py-0.5 rounded-lg hover:bg-gray-100 transition"
+              >
                 No
               </button>
             </div>
@@ -95,74 +152,94 @@ export default function AdminChatPage() {
   const [sending, setSending] = useState(false);
   const [search, setSearch] = useState("");
   const [toast, setToast] = useState(null);
+  // Mobile: show list or chat
+  const [mobileView, setMobileView] = useState("list"); // "list" | "chat"
 
   const socketRef = useRef(null);
   const bottomRef = useRef(null);
   const fileInputRef = useRef(null);
-  // Stable ref to selected so socket handler reads latest value without stale closure
   const selectedRef = useRef(null);
   selectedRef.current = selected;
 
-  const showToast = (msg, type = "success") => { setToast({ msg, type }); setTimeout(() => setToast(null), 3000); };
+  const showToast = (msg, type = "success") => {
+    setToast({ msg, type });
+    setTimeout(() => setToast(null), 3000);
+  };
 
-  // Select a pharmacy and immediately clear their unread badge
   const handleSelectUser = (u) => {
     setSelected(u);
-    setChatUsers(prev =>
-      prev.map(x => x._id === u._id ? { ...x, unreadCount: 0 } : x)
+    setMobileView("chat");
+    setChatUsers((prev) =>
+      prev.map((x) => (x._id === u._id ? { ...x, unreadCount: 0 } : x)),
     );
   };
 
   useEffect(() => {
     const stored = JSON.parse(localStorage.getItem("user"));
-    const role = (Array.isArray(stored?.roles) ? stored.roles[0] : stored?.roles || "").toLowerCase();
-    if (!stored || role !== "admin") { navigate("/login", { replace: true }); return; }
+    const role = (
+      Array.isArray(stored?.roles) ? stored.roles[0] : stored?.roles || ""
+    ).toLowerCase();
+    if (!stored || role !== "admin") {
+      navigate("/login", { replace: true });
+      return;
+    }
     setAdmin(stored);
 
-    const socket = io("https://keshab-sigdel-health-haul-backend-production.up.railway.app", { query: { userId: stored._id }, withCredentials: true });
+    const socket = io(
+      "https://keshab-sigdel-health-haul-backend-production.up.railway.app",
+      { query: { userId: stored._id }, withCredentials: true },
+    );
     socketRef.current = socket;
     socket.emit("joinUserRoom", stored._id);
     socket.on("getOnlineUsers", (ids) => setOnlineUsers(ids));
 
     socket.on("newMessage", (msg) => {
-      setMessages(prev => prev.some(m => m._id === msg._id) ? prev : [...prev, msg]);
-      // Update sender in list: bump lastMessage, increment unread if not active, move to top
+      setMessages((prev) =>
+        prev.some((m) => m._id === msg._id) ? prev : [...prev, msg],
+      );
       const senderId = msg.senderId?._id || msg.senderId;
-      const isActive = selectedRef.current && selectedRef.current._id === senderId;
-      setChatUsers(prev => {
-        const updated = prev.map(u =>
+      const isActive =
+        selectedRef.current && selectedRef.current._id === senderId;
+      setChatUsers((prev) => {
+        const updated = prev.map((u) =>
           u._id === senderId
             ? {
-              ...u,
-              lastMessage: msg.image ? "📷 Image" : msg.text || "",
-              lastMessageAt: Date.now(),
-              hasConversation: true,
-              unreadCount: isActive ? (u.unreadCount || 0) : (u.unreadCount || 0) + 1,
-            }
-            : u
+                ...u,
+                lastMessage: msg.image ? "📷 Image" : msg.text || "",
+                lastMessageAt: Date.now(),
+                hasConversation: true,
+                unreadCount: isActive
+                  ? u.unreadCount || 0
+                  : (u.unreadCount || 0) + 1,
+              }
+            : u,
         );
-        // Re-sort: most recent conversation first
         return [...updated].sort((a, b) => {
           if (a.hasConversation && !b.hasConversation) return -1;
           if (!a.hasConversation && b.hasConversation) return 1;
-          if (a.hasConversation && b.hasConversation) return (b.lastMessageAt || 0) - (a.lastMessageAt || 0);
+          if (a.hasConversation && b.hasConversation)
+            return (b.lastMessageAt || 0) - (a.lastMessageAt || 0);
           return a.name.localeCompare(b.name);
         });
       });
     });
 
     socket.on("messageDeleted", ({ messageId }) => {
-      setMessages(prev => prev.filter(m => m._id !== messageId));
+      setMessages((prev) => prev.filter((m) => m._id !== messageId));
     });
 
-    return () => { socket.emit("leaveUserRoom", stored._id); socket.disconnect(); };
+    return () => {
+      socket.emit("leaveUserRoom", stored._id);
+      socket.disconnect();
+    };
   }, []);
 
   useEffect(() => {
     if (!admin) return;
     setLoadingUsers(true);
-    api.get("/chat/users")
-      .then(r => setChatUsers(r.data?.users || []))
+    api
+      .get("/chat/users")
+      .then((r) => setChatUsers(r.data?.users || []))
       .catch(() => setChatUsers([]))
       .finally(() => setLoadingUsers(false));
   }, [admin]);
@@ -171,57 +248,105 @@ export default function AdminChatPage() {
     if (!selected) return;
     setLoadingMsgs(true);
     setMessages([]);
-    api.get(`/chat/messages/${selected._id}`)
-      .then(r => setMessages(r.data?.messages || []))
+    api
+      .get(`/chat/messages/${selected._id}`)
+      .then((r) => setMessages(r.data?.messages || []))
       .catch(() => setMessages([]))
       .finally(() => setLoadingMsgs(false));
   }, [selected]);
 
-  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   const handleDeleteMessage = useCallback(async (messageId) => {
     try {
       await api.delete(`/chat/messages/${messageId}`);
-      setMessages(prev => prev.filter(m => m._id !== messageId));
-    } catch (err) { showToast(err.response?.data?.message || "Failed to delete message", "error"); }
+      setMessages((prev) => prev.filter((m) => m._id !== messageId));
+    } catch (err) {
+      showToast(
+        err.response?.data?.message || "Failed to delete message",
+        "error",
+      );
+    }
   }, []);
 
-  const handleSend = useCallback(async (e) => {
-    e?.preventDefault();
-    if ((!text.trim() && !imageFile) || !selected || sending) return;
-    setSending(true);
-    try {
-      const fd = new FormData();
-      if (text.trim()) fd.append("text", text.trim());
-      if (imageFile) fd.append("image", imageFile);
-      const r = await api.post(`/chat/send/${selected._id}`, fd);
-      const newMsg = r.data?.message;
-      if (newMsg) setMessages(prev => prev.some(m => m._id === newMsg._id) ? prev : [...prev, newMsg]);
-      setText(""); setImageFile(null); setImagePreview(null);
-      setChatUsers(prev => {
-        const updated = prev.map(u =>
-          u._id === selected._id
-            ? { ...u, lastMessage: text.trim() || "📷 Image", hasConversation: true, lastMessageAt: Date.now() }
-            : u
-        );
-        return [...updated].sort((a, b) => {
-          if (a.hasConversation && !b.hasConversation) return -1;
-          if (!a.hasConversation && b.hasConversation) return 1;
-          if (a.hasConversation && b.hasConversation) return (b.lastMessageAt || 0) - (a.lastMessageAt || 0);
-          return a.name.localeCompare(b.name);
+  const handleSend = useCallback(
+    async (e) => {
+      e?.preventDefault();
+      if ((!text.trim() && !imageFile) || !selected || sending) return;
+      setSending(true);
+      try {
+        const fd = new FormData();
+        if (text.trim()) fd.append("text", text.trim());
+        if (imageFile) fd.append("image", imageFile);
+        const r = await api.post(`/chat/send/${selected._id}`, fd);
+        const newMsg = r.data?.message;
+        if (newMsg)
+          setMessages((prev) =>
+            prev.some((m) => m._id === newMsg._id) ? prev : [...prev, newMsg],
+          );
+        setText("");
+        setImageFile(null);
+        setImagePreview(null);
+        setChatUsers((prev) => {
+          const updated = prev.map((u) =>
+            u._id === selected._id
+              ? {
+                  ...u,
+                  lastMessage: text.trim() || "📷 Image",
+                  hasConversation: true,
+                  lastMessageAt: Date.now(),
+                }
+              : u,
+          );
+          return [...updated].sort((a, b) => {
+            if (a.hasConversation && !b.hasConversation) return -1;
+            if (!a.hasConversation && b.hasConversation) return 1;
+            if (a.hasConversation && b.hasConversation)
+              return (b.lastMessageAt || 0) - (a.lastMessageAt || 0);
+            return a.name.localeCompare(b.name);
+          });
         });
-      });
-    } catch (err) { showToast(err.response?.data?.message || "Failed to send message", "error"); }
-    finally { setSending(false); }
-  }, [text, imageFile, selected, sending]);
+      } catch (err) {
+        showToast(
+          err.response?.data?.message || "Failed to send message",
+          "error",
+        );
+      } finally {
+        setSending(false);
+      }
+    },
+    [text, imageFile, selected, sending],
+  );
 
-  const handleKeyDown = (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); } };
-  const handleImagePick = (e) => { const file = e.target.files[0]; if (!file) return; setImageFile(file); setImagePreview(URL.createObjectURL(file)); };
-  const clearImage = () => { setImageFile(null); setImagePreview(null); if (fileInputRef.current) fileInputRef.current.value = ""; };
-  const logout = () => { localStorage.removeItem("user"); navigate("/login", { replace: true }); };
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  };
+  const handleImagePick = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
+  };
+  const clearImage = () => {
+    setImageFile(null);
+    setImagePreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+  const logout = () => {
+    localStorage.removeItem("user");
+    navigate("/login", { replace: true });
+  };
 
-  const filteredUsers = chatUsers.filter(u =>
-    !search.trim() || u.name?.toLowerCase().includes(search.toLowerCase()) || u.email?.toLowerCase().includes(search.toLowerCase())
+  const filteredUsers = chatUsers.filter(
+    (u) =>
+      !search.trim() ||
+      u.name?.toLowerCase().includes(search.toLowerCase()) ||
+      u.email?.toLowerCase().includes(search.toLowerCase()),
   );
   const isOnline = (id) => onlineUsers.includes(id?.toString());
 
@@ -230,29 +355,63 @@ export default function AdminChatPage() {
   return (
     <div className="min-h-screen bg-[#f7f8fa]">
       {toast && (
-        <div className={`fixed top-5 right-5 z-50 flex items-center gap-2.5 px-4 py-3 rounded-xl shadow-lg text-white text-[13px] font-bold ${toast.type === "error" ? "bg-red-500" : "bg-green-600"}`}>
+        <div
+          className={`fixed top-5 right-5 z-50 flex items-center gap-2.5 px-4 py-3 rounded-xl shadow-lg text-white text-[13px] font-bold ${toast.type === "error" ? "bg-red-500" : "bg-green-600"}`}
+        >
           {toast.msg}
         </div>
       )}
 
-      <AdminSidebar active="chat" navigate={navigate} onLogout={logout} admin={admin} />
+      <AdminSidebar
+        active="chat"
+        navigate={navigate}
+        onLogout={logout}
+        admin={admin}
+      />
 
-      <div className="pl-[220px]">
-        <main className="px-8 py-7 min-h-screen flex flex-col">
-          <div className="mb-5">
-            <h1 className="text-[26px] font-black text-gray-900 tracking-tight">Messages</h1>
-            <p className="text-gray-400 text-[13px] mt-0.5">Chat with pharmacies across the platform</p>
+      <div className="pt-14 md:pt-0 md:pl-16 lg:pl-[220px]">
+        <main className="px-3 sm:px-6 lg:px-8 py-4 sm:py-7 min-h-screen flex flex-col">
+          <div className="mb-4 sm:mb-5">
+            <h1 className="text-[20px] sm:text-[26px] font-black text-gray-900 tracking-tight">
+              Messages
+            </h1>
+            <p className="text-gray-400 text-[12px] sm:text-[13px] mt-0.5">
+              Chat with pharmacies across the platform
+            </p>
           </div>
 
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-1" style={{ height: "calc(100vh - 190px)", minHeight: "500px" }}>
+          <div
+            className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-1"
+            style={{ height: "calc(100vh - 160px)", minHeight: "500px" }}
+          >
+            {/* On mobile: show list OR chat. On sm+: show both side by side */}
 
             {/* LEFT: Pharmacy list */}
-            <div className="w-72 flex-shrink-0 border-r border-gray-100 flex flex-col">
-              <div className="p-3.5 border-b border-gray-100">
+            <div
+              className={`${mobileView === "list" ? "flex" : "hidden"} sm:flex w-full sm:w-64 lg:w-72 flex-shrink-0 border-r border-gray-100 flex-col`}
+            >
+              <div className="p-3 sm:p-3.5 border-b border-gray-100">
                 <div className="relative">
-                  <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-                  <input type="text" placeholder="Search pharmacies…" value={search} onChange={e => setSearch(e.target.value)}
-                    className="w-full pl-8 pr-3 py-2 border border-gray-200 rounded-xl text-[12px] focus:outline-none focus:ring-2 focus:ring-green-400/30 focus:border-green-400 bg-gray-50 transition" />
+                  <svg
+                    className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                    />
+                  </svg>
+                  <input
+                    type="text"
+                    placeholder="Search pharmacies…"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="w-full pl-8 pr-3 py-2 border border-gray-200 rounded-xl text-[12px] focus:outline-none focus:ring-2 focus:ring-green-400/30 focus:border-green-400 bg-gray-50 transition"
+                  />
                 </div>
               </div>
 
@@ -260,128 +419,300 @@ export default function AdminChatPage() {
                 {loadingUsers ? (
                   <div className="p-4 space-y-3">
                     {[...Array(5)].map((_, i) => (
-                      <div key={i} className="flex items-center gap-3 animate-pulse">
+                      <div
+                        key={i}
+                        className="flex items-center gap-3 animate-pulse"
+                      >
                         <div className="w-10 h-10 rounded-full bg-gray-100 flex-shrink-0" />
-                        <div className="flex-1 space-y-1.5"><div className="h-3 bg-gray-100 rounded w-2/3" /><div className="h-2.5 bg-gray-100 rounded w-1/2" /></div>
+                        <div className="flex-1 space-y-1.5">
+                          <div className="h-3 bg-gray-100 rounded w-2/3" />
+                          <div className="h-2.5 bg-gray-100 rounded w-1/2" />
+                        </div>
                       </div>
                     ))}
                   </div>
                 ) : filteredUsers.length === 0 ? (
                   <div className="flex flex-col items-center justify-center h-full text-center p-6">
                     <div className="text-3xl mb-2">🏥</div>
-                    <p className="text-[13px] font-bold text-gray-600">No pharmacies found</p>
-                    <p className="text-[11px] text-gray-400 mt-1">Pharmacies will appear here once registered</p>
+                    <p className="text-[13px] font-bold text-gray-600">
+                      No pharmacies found
+                    </p>
+                    <p className="text-[11px] text-gray-400 mt-1">
+                      Pharmacies will appear here once registered
+                    </p>
                   </div>
-                ) : filteredUsers.map(u => {
-                  const online = isOnline(u._id);
-                  const isSelected = selected?._id === u._id;
-                  const hasUnread = (u.unreadCount || 0) > 0;
-                  return (
-                    <button key={u._id} onClick={() => handleSelectUser(u)}
-                      className={`w-full px-4 py-3.5 flex items-center gap-3 text-left transition-all border-b border-gray-50 last:border-0
-                        ${isSelected ? "bg-green-50 border-l-2 border-l-green-500"
-                          : hasUnread ? "bg-green-50/30 border-l-2 border-l-green-400"
-                            : "hover:bg-gray-50/70 border-l-2 border-l-transparent"}`}>
-                      <Avatar name={u.name} size="md" online={online} />
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between gap-1">
-                          <p className={`text-[13px] truncate ${isSelected ? "text-green-700 font-bold"
-                              : hasUnread ? "text-gray-900 font-black"
-                                : "text-gray-800 font-bold"
-                            }`}>{u.name}</p>
+                ) : (
+                  filteredUsers.map((u) => {
+                    const online = isOnline(u._id);
+                    const isSelected = selected?._id === u._id;
+                    const hasUnread = (u.unreadCount || 0) > 0;
+                    return (
+                      <button
+                        key={u._id}
+                        onClick={() => handleSelectUser(u)}
+                        className={`w-full px-3 sm:px-4 py-3 sm:py-3.5 flex items-center gap-3 text-left transition-all border-b border-gray-50 last:border-0
+                        ${
+                          isSelected
+                            ? "bg-green-50 border-l-2 border-l-green-500"
+                            : hasUnread
+                              ? "bg-green-50/30 border-l-2 border-l-green-400"
+                              : "hover:bg-gray-50/70 border-l-2 border-l-transparent"
+                        }`}
+                      >
+                        <Avatar name={u.name} size="md" online={online} />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-1">
+                            <p
+                              className={`text-[13px] truncate ${
+                                isSelected
+                                  ? "text-green-700 font-bold"
+                                  : hasUnread
+                                    ? "text-gray-900 font-black"
+                                    : "text-gray-800 font-bold"
+                              }`}
+                            >
+                              {u.name}
+                            </p>
 
-                          {hasUnread ? (
-                            <span className="min-w-[18px] h-[18px] bg-green-500 text-white text-[9px] font-black rounded-full flex items-center justify-center px-1 flex-shrink-0">
-                              {u.unreadCount > 9 ? "9+" : u.unreadCount}
-                            </span>
-                          ) : online ? (
-                            <span className="text-[9px] font-bold text-green-600 bg-green-100 px-1.5 py-0.5 rounded-full flex-shrink-0">Online</span>
-                          ) : null}
+                            {hasUnread ? (
+                              <span className="min-w-[18px] h-[18px] bg-green-500 text-white text-[9px] font-black rounded-full flex items-center justify-center px-1 flex-shrink-0">
+                                {u.unreadCount > 9 ? "9+" : u.unreadCount}
+                              </span>
+                            ) : online ? (
+                              <span className="text-[9px] font-bold text-green-600 bg-green-100 px-1.5 py-0.5 rounded-full flex-shrink-0">
+                                Online
+                              </span>
+                            ) : null}
+                          </div>
+                          <p
+                            className={`text-[11px] truncate mt-0.5 ${hasUnread ? "text-gray-700 font-semibold" : "text-gray-400"}`}
+                          >
+                            {u.lastMessage || "No messages yet"}
+                          </p>
                         </div>
-                        <p className={`text-[11px] truncate mt-0.5 ${hasUnread ? "text-gray-700 font-semibold" : "text-gray-400"}`}>
-                          {u.lastMessage || "No messages yet"}
-                        </p>
-                      </div>
-                    </button>
-                  );
-                })}
+                      </button>
+                    );
+                  })
+                )}
               </div>
             </div>
 
             {/* RIGHT: Chat window */}
-            {!selected ? (
-              <div className="flex-1 flex flex-col items-center justify-center text-center p-8">
-                <div className="w-16 h-16 bg-green-50 rounded-2xl flex items-center justify-center mb-4 border border-green-100">
-                  <svg className="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 3H3a2 2 0 00-2 2v13a2 2 0 002 2h5l3 3 3-3h7a2 2 0 002-2V5a2 2 0 00-2-2z" /></svg>
-                </div>
-                <h3 className="text-[16px] font-black text-gray-800 mb-1">Select a pharmacy</h3>
-                <p className="text-[13px] text-gray-400 max-w-xs">Choose a pharmacy from the list to start a conversation.</p>
-              </div>
-            ) : (
-              <div className="flex-1 flex flex-col min-w-0">
-                <div className="px-5 py-3.5 border-b border-gray-100 flex items-center gap-3 bg-white">
-                  <Avatar name={selected.name} size="md" online={isOnline(selected._id)} />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="text-[14px] font-black text-gray-900">{selected.name}</p>
-                      <span className="text-[9px] font-bold text-green-700 bg-green-100 px-1.5 py-0.5 rounded-full">Pharmacy</span>
-                    </div>
-                    <p className="text-[11px] text-gray-400">
-                      {isOnline(selected._id)
-                        ? <span className="text-green-500 font-semibold">● Online</span>
-                        : <span>{selected.email}</span>}
-                    </p>
+            <div
+              className={`${mobileView === "chat" ? "flex" : "hidden"} sm:flex flex-1 flex-col min-w-0`}
+            >
+              {!selected ? (
+                <div className="flex-1 flex flex-col items-center justify-center text-center p-8">
+                  <div className="w-16 h-16 bg-green-50 rounded-2xl flex items-center justify-center mb-4 border border-green-100">
+                    <svg
+                      className="w-8 h-8 text-green-500"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={1.5}
+                        d="M8 12h.01M12 12h.01M16 12h.01M21 3H3a2 2 0 00-2 2v13a2 2 0 002 2h5l3 3 3-3h7a2 2 0 002-2V5a2 2 0 00-2-2z"
+                      />
+                    </svg>
                   </div>
+                  <h3 className="text-[16px] font-black text-gray-800 mb-1">
+                    Select a pharmacy
+                  </h3>
+                  <p className="text-[13px] text-gray-400 max-w-xs">
+                    Choose a pharmacy from the list to start a conversation.
+                  </p>
                 </div>
-
-                <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3 bg-gray-50/40">
-                  {loadingMsgs ? (
-                    <div className="flex items-center justify-center h-full"><div className="w-7 h-7 border-[2.5px] border-green-500 border-t-transparent rounded-full animate-spin" /></div>
-                  ) : messages.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center h-full text-center">
-                      <div className="text-3xl mb-2">💬</div>
-                      <p className="text-[13px] font-bold text-gray-600">No messages yet</p>
-                      <p className="text-[11px] text-gray-400 mt-1">Start the conversation with this pharmacy</p>
+              ) : (
+                <>
+                  <div className="px-3 sm:px-5 py-3 sm:py-3.5 border-b border-gray-100 flex items-center gap-3 bg-white">
+                    {/* Back button on mobile */}
+                    <button
+                      onClick={() => setMobileView("list")}
+                      className="sm:hidden flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition"
+                    >
+                      <svg
+                        className="w-4 h-4 text-gray-600"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M15 19l-7-7 7-7"
+                        />
+                      </svg>
+                    </button>
+                    <Avatar
+                      name={selected.name}
+                      size="md"
+                      online={isOnline(selected._id)}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="text-[13px] sm:text-[14px] font-black text-gray-900 truncate">
+                          {selected.name}
+                        </p>
+                        <span className="text-[9px] font-bold text-green-700 bg-green-100 px-1.5 py-0.5 rounded-full hidden sm:inline">
+                          Pharmacy
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-gray-400">
+                        {isOnline(selected._id) ? (
+                          <span className="text-green-500 font-semibold">
+                            ● Online
+                          </span>
+                        ) : (
+                          <span className="truncate block">
+                            {selected.email}
+                          </span>
+                        )}
+                      </p>
                     </div>
-                  ) : messages.map(msg => (
-                    <MessageBubble key={msg._id} msg={msg}
-                      isMine={msg.senderId === admin._id || msg.senderId?._id === admin._id}
-                      onDelete={handleDeleteMessage} />
-                  ))}
-                  <div ref={bottomRef} />
-                </div>
-
-                {imagePreview && (
-                  <div className="px-5 py-2 border-t border-gray-100 bg-white flex items-center gap-3">
-                    <div className="relative">
-                      <img src={imagePreview} alt="preview" className="w-14 h-14 rounded-xl object-cover border border-gray-200" />
-                      <button onClick={clearImage} className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-[10px] font-bold hover:bg-red-600 transition">×</button>
-                    </div>
-                    <p className="text-[12px] text-gray-500 truncate">{imageFile?.name}</p>
                   </div>
-                )}
 
-                <div className="px-4 py-3 border-t border-gray-100 bg-white">
-                  <form onSubmit={handleSend} className="flex items-end gap-2">
-                    <button type="button" onClick={() => fileInputRef.current?.click()}
-                      className="w-9 h-9 flex items-center justify-center text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-xl transition flex-shrink-0">
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                    </button>
-                    <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImagePick} />
-                    <textarea value={text} onChange={e => setText(e.target.value)} onKeyDown={handleKeyDown}
-                      placeholder="Type a message… (Enter to send)" rows={1}
-                      className="flex-1 border border-gray-200 rounded-xl px-3.5 py-2.5 text-[13px] focus:outline-none focus:ring-2 focus:ring-green-400/30 focus:border-green-400 bg-gray-50/50 resize-none transition max-h-28 leading-relaxed"
-                      style={{ overflowY: "auto" }} />
-                    <button type="submit" disabled={sending || (!text.trim() && !imageFile)}
-                      className="w-9 h-9 flex items-center justify-center bg-gray-900 text-white rounded-xl hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition flex-shrink-0">
-                      {sending
-                        ? <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
-                        : <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>}
-                    </button>
-                  </form>
-                </div>
-              </div>
-            )}
+                  <div className="flex-1 overflow-y-auto px-3 sm:px-5 py-4 space-y-3 bg-gray-50/40">
+                    {loadingMsgs ? (
+                      <div className="flex items-center justify-center h-full">
+                        <div className="w-7 h-7 border-[2.5px] border-green-500 border-t-transparent rounded-full animate-spin" />
+                      </div>
+                    ) : messages.length === 0 ? (
+                      <div className="flex flex-col items-center justify-center h-full text-center">
+                        <div className="text-3xl mb-2">💬</div>
+                        <p className="text-[13px] font-bold text-gray-600">
+                          No messages yet
+                        </p>
+                        <p className="text-[11px] text-gray-400 mt-1">
+                          Start the conversation with this pharmacy
+                        </p>
+                      </div>
+                    ) : (
+                      messages.map((msg) => (
+                        <MessageBubble
+                          key={msg._id}
+                          msg={msg}
+                          isMine={
+                            msg.senderId === admin._id ||
+                            msg.senderId?._id === admin._id
+                          }
+                          onDelete={handleDeleteMessage}
+                        />
+                      ))
+                    )}
+                    <div ref={bottomRef} />
+                  </div>
+
+                  {imagePreview && (
+                    <div className="px-3 sm:px-5 py-2 border-t border-gray-100 bg-white flex items-center gap-3">
+                      <div className="relative">
+                        <img
+                          src={imagePreview}
+                          alt="preview"
+                          className="w-14 h-14 rounded-xl object-cover border border-gray-200"
+                        />
+                        <button
+                          onClick={clearImage}
+                          className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-[10px] font-bold hover:bg-red-600 transition"
+                        >
+                          ×
+                        </button>
+                      </div>
+                      <p className="text-[12px] text-gray-500 truncate">
+                        {imageFile?.name}
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="px-3 sm:px-4 py-3 border-t border-gray-100 bg-white">
+                    <form
+                      onSubmit={handleSend}
+                      className="flex items-end gap-2"
+                    >
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="w-9 h-9 flex items-center justify-center text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-xl transition flex-shrink-0"
+                      >
+                        <svg
+                          className="w-5 h-5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={1.75}
+                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                          />
+                        </svg>
+                      </button>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleImagePick}
+                      />
+                      <textarea
+                        value={text}
+                        onChange={(e) => setText(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                        placeholder="Type a message…"
+                        rows={1}
+                        className="flex-1 border border-gray-200 rounded-xl px-3 sm:px-3.5 py-2 sm:py-2.5 text-[13px] focus:outline-none focus:ring-2 focus:ring-green-400/30 focus:border-green-400 bg-gray-50/50 resize-none transition max-h-28 leading-relaxed"
+                        style={{ overflowY: "auto" }}
+                      />
+                      <button
+                        type="submit"
+                        disabled={sending || (!text.trim() && !imageFile)}
+                        className="w-9 h-9 flex items-center justify-center bg-gray-900 text-white rounded-xl hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition flex-shrink-0"
+                      >
+                        {sending ? (
+                          <svg
+                            className="animate-spin w-4 h-4"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                          >
+                            <circle
+                              className="opacity-25"
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                            />
+                            <path
+                              className="opacity-75"
+                              fill="currentColor"
+                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                            />
+                          </svg>
+                        ) : (
+                          <svg
+                            className="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
+                            />
+                          </svg>
+                        )}
+                      </button>
+                    </form>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </main>
       </div>
