@@ -7,7 +7,6 @@ import {
 } from "react-leaflet";
 import L from "leaflet";
 
-// ── Fix Leaflet broken icons in Vite ──────────────────────────────────────────
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
@@ -49,7 +48,6 @@ async function fetchOsrmRoute(from, to) {
   return null;
 }
 
-// ── Main Live Tracking Map Panel (full-width, matches customer UI) ─────────────
 function MainLiveMapPanel({ user, pendingOrder, locationSocketRef }) {
   const [pharmacyPos,    setPharmacyPos]    = useState(null);
   const [customerPos,    setCustomerPos]    = useState(null);
@@ -58,7 +56,6 @@ function MainLiveMapPanel({ user, pendingOrder, locationSocketRef }) {
   const [routeLoading,   setRouteLoading]   = useState(false);
   const DEFAULT_CENTER = [27.7172, 85.324];
 
-  // 1. Load pharmacy's last-saved DB location
   useEffect(() => {
     if (!user?._id) return;
     api.get(`/auth/user/${user._id}`)
@@ -71,7 +68,6 @@ function MainLiveMapPanel({ user, pendingOrder, locationSocketRef }) {
       .catch(() => {});
   }, [user]);
 
-  // 2. Load customer delivery coords from the pending order
   useEffect(() => {
     if (!pendingOrder) return;
     const lat = Number(pendingOrder.deliveryAddress?.lat ?? pendingOrder.deliveryAddress?.latitude ?? "");
@@ -79,35 +75,17 @@ function MainLiveMapPanel({ user, pendingOrder, locationSocketRef }) {
     if (lat && lng) setCustomerPos([lat, lng]);
   }, [pendingOrder]);
 
-  // 3. Listen for customer live location from socket.
-  // KEY FIX: capture .current into a variable and use THAT as the dep.
-  // locationSocketRef is a stable ref object — its identity never changes, so
-  // [locationSocketRef] never re-triggers the effect even when the parent
-  // creates a brand-new socket. Using the socket instance itself as the dep
-  // means React re-attaches listeners every time the parent swaps the socket.
   const currentSocket = locationSocketRef?.current ?? null;
 
   useEffect(() => {
     if (!currentSocket || !pendingOrder) return;
-
-    const onUserLoc = ({ latitude, longitude }) => {
-      setCustomerPos([latitude, longitude]);
-      setCustomerOnline(true);
-    };
-    const onOffline = ({ role }) => {
-      if (role === "user") setCustomerOnline(false);
-    };
-
-    currentSocket.on("userLocation",       onUserLoc);
+    const onUserLoc = ({ latitude, longitude }) => { setCustomerPos([latitude, longitude]); setCustomerOnline(true); };
+    const onOffline = ({ role }) => { if (role === "user") setCustomerOnline(false); };
+    currentSocket.on("userLocation", onUserLoc);
     currentSocket.on("participantOffline", onOffline);
+    return () => { currentSocket.off("userLocation", onUserLoc); currentSocket.off("participantOffline", onOffline); };
+  }, [currentSocket, pendingOrder]);
 
-    return () => {
-      currentSocket.off("userLocation",       onUserLoc);
-      currentSocket.off("participantOffline", onOffline);
-    };
-  }, [currentSocket, pendingOrder]); // currentSocket changes when parent recreates socket
-
-  // 4. Mirror pharmacy's own GPS onto the map by intercepting emit calls
   useEffect(() => {
     if (!currentSocket) return;
     const origEmit = currentSocket.emit.bind(currentSocket);
@@ -130,7 +108,6 @@ function MainLiveMapPanel({ user, pendingOrder, locationSocketRef }) {
 
   const visiblePositions = [pharmacyPos, customerPos].filter(Boolean);
 
-  // ── Empty state ──────────────────────────────────────────────────────────
   if (!pendingOrder) {
     return (
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-7">
@@ -143,8 +120,8 @@ function MainLiveMapPanel({ user, pendingOrder, locationSocketRef }) {
         </div>
         <div className="py-14 flex flex-col items-center justify-center bg-gray-50/60">
           <div className="text-4xl mb-3">🗺️</div>
-          <p className="text-[13px] font-bold text-gray-500">Live delivery map appears when you have a pending order</p>
-          <p className="text-[11px] text-gray-400 mt-1">Your GPS location will be shared with the customer automatically</p>
+          <p className="text-[13px] font-bold text-gray-500 text-center px-4">Live delivery map appears when you have a pending order</p>
+          <p className="text-[11px] text-gray-400 mt-1 text-center px-4">Your GPS location will be shared with the customer automatically</p>
         </div>
       </div>
     );
@@ -152,122 +129,60 @@ function MainLiveMapPanel({ user, pendingOrder, locationSocketRef }) {
 
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-7">
-
-      {/* ── Header — matches customer's "Live Order Tracking" header ── */}
-      <div className="px-5 py-3.5 border-b border-gray-100 flex items-center justify-between">
+      <div className="px-4 sm:px-5 py-3.5 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center gap-2 justify-between">
         <div className="flex items-center gap-2.5">
-          <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+          <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse flex-shrink-0" />
           <div>
             <p className="text-[15px] font-black text-gray-900">Live Order Tracking</p>
-            <p className="text-[11px] text-gray-400">
-              Order #{pendingOrder._id?.slice(-8).toUpperCase()} · {pendingOrder.userId?.name || "Customer"}
-            </p>
+            <p className="text-[11px] text-gray-400">Order #{pendingOrder._id?.slice(-8).toUpperCase()} · {pendingOrder.userId?.name || "Customer"}</p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           {customerOnline && (
             <span className="flex items-center gap-1.5 text-[11px] font-bold text-blue-600 bg-blue-50 border border-blue-100 px-2.5 py-1 rounded-full">
-              <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
-              Customer is sharing live location
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />Customer live
             </span>
           )}
           {pharmacyPos && (
             <span className="flex items-center gap-1.5 text-[11px] font-bold text-green-700 bg-green-50 border border-green-100 px-2.5 py-1 rounded-full">
-              <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-              {user?.name || "Pharmacy"} is sharing live location
+              <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />You're live
             </span>
           )}
         </div>
       </div>
-
-      {/* ── Route info strip (shown when route is fetched) ── */}
       {route && (
         <div className="flex items-center gap-4 px-5 py-2 bg-blue-50 border-b border-blue-100">
           <span className="text-[12px] font-bold text-blue-700">📏 {route.distance} km</span>
           <span className="w-px h-4 bg-blue-200" />
-          <span className="text-[12px] font-bold text-blue-700">⏱ ~{route.duration} min drive</span>
-          <button
-            onClick={() => setRoute(null)}
-            className="ml-auto text-[11px] text-blue-400 hover:text-blue-600 font-semibold transition"
-          >✕ Clear route</button>
+          <span className="text-[12px] font-bold text-blue-700">⏱ ~{route.duration} min</span>
+          <button onClick={() => setRoute(null)} className="ml-auto text-[11px] text-blue-400 hover:text-blue-600 font-semibold transition">✕ Clear</button>
         </div>
       )}
-
-      {/* ── Map — full width, tall like the customer screenshot ── */}
       <div className="relative">
-        <MapContainer
-          center={pharmacyPos || DEFAULT_CENTER}
-          zoom={14}
-          style={{ height: "320px", width: "100%" }}
-          zoomControl={true}
-          scrollWheelZoom={true}
-          attributionControl={true}
-        >
+        <MapContainer center={pharmacyPos || DEFAULT_CENTER} zoom={14} style={{ height: "clamp(200px, 40vw, 320px)", width: "100%" }} zoomControl={true} scrollWheelZoom={true} attributionControl={true}>
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
           {visiblePositions.length > 0 && <BoundsFitter positions={visiblePositions} />}
-
-          {pharmacyPos && (
-            <Marker position={pharmacyPos} icon={PHARMACY_ICON}>
-              <Popup>
-                <div className="text-[13px] font-semibold">🏥 {user?.name || "Your Pharmacy"}</div>
-                <div className="text-[11px] text-gray-500 mt-0.5">Your current location</div>
-              </Popup>
-            </Marker>
-          )}
-
-          {customerPos && (
-            <Marker position={customerPos} icon={USER_ICON}>
-              <Popup>
-                <div className="text-[13px] font-semibold">📍 {pendingOrder.userId?.name || "Customer"}</div>
-                <div className="text-[11px] text-gray-500 mt-0.5">Delivery destination</div>
-              </Popup>
-            </Marker>
-          )}
-
-          {route && (
-            <Polyline
-              positions={route.coords}
-              pathOptions={{ color: "#3b82f6", weight: 5, opacity: 0.85, dashArray: "10 5" }}
-            />
-          )}
+          {pharmacyPos && <Marker position={pharmacyPos} icon={PHARMACY_ICON}><Popup><div className="text-[13px] font-semibold">🏥 {user?.name || "Your Pharmacy"}</div></Popup></Marker>}
+          {customerPos && <Marker position={customerPos} icon={USER_ICON}><Popup><div className="text-[13px] font-semibold">📍 {pendingOrder.userId?.name || "Customer"}</div></Popup></Marker>}
+          {route && <Polyline positions={route.coords} pathOptions={{ color: "#3b82f6", weight: 5, opacity: 0.85, dashArray: "10 5" }} />}
         </MapContainer>
       </div>
-
-      {/* ── Bottom bar — matches customer's footer with action button ── */}
-      <div className="px-5 py-3 bg-gray-950 flex items-center justify-between gap-3">
+      <div className="px-4 sm:px-5 py-3 bg-gray-950 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
         <p className="text-[11px] text-gray-400">
-          {pharmacyPos && customerPos
-            ? "Both locations loaded — you can get the route"
-            : pharmacyPos
-              ? "Waiting for customer delivery pin…"
-              : "Acquiring your GPS location…"}
+          {pharmacyPos && customerPos ? "Both locations loaded — get the route" : pharmacyPos ? "Waiting for customer pin…" : "Acquiring GPS…"}
         </p>
-
         <div className="flex items-center gap-2">
-          {route && (
-            <span className="text-[11px] text-green-400 font-bold">Route active ✓</span>
-          )}
+          {route && <span className="text-[11px] text-green-400 font-bold">Route active ✓</span>}
           {pharmacyPos && customerPos && !route && (
-            <button
-              onClick={handleGetRoute}
-              disabled={routeLoading}
-              className="flex items-center gap-2 bg-green-500 hover:bg-green-400 disabled:opacity-50 text-white text-[12px] font-bold px-4 py-2 rounded-xl transition flex-shrink-0"
-            >
-              {routeLoading
-                ? <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                : <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" /></svg>
-              }
-              {routeLoading ? "Loading route…" : "Get Route"}
+            <button onClick={handleGetRoute} disabled={routeLoading} className="flex items-center gap-2 bg-green-500 hover:bg-green-400 disabled:opacity-50 text-white text-[12px] font-bold px-4 py-2 rounded-xl transition">
+              {routeLoading ? <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" /></svg>}
+              {routeLoading ? "Loading…" : "Get Route"}
             </button>
           )}
           {route && (
-            <button
-              onClick={handleGetRoute}
-              disabled={routeLoading}
-              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-[12px] font-bold px-4 py-2 rounded-xl transition flex-shrink-0"
-            >
+            <button onClick={handleGetRoute} disabled={routeLoading} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-[12px] font-bold px-4 py-2 rounded-xl transition">
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
-              Refresh Route
+              Refresh
             </button>
           )}
         </div>
@@ -276,84 +191,6 @@ function MainLiveMapPanel({ user, pendingOrder, locationSocketRef }) {
   );
 }
 
-// ── Sidebar Map Panel (small, in sidebar) ─────────────────────────────────────
-function SidebarMapPanel({ user, pendingOrder, locationSocketRef }) {
-  const [pharmacyPos, setPharmacyPos] = useState(null);
-  const [customerPos, setCustomerPos] = useState(null);
-  const DEFAULT_CENTER = [27.7172, 85.324];
-
-  useEffect(() => {
-    if (!user?._id) return;
-    api.get(`/auth/user/${user._id}`)
-      .then(({ data }) => {
-        const loc = data?.user?.location;
-        const lat = Number(loc?.latitude);
-        const lng = Number(loc?.longitude);
-        if (lat && lng) setPharmacyPos([lat, lng]);
-      }).catch(() => {});
-  }, [user]);
-
-  useEffect(() => {
-    if (!pendingOrder) return;
-    const lat = Number(pendingOrder.deliveryAddress?.lat ?? pendingOrder.deliveryAddress?.latitude ?? "");
-    const lng = Number(pendingOrder.deliveryAddress?.lng ?? pendingOrder.deliveryAddress?.longitude ?? "");
-    if (lat && lng) setCustomerPos([lat, lng]);
-  }, [pendingOrder]);
-
-  useEffect(() => {
-    if (!locationSocketRef?.current) return;
-    const socket = locationSocketRef.current;
-    const origEmit = socket.emit.bind(socket);
-    socket.emit = function (event, payload, ...rest) {
-      if (event === "pharmacyShareLocation" && payload?.latitude && payload?.longitude) {
-        setPharmacyPos([payload.latitude, payload.longitude]);
-      }
-      return origEmit(event, payload, ...rest);
-    };
-    return () => { socket.emit = origEmit; };
-  }, [locationSocketRef]);
-
-  const visiblePositions = [pharmacyPos, customerPos].filter(Boolean);
-
-  if (!pendingOrder) {
-    return (
-      <div className="mx-3 mb-3 rounded-xl bg-gray-50 border border-dashed border-gray-200 px-3 py-5 text-center">
-        <div className="text-2xl mb-2">🗺️</div>
-        <p className="text-[11px] font-bold text-gray-500">No active orders</p>
-        <p className="text-[10px] text-gray-400 mt-0.5 leading-relaxed">Live map appears when you have a pending order</p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="mx-3 mb-3 rounded-xl overflow-hidden border border-gray-200 shadow-sm bg-white">
-      <div className="px-3 py-2 bg-gray-950 flex items-center gap-2">
-        <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse flex-shrink-0" />
-        <p className="text-[10px] font-bold text-white truncate">
-          Order #{pendingOrder._id?.slice(-6).toUpperCase()}
-        </p>
-      </div>
-      <MapContainer
-        center={pharmacyPos || DEFAULT_CENTER}
-        zoom={13}
-        style={{ height: "160px", width: "100%" }}
-        zoomControl={false}
-        scrollWheelZoom={false}
-        attributionControl={false}
-      >
-        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-        {visiblePositions.length > 0 && <BoundsFitter positions={visiblePositions} />}
-        {pharmacyPos && <Marker position={pharmacyPos} icon={makeIcon("🏥", "#16a34a")}><Popup><div className="text-[12px] font-semibold">🏥 Your Location</div></Popup></Marker>}
-        {customerPos && <Marker position={customerPos} icon={makeIcon("📍", "#2563eb")}><Popup><div className="text-[12px] font-semibold">📍 Delivery Point</div></Popup></Marker>}
-      </MapContainer>
-      <div className="px-3 py-1.5 bg-gray-50 border-t border-gray-100">
-        <p className="text-[9px] text-gray-400 text-center">See full map on dashboard ↑</p>
-      </div>
-    </div>
-  );
-}
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
 const getRole = (stored) => {
   const raw = Array.isArray(stored?.roles) ? stored.roles[0] : stored?.roles;
   return (raw || "").toLowerCase().trim();
@@ -370,26 +207,25 @@ const TYPE_META = {
 const notifMeta = (type) => TYPE_META[type] || { icon: "🔔", color: "bg-gray-50 text-gray-600" };
 function timeAgo(date) {
   const diff = Math.floor((Date.now() - new Date(date)) / 1000);
-  if (diff < 60)    return "just now";
-  if (diff < 3600)  return `${Math.floor(diff / 60)}m ago`;
+  if (diff < 60) return "just now";
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
   if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
   return `${Math.floor(diff / 86400)}d ago`;
 }
 
-// ── NotificationBell ──────────────────────────────────────────────────────────
 function NotificationBell({ userId }) {
-  const [open,    setOpen]    = useState(false);
-  const [notifs,  setNotifs]  = useState([]);
-  const [unread,  setUnread]  = useState(0);
+  const [open, setOpen] = useState(false);
+  const [notifs, setNotifs] = useState([]);
+  const [unread, setUnread] = useState(0);
   const [loading, setLoading] = useState(true);
   const dropdownRef = useRef(null);
-  const socketRef   = useRef(null);
+  const socketRef = useRef(null);
 
   const fetchNotifs = useCallback(async () => {
     try {
       const { data } = await api.get("/notifications");
       setNotifs(data.notifications || []);
-      setUnread(data.unreadCount   || 0);
+      setUnread(data.unreadCount || 0);
     } catch { } finally { setLoading(false); }
   }, []);
 
@@ -408,9 +244,7 @@ function NotificationBell({ userId }) {
   }, [userId]);
 
   useEffect(() => {
-    const handler = (e) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) setOpen(false);
-    };
+    const handler = (e) => { if (dropdownRef.current && !dropdownRef.current.contains(e.target)) setOpen(false); };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
@@ -434,26 +268,16 @@ function NotificationBell({ userId }) {
 
   return (
     <div className="relative" ref={dropdownRef}>
-      <button
-        onClick={() => setOpen(o => !o)}
-        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium text-gray-500 hover:bg-gray-50 hover:text-gray-800 transition-all duration-150"
-      >
+      <button onClick={() => setOpen(o => !o)} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium text-gray-500 hover:bg-gray-50 hover:text-gray-800 transition-all duration-150">
         <span className="flex-shrink-0 opacity-50 relative">
           <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
           </svg>
-          {unread > 0 && (
-            <span className="absolute -top-1.5 -right-1.5 min-w-[14px] h-[14px] bg-red-500 text-white text-[8px] font-black rounded-full flex items-center justify-center px-[2px] leading-none">
-              {unread > 9 ? "9+" : unread}
-            </span>
-          )}
+          {unread > 0 && <span className="absolute -top-1.5 -right-1.5 min-w-[14px] h-[14px] bg-red-500 text-white text-[8px] font-black rounded-full flex items-center justify-center px-[2px] leading-none">{unread > 9 ? "9+" : unread}</span>}
         </span>
         <span>Notifications</span>
-        {unread > 0 && (
-          <span className="ml-auto bg-red-100 text-red-600 text-[10px] font-black px-1.5 py-0.5 rounded-full">{unread}</span>
-        )}
+        {unread > 0 && <span className="ml-auto bg-red-100 text-red-600 text-[10px] font-black px-1.5 py-0.5 rounded-full">{unread}</span>}
       </button>
-
       {open && (
         <div className="absolute left-full top-0 ml-2 w-80 bg-white rounded-2xl shadow-xl border border-gray-100 z-[9999] overflow-hidden">
           <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
@@ -461,27 +285,17 @@ function NotificationBell({ userId }) {
               <p className="text-[14px] font-black text-gray-900">Notifications</p>
               {unread > 0 && <span className="bg-red-100 text-red-600 text-[10px] font-black px-1.5 py-0.5 rounded-full">{unread} new</span>}
             </div>
-            {unread > 0 && (
-              <button onClick={markAllRead} className="text-[11px] font-bold text-green-600 hover:text-green-700 transition">Mark all read</button>
-            )}
+            {unread > 0 && <button onClick={markAllRead} className="text-[11px] font-bold text-green-600 hover:text-green-700 transition">Mark all read</button>}
           </div>
           <div className="max-h-[380px] overflow-y-auto">
             {loading ? (
               <div className="py-10 flex justify-center"><div className="w-6 h-6 border-2 border-green-500 border-t-transparent rounded-full animate-spin" /></div>
             ) : notifs.length === 0 ? (
-              <div className="py-12 text-center">
-                <div className="text-3xl mb-2">🔔</div>
-                <p className="text-[13px] font-bold text-gray-600">No notifications yet</p>
-                <p className="text-[11px] text-gray-400 mt-1">You're all caught up!</p>
-              </div>
+              <div className="py-12 text-center"><div className="text-3xl mb-2">🔔</div><p className="text-[13px] font-bold text-gray-600">No notifications yet</p><p className="text-[11px] text-gray-400 mt-1">You're all caught up!</p></div>
             ) : notifs.slice(0, 20).map(n => {
               const m = notifMeta(n.type);
               return (
-                <button
-                  key={n._id}
-                  onClick={() => { if (!n.isRead) markRead(n._id); setOpen(false); }}
-                  className={`w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-gray-50 transition border-b border-gray-50 last:border-0 ${!n.isRead ? "bg-green-50/40" : ""}`}
-                >
+                <button key={n._id} onClick={() => { if (!n.isRead) markRead(n._id); setOpen(false); }} className={`w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-gray-50 transition border-b border-gray-50 last:border-0 ${!n.isRead ? "bg-green-50/40" : ""}`}>
                   <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-base flex-shrink-0 mt-0.5 ${m.color}`}>{m.icon}</div>
                   <div className="flex-1 min-w-0">
                     <p className={`text-[12px] leading-snug ${n.isRead ? "text-gray-700 font-medium" : "text-gray-900 font-bold"}`}>{n.title}</p>
@@ -499,21 +313,22 @@ function NotificationBell({ userId }) {
   );
 }
 
-// ── Sidebar ───────────────────────────────────────────────────────────────────
-function Sidebar({ user, active, onLogout, navigate, pendingOrder, locationSocketRef }) {
+function Sidebar({ user, active, onLogout, navigate, pendingOrder, locationSocketRef, sidebarOpen, setSidebarOpen }) {
   const NAV = [
-    { key: "dashboard",     label: "Dashboard",     path: "/pharmacy/dashboard", icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg> },
-    { key: "orders",        label: "Orders",        path: "/pharmacy/orders",    icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg> },
-    { key: "products",      label: "Products",      path: "/pharmacy/products",  icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg> },
-    { key: "reviews",       label: "Reviews",       path: "/pharmacy/reviews",   icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg> },
-    { key: "chat",          label: "Messages",      path: "/pharmacy/chat",      icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M8 12h.01M12 12h.01M16 12h.01M21 3H3a2 2 0 00-2 2v13a2 2 0 002 2h5l3 3 3-3h7a2 2 0 002-2V5a2 2 0 00-2-2z" /></svg> },
+    { key: "dashboard", label: "Dashboard", path: "/pharmacy/dashboard", icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg> },
+    { key: "orders", label: "Orders", path: "/pharmacy/orders", icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg> },
+    { key: "products", label: "Products", path: "/pharmacy/products", icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg> },
+    { key: "reviews", label: "Reviews", path: "/pharmacy/reviews", icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg> },
+    { key: "chat", label: "Messages", path: "/pharmacy/chat", icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M8 12h.01M12 12h.01M16 12h.01M21 3H3a2 2 0 00-2 2v13a2 2 0 002 2h5l3 3 3-3h7a2 2 0 002-2V5a2 2 0 00-2-2z" /></svg> },
     { key: "notifications", label: "Notifications", path: null, icon: null },
-    { key: "profile",       label: "Profile",       path: "/pharmacy/profile",   icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg> },
+    { key: "profile", label: "Profile", path: "/pharmacy/profile", icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg> },
   ];
 
   return (
-    <aside className="w-[220px] min-h-screen bg-white border-r border-gray-100 flex flex-col flex-shrink-0 fixed left-0 top-0 bottom-0 z-20 overflow-y-auto">
-      {/* Brand */}
+    <aside className={`fixed left-0 top-0 bottom-0 z-30 w-[220px] bg-white border-r border-gray-100 flex flex-col flex-shrink-0 overflow-y-auto transition-transform duration-300 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0`}>
+      <button onClick={() => setSidebarOpen(false)} className="absolute top-4 right-4 lg:hidden text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100 transition">
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+      </button>
       <div className="px-5 py-[18px] border-b border-gray-100 flex-shrink-0">
         <div className="flex items-center gap-2.5">
           <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-sm flex-shrink-0">
@@ -522,49 +337,31 @@ function Sidebar({ user, active, onLogout, navigate, pendingOrder, locationSocke
           <span className="font-black text-[14px] text-gray-900 tracking-tight">HealthHaul</span>
         </div>
       </div>
-
-      {/* User pill */}
       <div className="px-4 py-3.5 border-b border-gray-100 flex-shrink-0">
         <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wider mb-2">Logged in as</p>
         <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white font-black text-[11px] flex-shrink-0">
-            {user?.name?.[0]?.toUpperCase() || "P"}
-          </div>
+          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white font-black text-[11px] flex-shrink-0">{user?.name?.[0]?.toUpperCase() || "P"}</div>
           <div className="min-w-0">
             <p className="text-[13px] font-bold text-gray-800 truncate leading-tight">{user?.name || "Pharmacy"}</p>
             <p className="text-[11px] text-green-600 font-semibold">Pharmacy</p>
           </div>
         </div>
       </div>
-
-      {/* Nav */}
       <nav className="flex-shrink-0 px-3 py-3 space-y-0.5">
         {NAV.map(({ key, label, path, icon }) => {
           if (key === "notifications") return <NotificationBell key="notifications" userId={user?._id} />;
           return (
-            <button
-              key={key}
-              onClick={() => navigate(path)}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-150 ${
-                active === key ? "bg-gray-950 text-white shadow-sm" : "text-gray-500 hover:bg-gray-50 hover:text-gray-800"
-              }`}
-            >
+            <button key={key} onClick={() => { navigate(path); setSidebarOpen(false); }}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-150 ${active === key ? "bg-gray-950 text-white shadow-sm" : "text-gray-500 hover:bg-gray-50 hover:text-gray-800"}`}>
               <span className={`flex-shrink-0 ${active === key ? "opacity-100" : "opacity-50"}`}>{icon}</span>
               {label}
             </button>
           );
         })}
       </nav>
-
-      {/* Sign out */}
       <div className="flex-shrink-0 px-3 pb-4 pt-1 border-t border-gray-100">
-        <button
-          onClick={onLogout}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium text-red-500 hover:bg-red-50 hover:text-red-600 transition-all"
-        >
-          <span className="opacity-60 flex-shrink-0">
-            <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
-          </span>
+        <button onClick={onLogout} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium text-red-500 hover:bg-red-50 hover:text-red-600 transition-all">
+          <span className="opacity-60 flex-shrink-0"><svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg></span>
           Sign Out
         </button>
       </div>
@@ -572,86 +369,47 @@ function Sidebar({ user, active, onLogout, navigate, pendingOrder, locationSocke
   );
 }
 
-// ── SparkLine ─────────────────────────────────────────────────────────────────
 function SparkLine({ data = [3, 5, 2, 8, 6, 9, 7] }) {
   const max = Math.max(...data); const min = Math.min(...data); const range = max - min || 1;
   const w = 80; const h = 32;
-  const pts = data.map((v, i) => {
-    const x = (i / (data.length - 1)) * w;
-    const y = h - ((v - min) / range) * (h - 4) - 2;
-    return `${x},${y}`;
-  }).join(" ");
-  return (
-    <svg width={w} height={h} className="opacity-70">
-      <polyline fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" points={pts} />
-    </svg>
-  );
+  const pts = data.map((v, i) => { const x = (i / (data.length - 1)) * w; const y = h - ((v - min) / range) * (h - 4) - 2; return `${x},${y}`; }).join(" ");
+  return <svg width={w} height={h} className="opacity-70"><polyline fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" points={pts} /></svg>;
 }
 
-// ── OrderRow ──────────────────────────────────────────────────────────────────
 function OrderRow({ order }) {
   const [expanded, setExpanded] = useState(false);
-  const statusMap = {
-    pending:   "bg-amber-100 text-amber-700",
-    delivered: "bg-green-100 text-green-700",
-    cancalled: "bg-red-100 text-red-600",
-    cancelled: "bg-red-100 text-red-600",
-  };
-  const cls   = statusMap[order.orderStatus] || "bg-gray-100 text-gray-600";
+  const statusMap = { pending: "bg-amber-100 text-amber-700", delivered: "bg-green-100 text-green-700", cancalled: "bg-red-100 text-red-600", cancelled: "bg-red-100 text-red-600" };
+  const cls = statusMap[order.orderStatus] || "bg-gray-100 text-gray-600";
   const label = { pending: "Pending", delivered: "Delivered", cancalled: "Cancelled", cancelled: "Cancelled" }[order.orderStatus] || order.orderStatus;
-
   return (
     <>
-      <tr
-        className="border-b border-gray-50 hover:bg-gray-50/60 transition-colors cursor-pointer"
-        onClick={() => setExpanded(e => !e)}
-      >
+      <tr className="border-b border-gray-50 hover:bg-gray-50/60 transition-colors cursor-pointer" onClick={() => setExpanded(e => !e)}>
         <td className="py-3 px-4">
           <div className="flex items-center gap-2.5">
             <div className="w-7 h-7 rounded-lg bg-green-50 border border-green-100 flex items-center justify-center text-sm flex-shrink-0">💊</div>
-            <div>
-              <p className="text-[13px] font-bold text-gray-800">#{order._id?.slice(-8).toUpperCase()}</p>
-              <p className="text-[10px] text-gray-400">{new Date(order.createdAt).toLocaleDateString("en-NP", { day: "numeric", month: "short" })}</p>
-            </div>
+            <div><p className="text-[13px] font-bold text-gray-800">#{order._id?.slice(-8).toUpperCase()}</p><p className="text-[10px] text-gray-400">{new Date(order.createdAt).toLocaleDateString("en-NP", { day: "numeric", month: "short" })}</p></div>
           </div>
         </td>
-        <td className="py-3 px-4"><p className="text-[13px] text-gray-700 font-medium truncate max-w-[110px]">{order.userId?.name || "Customer"}</p></td>
-        <td className="py-3 px-4"><p className="text-[12px] text-gray-500 truncate max-w-[140px]">{order.shippingAddress || "—"}</p></td>
+        <td className="py-3 px-4 hidden sm:table-cell"><p className="text-[13px] text-gray-700 font-medium truncate max-w-[110px]">{order.userId?.name || "Customer"}</p></td>
+        <td className="py-3 px-4 hidden md:table-cell"><p className="text-[12px] text-gray-500 truncate max-w-[140px]">{order.shippingAddress || "—"}</p></td>
         <td className="py-3 px-4"><p className="text-[13px] font-bold text-green-600">Rs. {order.totalAmount?.toLocaleString()}</p></td>
-        <td className="py-3 px-4"><p className="text-[13px] text-gray-600">{order.products?.length || 0} item{(order.products?.length || 0) !== 1 ? "s" : ""}</p></td>
+        <td className="py-3 px-4 hidden sm:table-cell"><p className="text-[13px] text-gray-600">{order.products?.length || 0} item{(order.products?.length || 0) !== 1 ? "s" : ""}</p></td>
         <td className="py-3 px-4"><span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold ${cls}`}>{label}</span></td>
-        <td className="py-3 px-4">
-          <svg className={`w-3.5 h-3.5 text-gray-400 transition-transform ${expanded ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-          </svg>
-        </td>
+        <td className="py-3 px-4"><svg className={`w-3.5 h-3.5 text-gray-400 transition-transform ${expanded ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg></td>
       </tr>
       {expanded && (
         <tr className="bg-gray-50/60 border-b border-gray-100">
           <td colSpan={7} className="px-4 py-3">
             <div className="space-y-2">
               {order.products?.map((item, i) => {
-                const p = item.productId;
-                if (!p) return null;
-                const stock      = p.productTotalStockQuantity ?? 0;
-                const outOfStock = stock === 0;
-                const lowStock   = !outOfStock && stock <= 5;
+                const p = item.productId; if (!p) return null;
+                const stock = p.productTotalStockQuantity ?? 0; const outOfStock = stock === 0; const lowStock = !outOfStock && stock <= 5;
                 return (
                   <div key={i} className="flex items-center gap-3 bg-white rounded-xl px-3 py-2.5 border border-gray-100">
-                    <div className="w-8 h-8 rounded-lg bg-green-50 flex items-center justify-center text-sm flex-shrink-0 overflow-hidden">
-                      {p.productImageUrl ? <img src={p.productImageUrl} alt="" className="w-full h-full object-cover rounded-lg" /> : "💊"}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[12px] font-bold text-gray-800 truncate">{p.productName}</p>
-                      <p className="text-[11px] text-gray-400">Ordered: {item.quantity} × Rs. {p.productPrice?.toLocaleString()}</p>
-                    </div>
-                    <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold flex-shrink-0 ${
-                      outOfStock ? "bg-red-50 text-red-600 border border-red-100"
-                      : lowStock  ? "bg-orange-50 text-orange-600 border border-orange-100"
-                      : "bg-green-50 text-green-700 border border-green-100"
-                    }`}>
-                      {outOfStock ? "🚨" : lowStock ? "⚠️" : "📦"}
-                      {outOfStock ? "Out of Stock" : `${stock} left`}
+                    <div className="w-8 h-8 rounded-lg bg-green-50 flex items-center justify-center text-sm flex-shrink-0 overflow-hidden">{p.productImageUrl ? <img src={p.productImageUrl} alt="" className="w-full h-full object-cover rounded-lg" /> : "💊"}</div>
+                    <div className="flex-1 min-w-0"><p className="text-[12px] font-bold text-gray-800 truncate">{p.productName}</p><p className="text-[11px] text-gray-400">Ordered: {item.quantity} × Rs. {p.productPrice?.toLocaleString()}</p></div>
+                    <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold flex-shrink-0 ${outOfStock ? "bg-red-50 text-red-600 border border-red-100" : lowStock ? "bg-orange-50 text-orange-600 border border-orange-100" : "bg-green-50 text-green-700 border border-green-100"}`}>
+                      {outOfStock ? "🚨" : lowStock ? "⚠️" : "📦"}{outOfStock ? "Out of Stock" : `${stock} left`}
                     </div>
                   </div>
                 );
@@ -664,69 +422,37 @@ function OrderRow({ order }) {
   );
 }
 
-// ── AddProductModal ───────────────────────────────────────────────────────────
 function AddProductModal({ onClose, onSuccess }) {
   const EMPTY = { productName: "", productDescription: "", productPrice: "", productImageUrl: "", productTotalStockQuantity: "" };
-  const [form,   setForm]   = useState(EMPTY);
+  const [form, setForm] = useState(EMPTY);
   const [saving, setSaving] = useState(false);
-  const [error,  setError]  = useState("");
-
+  const [error, setError] = useState("");
   const handleChange = (e) => { setError(""); setForm(p => ({ ...p, [e.target.name]: e.target.value })); };
   const handleSubmit = async (e) => {
     e.preventDefault(); setError("");
-    if (!form.productName || !form.productDescription || !form.productPrice || !form.productTotalStockQuantity) {
-      setError("Name, description, price, and stock quantity are all required."); return;
-    }
+    if (!form.productName || !form.productDescription || !form.productPrice || !form.productTotalStockQuantity) { setError("Name, description, price, and stock quantity are all required."); return; }
     setSaving(true);
     try {
-      await api.post("/products/create/product", {
-        productName: form.productName,
-        productDescription: form.productDescription,
-        productPrice: Number(form.productPrice),
-        productImageUrl: form.productImageUrl || undefined,
-        productTotalStockQuantity: Number(form.productTotalStockQuantity),
-      });
-      onSuccess("Product submitted! Awaiting admin approval.");
-      onClose();
+      await api.post("/products/create/product", { productName: form.productName, productDescription: form.productDescription, productPrice: Number(form.productPrice), productImageUrl: form.productImageUrl || undefined, productTotalStockQuantity: Number(form.productTotalStockQuantity) });
+      onSuccess("Product submitted! Awaiting admin approval."); onClose();
     } catch (err) { setError(err.response?.data?.message || "Failed to create product."); }
     finally { setSaving(false); }
   };
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-2xl shadow-xl border border-gray-100 w-full max-w-md overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-          <div>
-            <h3 className="text-[15px] font-black text-gray-900">Add New Product</h3>
-            <p className="text-[11px] text-gray-400 mt-0.5">Requires admin approval before going live</p>
-          </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition p-1">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-          </button>
+      <div className="bg-white rounded-2xl shadow-xl border border-gray-100 w-full max-w-md overflow-hidden max-h-[90vh] overflow-y-auto">
+        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between sticky top-0 bg-white z-10">
+          <div><h3 className="text-[15px] font-black text-gray-900">Add New Product</h3><p className="text-[11px] text-gray-400 mt-0.5">Requires admin approval before going live</p></div>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition p-1"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>
         </div>
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          <div>
-            <label className="block text-[12px] font-bold text-gray-700 mb-1.5">Product Name *</label>
-            <input type="text" name="productName" value={form.productName} onChange={handleChange} placeholder="e.g. Paracetamol 500mg" className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-[13px] focus:outline-none focus:ring-2 focus:ring-green-400/40 focus:border-green-400 bg-white transition" />
-          </div>
+          <div><label className="block text-[12px] font-bold text-gray-700 mb-1.5">Product Name *</label><input type="text" name="productName" value={form.productName} onChange={handleChange} placeholder="e.g. Paracetamol 500mg" className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-[13px] focus:outline-none focus:ring-2 focus:ring-green-400/40 focus:border-green-400 bg-white transition" /></div>
           <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-[12px] font-bold text-gray-700 mb-1.5">Price (Rs.) *</label>
-              <input type="number" name="productPrice" value={form.productPrice} onChange={handleChange} placeholder="150" min="0" className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-[13px] focus:outline-none focus:ring-2 focus:ring-green-400/40 focus:border-green-400 bg-white transition" />
-            </div>
-            <div>
-              <label className="block text-[12px] font-bold text-gray-700 mb-1.5">Stock Qty *</label>
-              <input type="number" name="productTotalStockQuantity" value={form.productTotalStockQuantity} onChange={handleChange} placeholder="100" min="0" className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-[13px] focus:outline-none focus:ring-2 focus:ring-green-400/40 focus:border-green-400 bg-white transition" />
-            </div>
+            <div><label className="block text-[12px] font-bold text-gray-700 mb-1.5">Price (Rs.) *</label><input type="number" name="productPrice" value={form.productPrice} onChange={handleChange} placeholder="150" min="0" className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-[13px] focus:outline-none focus:ring-2 focus:ring-green-400/40 focus:border-green-400 bg-white transition" /></div>
+            <div><label className="block text-[12px] font-bold text-gray-700 mb-1.5">Stock Qty *</label><input type="number" name="productTotalStockQuantity" value={form.productTotalStockQuantity} onChange={handleChange} placeholder="100" min="0" className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-[13px] focus:outline-none focus:ring-2 focus:ring-green-400/40 focus:border-green-400 bg-white transition" /></div>
           </div>
-          <div>
-            <label className="block text-[12px] font-bold text-gray-700 mb-1.5">Image URL (optional)</label>
-            <input type="text" name="productImageUrl" value={form.productImageUrl} onChange={handleChange} placeholder="https://..." className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-[13px] focus:outline-none focus:ring-2 focus:ring-green-400/40 focus:border-green-400 bg-white transition" />
-          </div>
-          <div>
-            <label className="block text-[12px] font-bold text-gray-700 mb-1.5">Description *</label>
-            <textarea name="productDescription" value={form.productDescription} onChange={handleChange} rows={3} placeholder="Describe the medicine, its use, dosage info…" className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-[13px] focus:outline-none focus:ring-2 focus:ring-green-400/40 focus:border-green-400 bg-white resize-none transition" />
-          </div>
+          <div><label className="block text-[12px] font-bold text-gray-700 mb-1.5">Image URL (optional)</label><input type="text" name="productImageUrl" value={form.productImageUrl} onChange={handleChange} placeholder="https://..." className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-[13px] focus:outline-none focus:ring-2 focus:ring-green-400/40 focus:border-green-400 bg-white transition" /></div>
+          <div><label className="block text-[12px] font-bold text-gray-700 mb-1.5">Description *</label><textarea name="productDescription" value={form.productDescription} onChange={handleChange} rows={3} placeholder="Describe the medicine…" className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-[13px] focus:outline-none focus:ring-2 focus:ring-green-400/40 focus:border-green-400 bg-white resize-none transition" /></div>
           <div className="flex items-start gap-2.5 bg-amber-50 border border-amber-100 rounded-xl px-3.5 py-3">
             <svg className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" /></svg>
             <p className="text-[11px] text-amber-700 font-medium">Product will be marked <strong>Pending</strong> until an admin approves it.</p>
@@ -735,10 +461,7 @@ function AddProductModal({ onClose, onSuccess }) {
           <div className="flex gap-3 pt-1">
             <button type="button" onClick={onClose} className="flex-1 border border-gray-200 text-gray-600 py-2.5 rounded-xl font-bold text-[13px] hover:bg-gray-50 transition">Cancel</button>
             <button type="submit" disabled={saving} className="flex-1 bg-gray-950 text-white py-2.5 rounded-xl font-bold text-[13px] hover:bg-gray-800 disabled:opacity-50 transition flex items-center justify-center gap-2">
-              {saving
-                ? <><svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>Submitting…</>
-                : <><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>Add Product</>
-              }
+              {saving ? <><svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>Submitting…</> : <><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>Add Product</>}
             </button>
           </div>
         </form>
@@ -747,82 +470,58 @@ function AddProductModal({ onClose, onSuccess }) {
   );
 }
 
-// ── PharmacyDashboard ─────────────────────────────────────────────────────────
 export default function PharmacyDashboard() {
   const navigate = useNavigate();
-  const [user,         setUser]         = useState(null);
-  const [orders,       setOrders]       = useState([]);
+  const [user, setUser] = useState(null);
+  const [orders, setOrders] = useState([]);
   const [recentOrders, setRecentOrders] = useState([]);
-  const [loading,      setLoading]      = useState(true);
-  const [revenueData]                   = useState([12, 19, 9, 25, 17, 31, 22]);
+  const [loading, setLoading] = useState(true);
+  const [revenueData] = useState([12, 19, 9, 25, 17, 31, 22]);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [toast,        setToast]        = useState(null);
-
+  const [toast, setToast] = useState(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const locationSocketRef = useRef(null);
-  const geoWatchRef       = useRef(null);
+  const geoWatchRef = useRef(null);
 
-  const showToast = (msg, type = "success") => {
-    setToast({ msg, type });
-    setTimeout(() => setToast(null), 3500);
-  };
+  const showToast = (msg, type = "success") => { setToast({ msg, type }); setTimeout(() => setToast(null), 3500); };
 
   useEffect(() => {
     const stored = JSON.parse(localStorage.getItem("user"));
     if (!stored || getRole(stored) !== "pharmacy") { navigate("/login", { replace: true }); return; }
-    setUser(stored);
-    fetchOrders();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    setUser(stored); fetchOrders();
+  }, []); // eslint-disable-line
 
   const fetchOrders = async () => {
     setLoading(true);
     try {
-      const r    = await api.get("/orders/get/orders");
+      const r = await api.get("/orders/get/orders");
       const data = (r.data || []).map(o => ({ ...o, orderStatus: o.orderStatus?.toLowerCase() || "pending" }));
-      setOrders(data);
-      setRecentOrders(data.slice(0, 6));
+      setOrders(data); setRecentOrders(data.slice(0, 6));
     } catch (_) { setOrders([]); setRecentOrders([]); }
     finally { setLoading(false); }
   };
 
-  // ── Auto-share pharmacy GPS whenever there is a pending order ─────────────
   useEffect(() => {
     const pendingOrder = orders.find(o => o.orderStatus === "pending");
-
     if (geoWatchRef.current) { navigator.geolocation.clearWatch(geoWatchRef.current); geoWatchRef.current = null; }
     if (locationSocketRef.current) { locationSocketRef.current.disconnect(); locationSocketRef.current = null; }
-
     if (!user || !pendingOrder) return;
-
-    const socket = io("https://keshab-sigdel-health-haul-backend-production.up.railway.app", {
-      query: { userId: user._id, role: "pharmacy" },
-      withCredentials: true,
-    });
+    const socket = io("https://keshab-sigdel-health-haul-backend-production.up.railway.app", { query: { userId: user._id, role: "pharmacy" }, withCredentials: true });
     locationSocketRef.current = socket;
     socket.emit("joinOrderRoom", pendingOrder._id);
-
     if (navigator.geolocation) {
       geoWatchRef.current = navigator.geolocation.watchPosition(
         ({ coords: { latitude, longitude } }) => {
-          socket.emit("pharmacyShareLocation", {
-            orderId:      pendingOrder._id,
-            latitude,
-            longitude,
-            pharmacyName: user.name,
-          });
+          socket.emit("pharmacyShareLocation", { orderId: pendingOrder._id, latitude, longitude, pharmacyName: user.name });
           api.put("/auth/update-location", { latitude, longitude }).catch(() => {});
         },
         (err) => console.warn("[Pharmacy GPS]", err.message),
         { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 }
       );
     }
-
     return () => {
       if (geoWatchRef.current) { navigator.geolocation.clearWatch(geoWatchRef.current); geoWatchRef.current = null; }
-      if (locationSocketRef.current) {
-        locationSocketRef.current.emit("leaveOrderRoom", pendingOrder._id);
-        locationSocketRef.current.disconnect();
-        locationSocketRef.current = null;
-      }
+      if (locationSocketRef.current) { locationSocketRef.current.emit("leaveOrderRoom", pendingOrder._id); locationSocketRef.current.disconnect(); locationSocketRef.current = null; }
     };
   }, [orders, user]);
 
@@ -830,88 +529,79 @@ export default function PharmacyDashboard() {
     if (geoWatchRef.current) navigator.geolocation.clearWatch(geoWatchRef.current);
     if (locationSocketRef.current) locationSocketRef.current.disconnect();
     try { await api.post("/auth/logout"); } catch (_) { }
-    localStorage.removeItem("user");
-    localStorage.removeItem("token");
+    localStorage.removeItem("user"); localStorage.removeItem("token");
     navigate("/login", { replace: true });
   };
 
-  const pendingOrder    = orders.find(o => o.orderStatus === "pending") || null;
-  const totalOrders     = orders.length;
-  const pendingOrders   = orders.filter(o => o.orderStatus === "pending").length;
+  const pendingOrder = orders.find(o => o.orderStatus === "pending") || null;
+  const totalOrders = orders.length;
+  const pendingOrders = orders.filter(o => o.orderStatus === "pending").length;
   const deliveredOrders = orders.filter(o => o.orderStatus === "delivered").length;
-  const cancelledOrders = orders.filter(o => ["cancalled","cancelled"].includes(o.orderStatus)).length;
-  const totalRevenue    = orders.filter(o => o.orderStatus === "delivered").reduce((s, o) => s + (o.totalAmount || 0), 0);
+  const cancelledOrders = orders.filter(o => ["cancalled", "cancelled"].includes(o.orderStatus)).length;
+  const totalRevenue = orders.filter(o => o.orderStatus === "delivered").reduce((s, o) => s + (o.totalAmount || 0), 0);
 
   if (!user) return null;
 
   const STAT_CARDS = [
-    { label: "Total Revenue", value: `Rs. ${totalRevenue.toLocaleString()}`, icon: "💰", color: "text-green-600",  bg: "bg-green-50",  sparkColor: "text-green-500",   trend: "from delivered" },
-    { label: "Total Orders",  value: totalOrders,                            icon: "📦", color: "text-blue-600",   bg: "bg-blue-50",   sparkColor: "text-blue-400",    trend: "all time" },
-    { label: "Pending",       value: pendingOrders,                          icon: "⏳", color: "text-amber-600",  bg: "bg-amber-50",  sparkColor: "text-amber-400",   trend: "awaiting" },
-    { label: "Delivered",     value: deliveredOrders,                        icon: "✅", color: "text-emerald-600",bg: "bg-emerald-50",sparkColor: "text-emerald-400", trend: "completed" },
+    { label: "Total Revenue", value: `Rs. ${totalRevenue.toLocaleString()}`, icon: "💰", color: "text-green-600", bg: "bg-green-50", sparkColor: "text-green-500", trend: "from delivered" },
+    { label: "Total Orders", value: totalOrders, icon: "📦", color: "text-blue-600", bg: "bg-blue-50", sparkColor: "text-blue-400", trend: "all time" },
+    { label: "Pending", value: pendingOrders, icon: "⏳", color: "text-amber-600", bg: "bg-amber-50", sparkColor: "text-amber-400", trend: "awaiting" },
+    { label: "Delivered", value: deliveredOrders, icon: "✅", color: "text-emerald-600", bg: "bg-emerald-50", sparkColor: "text-emerald-400", trend: "completed" },
   ];
 
   return (
     <div className="min-h-screen bg-[#f7f8fa]">
       {toast && (
         <div className={`fixed top-5 right-5 z-[9999] flex items-center gap-2.5 px-4 py-3 rounded-xl shadow-lg text-white text-[13px] font-bold ${toast.type === "error" ? "bg-red-500" : "bg-green-600"}`}>
-          {toast.type === "error"
-            ? <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-            : <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-          }
+          {toast.type === "error" ? <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg> : <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>}
           {toast.msg}
         </div>
       )}
-
       {showAddModal && <AddProductModal onClose={() => setShowAddModal(false)} onSuccess={showToast} />}
+      {sidebarOpen && <div className="fixed inset-0 bg-black/30 z-20 lg:hidden" onClick={() => setSidebarOpen(false)} />}
 
-      <Sidebar
-        user={user}
-        active="dashboard"
-        onLogout={logout}
-        navigate={navigate}
-        pendingOrder={pendingOrder}
-        locationSocketRef={locationSocketRef}
-      />
+      {/* Mobile top bar */}
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-10 bg-white border-b border-gray-100 px-4 py-3 flex items-center gap-3">
+        <button onClick={() => setSidebarOpen(true)} className="text-gray-600 p-1">
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
+        </button>
+        <span className="font-black text-[14px] text-gray-900">HealthHaul</span>
+      </div>
 
-      <div className="pl-[220px]">
-        <main className="px-8 py-7 min-h-screen">
+      <Sidebar user={user} active="dashboard" onLogout={logout} navigate={navigate} pendingOrder={pendingOrder} locationSocketRef={locationSocketRef} sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
-          <div className="mb-7 flex items-start justify-between">
+      <div className="lg:pl-[220px] pt-[52px] lg:pt-0">
+        <main className="px-4 sm:px-8 py-7 min-h-screen">
+          <div className="mb-7 flex flex-col sm:flex-row sm:items-start justify-between gap-3">
             <div>
-              <h1 className="text-[26px] font-black text-gray-900 tracking-tight leading-tight">Pharmacy Dashboard</h1>
+              <h1 className="text-[22px] sm:text-[26px] font-black text-gray-900 tracking-tight leading-tight">Pharmacy Dashboard</h1>
               <p className="text-gray-400 text-[13px] mt-0.5">Real-time overview of your orders and revenue</p>
             </div>
-            <div className="flex items-center gap-2">
-              <button onClick={fetchOrders} className="flex items-center gap-2 border border-gray-200 bg-white text-gray-600 px-4 py-2.5 rounded-xl font-bold text-[13px] hover:border-green-300 hover:text-green-700 transition shadow-sm">
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <button onClick={fetchOrders} className="flex items-center gap-2 border border-gray-200 bg-white text-gray-600 px-3 sm:px-4 py-2.5 rounded-xl font-bold text-[13px] hover:border-green-300 hover:text-green-700 transition shadow-sm">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
                 Refresh
               </button>
-              <button onClick={() => setShowAddModal(true)} className="flex items-center gap-2 bg-gray-950 text-white px-4 py-2.5 rounded-xl font-bold text-[13px] hover:bg-gray-800 transition shadow-sm">
+              <button onClick={() => setShowAddModal(true)} className="flex items-center gap-2 bg-gray-950 text-white px-3 sm:px-4 py-2.5 rounded-xl font-bold text-[13px] hover:bg-gray-800 transition shadow-sm">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
                 Add Product
               </button>
             </div>
           </div>
 
-          {/* Stat cards */}
           {loading ? (
-            <div className="grid grid-cols-4 gap-4 mb-7">
-              {[...Array(4)].map((_, i) => (
-                <div key={i} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 animate-pulse">
-                  <div className="w-9 h-9 bg-gray-100 rounded-xl mb-3" /><div className="h-7 bg-gray-100 rounded w-1/2 mb-1" /><div className="h-3 bg-gray-100 rounded w-3/4" />
-                </div>
-              ))}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-7">
+              {[...Array(4)].map((_, i) => <div key={i} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 animate-pulse"><div className="w-9 h-9 bg-gray-100 rounded-xl mb-3" /><div className="h-7 bg-gray-100 rounded w-1/2 mb-1" /><div className="h-3 bg-gray-100 rounded w-3/4" /></div>)}
             </div>
           ) : (
-            <div className="grid grid-cols-4 gap-4 mb-7">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-7">
               {STAT_CARDS.map((s) => (
-                <div key={s.label} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 hover:shadow-md transition-shadow">
+                <div key={s.label} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 sm:p-5 hover:shadow-md transition-shadow">
                   <div className="flex items-start justify-between mb-3">
                     <div className={`w-9 h-9 ${s.bg} rounded-xl flex items-center justify-center text-lg`}>{s.icon}</div>
-                    <span className="text-[10px] font-semibold text-gray-400 bg-gray-50 px-2 py-0.5 rounded-full">{s.trend}</span>
+                    <span className="text-[10px] font-semibold text-gray-400 bg-gray-50 px-2 py-0.5 rounded-full hidden sm:block">{s.trend}</span>
                   </div>
-                  <p className={`text-2xl font-black ${s.color} leading-none mb-1`}>{s.value}</p>
+                  <p className={`text-xl sm:text-2xl font-black ${s.color} leading-none mb-1`}>{s.value}</p>
                   <p className="text-[11px] text-gray-400 font-medium">{s.label}</p>
                   <div className={`mt-2 ${s.sparkColor}`}><SparkLine data={revenueData} /></div>
                 </div>
@@ -919,23 +609,17 @@ export default function PharmacyDashboard() {
             </div>
           )}
 
-          {/* ── MAIN LIVE TRACKING MAP (full-width, prominent) ─────────────── */}
-          <MainLiveMapPanel
-            user={user}
-            pendingOrder={pendingOrder}
-            locationSocketRef={locationSocketRef}
-          />
+          <MainLiveMapPanel user={user} pendingOrder={pendingOrder} locationSocketRef={locationSocketRef} />
 
-          {/* Charts row */}
-          <div className="grid grid-cols-3 gap-4 mb-7">
-            <div className="col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-7">
+            <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
               <div className="mb-5">
                 <h2 className="text-[15px] font-black text-gray-900">Orders This Week</h2>
                 <p className="text-[11px] text-gray-400 mt-0.5">Orders processed per day over the last 7 days</p>
               </div>
               <div className="flex items-end gap-2 h-32 px-1">
-                {["Mon","Tue","Wed","Thu","Fri","Sat","Sun"].map((day, i) => {
-                  const heights  = [40, 65, 30, 80, 55, 90, 45];
+                {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day, i) => {
+                  const heights = [40, 65, 30, 80, 55, 90, 45];
                   const todayIdx = new Date().getDay() === 0 ? 6 : new Date().getDay() - 1;
                   return (
                     <div key={day} className="flex-1 flex flex-col items-center gap-1.5">
@@ -952,9 +636,9 @@ export default function PharmacyDashboard() {
               <h2 className="text-[15px] font-black text-gray-900 mb-4">Order Status</h2>
               <div className="space-y-3 flex-1">
                 {[
-                  { label: "Pending",   count: pendingOrders,   color: "bg-amber-500", text: "text-amber-700", bg: "bg-amber-50" },
+                  { label: "Pending", count: pendingOrders, color: "bg-amber-500", text: "text-amber-700", bg: "bg-amber-50" },
                   { label: "Delivered", count: deliveredOrders, color: "bg-green-500", text: "text-green-700", bg: "bg-green-50" },
-                  { label: "Cancelled", count: cancelledOrders, color: "bg-red-400",   text: "text-red-600",  bg: "bg-red-50"   },
+                  { label: "Cancelled", count: cancelledOrders, color: "bg-red-400", text: "text-red-600", bg: "bg-red-50" },
                 ].map(s => (
                   <div key={s.label} className={`flex items-center justify-between ${s.bg} rounded-xl px-3.5 py-2.5`}>
                     <div className="flex items-center gap-2"><div className={`w-2 h-2 rounded-full ${s.color}`} /><span className="text-[12px] font-semibold text-gray-700">{s.label}</span></div>
@@ -966,33 +650,33 @@ export default function PharmacyDashboard() {
             </div>
           </div>
 
-          {/* Recent Orders */}
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-            <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+            <div className="px-4 sm:px-5 py-4 border-b border-gray-100 flex items-center justify-between">
               <div>
                 <h2 className="text-[15px] font-black text-gray-900">Recent Orders</h2>
-                <p className="text-[11px] text-gray-400 mt-0.5">{recentOrders.length} most recent — click a row to see stock remaining</p>
+                <p className="text-[11px] text-gray-400 mt-0.5">{recentOrders.length} most recent</p>
               </div>
-              <button onClick={() => navigate("/pharmacy/orders")} className="text-[12px] font-bold text-gray-500 hover:text-gray-900 bg-gray-50 border border-gray-200 px-3 py-1.5 rounded-lg hover:border-gray-300 transition">View All Orders →</button>
+              <button onClick={() => navigate("/pharmacy/orders")} className="text-[12px] font-bold text-gray-500 hover:text-gray-900 bg-gray-50 border border-gray-200 px-3 py-1.5 rounded-lg hover:border-gray-300 transition">View All →</button>
             </div>
             {loading ? (
               <div className="flex items-center justify-center py-16"><div className="w-8 h-8 border-[3px] border-green-500 border-t-transparent rounded-full animate-spin" /></div>
             ) : recentOrders.length === 0 ? (
-              <div className="py-16 text-center"><div className="text-3xl mb-2">📋</div><p className="text-[13px] font-semibold text-gray-600">No orders yet</p><p className="text-[11px] text-gray-400 mt-0.5">Orders will appear here once customers start purchasing</p></div>
+              <div className="py-16 text-center"><div className="text-3xl mb-2">📋</div><p className="text-[13px] font-semibold text-gray-600">No orders yet</p></div>
             ) : (
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-gray-100 bg-gray-50/50">
-                    {["ORDER","CUSTOMER","SHIPPING ADDRESS","AMOUNT","ITEMS","STATUS",""].map(col => (
-                      <th key={col} className="py-2.5 px-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">{col}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>{recentOrders.map(order => <OrderRow key={order._id} order={order} />)}</tbody>
-              </table>
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[480px]">
+                  <thead>
+                    <tr className="border-b border-gray-100 bg-gray-50/50">
+                      {["ORDER", "CUSTOMER", "ADDRESS", "AMOUNT", "ITEMS", "STATUS", ""].map(col => (
+                        <th key={col} className={`py-2.5 px-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest ${col === "CUSTOMER" ? "hidden sm:table-cell" : col === "ADDRESS" ? "hidden md:table-cell" : col === "ITEMS" ? "hidden sm:table-cell" : ""}`}>{col}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>{recentOrders.map(order => <OrderRow key={order._id} order={order} />)}</tbody>
+                </table>
+              </div>
             )}
           </div>
-
         </main>
       </div>
     </div>
