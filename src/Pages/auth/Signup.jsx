@@ -10,7 +10,7 @@ export default function Signup() {
     email: "",
     password: "",
     confirmPassword: "",
-    role: "USER", // UPPERCASE to match backend code to avoid confusion
+    role: "USER",
   });
 
   const [error, setError] = useState("");
