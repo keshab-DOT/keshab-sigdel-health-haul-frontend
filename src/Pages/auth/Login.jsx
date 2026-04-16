@@ -29,7 +29,7 @@ function ForgotPasswordModal({ onClose }) {
     e.preventDefault();
     setError(""); setLoading(true);
     try {
-      await api.post("api/auth/forgot-password", { email });
+      await api.post("/auth/forgot-password", { email }); // ✅ fixed
       setSuccess("OTP sent! Check your email.");
       setTimeout(() => { setSuccess(""); setStep(2); }, 1200);
     } catch (err) {
@@ -51,7 +51,7 @@ function ForgotPasswordModal({ onClose }) {
     if (newPass !== confirm) { setError("Passwords do not match"); return; }
     setLoading(true);
     try {
-      await api.post("auth/reset-password", { email, code: otp, newPassword: newPass, confirmPassword: confirm });
+      await api.post("/auth/reset-password", { email, code: otp, newPassword: newPass, confirmPassword: confirm }); // ✅ fixed leading slash
       setSuccess("Password reset successfully! You can now log in.");
       setTimeout(onClose, 2000);
     } catch (err) {
@@ -79,6 +79,7 @@ function ForgotPasswordModal({ onClose }) {
           </button>
         </div>
 
+        {/* Step indicator */}
         <div className="px-4 sm:px-6 pt-4 sm:pt-5">
           <div className="flex items-center">
             {STEPS.map((label, i) => (
@@ -115,6 +116,7 @@ function ForgotPasswordModal({ onClose }) {
             </div>
           )}
 
+          {/* Step 1 - Email */}
           {step === 1 && (
             <form onSubmit={step1} className="space-y-4">
               <div>
@@ -140,28 +142,40 @@ function ForgotPasswordModal({ onClose }) {
             </form>
           )}
 
+          {/* Step 2 - OTP */}
           {step === 2 && (
             <form onSubmit={step2} className="space-y-4">
               <div>
                 <label className="block text-xs sm:text-[13px] font-bold text-gray-700 mb-1.5">Enter OTP</label>
                 <input
-                  type="text" value={otp} onChange={e => setOtp(e.target.value)}
+                  type="text" value={otp} onChange={e => setOtp(e.target.value.replace(/\D/g, ""))}
                   placeholder="4-digit code" maxLength={4} required
                   className="w-full border border-gray-200 rounded-xl px-4 py-3 text-lg sm:text-[18px] font-black tracking-[0.4em] text-center focus:outline-none focus:ring-2 focus:ring-green-400/40 focus:border-green-400 transition"
                 />
                 <p className="text-[11px] text-gray-400 mt-1.5">Sent to <span className="font-semibold text-gray-600">{email}</span></p>
               </div>
               <div className="flex gap-2">
-                <button type="button" onClick={() => setStep(1)} className="flex-1 border border-gray-200 text-gray-600 py-2.5 rounded-xl font-bold text-xs sm:text-[13px] hover:bg-gray-50 transition">← Back</button>
-                <button type="submit" className="flex-1 bg-gray-900 text-white py-2.5 rounded-xl font-bold text-xs sm:text-[13px] hover:bg-gray-800 transition">Verify OTP →</button>
+                <button type="button" onClick={() => setStep(1)}
+                  className="flex-1 border border-gray-200 text-gray-600 py-2.5 rounded-xl font-bold text-xs sm:text-[13px] hover:bg-gray-50 transition">
+                  ← Back
+                </button>
+                <button type="submit"
+                  className="flex-1 bg-gray-900 text-white py-2.5 rounded-xl font-bold text-xs sm:text-[13px] hover:bg-gray-800 transition">
+                  Verify OTP →
+                </button>
               </div>
-              <button type="button" onClick={() => { step1({ preventDefault: () => { } }); }}
-                className="w-full text-xs text-green-600 hover:text-green-700 font-semibold text-center">
-                Resend OTP
+              <button
+                type="button"
+                onClick={() => { setError(""); setLoading(true); api.post("/auth/forgot-password", { email }).then(() => { setSuccess("OTP resent!"); setTimeout(() => setSuccess(""), 2000); }).catch(err => setError(err.response?.data?.message || "Failed to resend")).finally(() => setLoading(false)); }}
+                disabled={loading}
+                className="w-full text-xs text-green-600 hover:text-green-700 font-semibold text-center disabled:opacity-50"
+              >
+                {loading ? "Sending…" : "Resend OTP"}
               </button>
             </form>
           )}
 
+          {/* Step 3 - New Password */}
           {step === 3 && (
             <form onSubmit={step3} className="space-y-4">
               <div>
@@ -175,11 +189,13 @@ function ForgotPasswordModal({ onClose }) {
                     placeholder="Min. 6 characters" required
                     className="w-full border border-gray-200 rounded-xl pl-9 sm:pl-10 pr-10 py-2.5 text-xs sm:text-[13px] focus:outline-none focus:ring-2 focus:ring-green-400/40 focus:border-green-400 transition"
                   />
-                  <button type="button" onClick={() => setShowPw(p => !p)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                    </svg>
+                  <button type="button" onClick={() => setShowPw(p => !p)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                    {showPw ? (
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" /></svg>
+                    ) : (
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                    )}
                   </button>
                 </div>
               </div>
@@ -198,9 +214,11 @@ function ForgotPasswordModal({ onClose }) {
               </div>
               {confirm && (
                 <div className={`flex items-center gap-1.5 text-[12px] font-semibold ${newPass === confirm ? "text-green-600" : "text-red-500"}`}>
-                  {newPass === confirm
-                    ? <><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>Passwords match</>
-                    : <><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>Passwords do not match</>}
+                  {newPass === confirm ? (
+                    <><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>Passwords match</>
+                  ) : (
+                    <><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>Passwords do not match</>
+                  )}
                 </div>
               )}
               <button type="submit" disabled={loading || newPass !== confirm}
@@ -229,7 +247,7 @@ export default function Login() {
     const storedUser = JSON.parse(localStorage.getItem("user"));
     if (!storedUser?.roles) return;
     redirectByRole(storedUser.roles, navigate);
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const change = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
@@ -336,9 +354,11 @@ export default function Login() {
                   />
                   <button type="button" onClick={() => setShowPass(!showPass)}
                     className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-green-600 transition">
-                    {showPass
-                      ? <svg className="w-4 sm:w-5 h-4 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" /></svg>
-                      : <svg className="w-4 sm:w-5 h-4 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>}
+                    {showPass ? (
+                      <svg className="w-4 sm:w-5 h-4 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" /></svg>
+                    ) : (
+                      <svg className="w-4 sm:w-5 h-4 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                    )}
                   </button>
                 </div>
               </div>
@@ -354,15 +374,15 @@ export default function Login() {
 
               <button type="submit" disabled={loading}
                 className="bg-green-600 hover:bg-green-700 w-full text-white py-2.5 sm:py-3 rounded-lg font-bold text-sm sm:text-base transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none">
-                {loading
-                  ? <div className="flex items-center justify-center gap-2">
+                {loading ? (
+                  <div className="flex items-center justify-center gap-2">
                     <svg className="animate-spin h-4 sm:h-5 w-4 sm:w-5 text-white" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                     </svg>
                     <span>Logging in...</span>
                   </div>
-                  : "Login"}
+                ) : "Login"}
               </button>
             </form>
 
