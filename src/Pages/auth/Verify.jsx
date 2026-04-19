@@ -33,7 +33,7 @@ export default function Verify() {
     setError("");
     try {
       await api.post("/auth/resendOtp", { email });
-      setSuccess("OTP resent successfully! Check your email.");
+      setSuccess("OTP resent successfully! Check in your email spam folder.");
       setTimeout(() => setSuccess(""), 3000);
     } catch (err) {
       setError(err.response?.data?.message || "Failed to resend OTP");
