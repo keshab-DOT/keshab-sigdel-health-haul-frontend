@@ -541,7 +541,7 @@ export default function CartPage() {
                 </div>
                 {checkoutForm.paymentMethod === "khalti" && (
                   <div className="mt-2 flex items-start gap-2 bg-purple-50 border border-purple-100 rounded-xl px-3.5 py-2.5">
-                    <span className="text-purple-500 mt-0.5 flex-shrink-0">💜</span>
+                    <span className="text-purple-500 mt-0.5 flex-shrink-0"></span>
                     <p className="text-[11px] text-purple-700 leading-relaxed">
                       You'll be redirected to Khalti. <strong>Your order will be cancelled if payment is not completed.</strong>
                     </p>
@@ -559,7 +559,7 @@ export default function CartPage() {
               >
                 {checkoutLoading
                   ? <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />Processing…</>
-                  : checkoutForm.paymentMethod === "khalti" ? "Pay with Khalti 💜" : "Place Order →"}
+                  : checkoutForm.paymentMethod === "khalti" ? "Pay with Khalti" : "Place Order →"}
               </button>
             </form>
           </div>
