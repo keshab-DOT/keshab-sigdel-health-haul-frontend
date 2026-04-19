@@ -29,7 +29,7 @@ function ForgotPasswordModal({ onClose }) {
     e.preventDefault();
     setError(""); setLoading(true);
     try {
-      await api.post("/auth/forgot-password", { email }); // ✅ fixed
+      await api.post("/auth/forgot-password", { email });
       setSuccess("OTP sent! Check your email.");
       setTimeout(() => { setSuccess(""); setStep(2); }, 1200);
     } catch (err) {
@@ -51,7 +51,7 @@ function ForgotPasswordModal({ onClose }) {
     if (newPass !== confirm) { setError("Passwords do not match"); return; }
     setLoading(true);
     try {
-      await api.post("/auth/reset-password", { email, code: otp, newPassword: newPass, confirmPassword: confirm }); // ✅ fixed leading slash
+      await api.post("/auth/reset-password", { email, code: otp, newPassword: newPass, confirmPassword: confirm });
       setSuccess("Password reset successfully! You can now log in.");
       setTimeout(onClose, 2000);
     } catch (err) {
@@ -116,7 +116,6 @@ function ForgotPasswordModal({ onClose }) {
             </div>
           )}
 
-          {/* Step 1 - Email */}
           {step === 1 && (
             <form onSubmit={step1} className="space-y-4">
               <div>
@@ -142,7 +141,6 @@ function ForgotPasswordModal({ onClose }) {
             </form>
           )}
 
-          {/* Step 2 - OTP */}
           {step === 2 && (
             <form onSubmit={step2} className="space-y-4">
               <div>
@@ -166,7 +164,13 @@ function ForgotPasswordModal({ onClose }) {
               </div>
               <button
                 type="button"
-                onClick={() => { setError(""); setLoading(true); api.post("/auth/forgot-password", { email }).then(() => { setSuccess("OTP resent!"); setTimeout(() => setSuccess(""), 2000); }).catch(err => setError(err.response?.data?.message || "Failed to resend")).finally(() => setLoading(false)); }}
+                onClick={() => {
+                  setError(""); setLoading(true);
+                  api.post("/auth/forgot-password", { email })
+                    .then(() => { setSuccess("OTP resent!"); setTimeout(() => setSuccess(""), 2000); })
+                    .catch(err => setError(err.response?.data?.message || "Failed to resend"))
+                    .finally(() => setLoading(false));
+                }}
                 disabled={loading}
                 className="w-full text-xs text-green-600 hover:text-green-700 font-semibold text-center disabled:opacity-50"
               >
@@ -175,7 +179,6 @@ function ForgotPasswordModal({ onClose }) {
             </form>
           )}
 
-          {/* Step 3 - New Password */}
           {step === 3 && (
             <form onSubmit={step3} className="space-y-4">
               <div>
@@ -243,11 +246,22 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [showForgot, setShowForgot] = useState(false);
 
+  // Redirect if already logged in
   useEffect(() => {
     const storedUser = JSON.parse(localStorage.getItem("user"));
     if (!storedUser?.roles) return;
     redirectByRole(storedUser.roles, navigate);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Show ban/suspend message if redirected from interceptor
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const reason = params.get("reason");
+    if (reason === "banned")
+      setError("Your account has been banned. Please contact support.");
+    else if (reason === "suspended")
+      setError("Your account has been suspended. Please contact support.");
+  }, []);
 
   const change = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
@@ -258,6 +272,19 @@ export default function Login() {
       const res = await api.post("/auth/login", form);
       const user = res.data.user;
       if (!user || !user.roles) { setError("Invalid user data from server"); setLoading(false); return; }
+
+      // Block banned/suspended users at login too
+      if (user.status === "Banned") {
+        setError("Your account has been banned. Please contact support.");
+        setLoading(false);
+        return;
+      }
+      if (user.status === "Suspended") {
+        setError("Your account has been suspended. Please contact support.");
+        setLoading(false);
+        return;
+      }
+
       const normalizedUser = {
         ...user,
         roles: Array.isArray(user.roles)
