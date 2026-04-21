@@ -27,7 +27,7 @@ import PharmacyProducts from "./Pages/Dashboard/Pharmacy/Pharmacyproducts";
 import PharmacyProfile from "./Pages/Dashboard/Pharmacy/Pharmacyprofile";
 import PharmacyChatPage from "./Pages/Dashboard/Pharmacy/Pharmacychatpage";
 import PharmacyReviews from "./Pages/Dashboard/Pharmacy/Pharmacyreviews";
-import PharmacyPayments from "./Pages/pharmacy/PharmacyPayments";
+import PharmacyPayments from "./Pages/Dashboard/Pharmacy/PharmacyPayments";
 
 
 // Admin
