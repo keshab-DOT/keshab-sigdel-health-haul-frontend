@@ -21,6 +21,45 @@ function timeAgo(date) {
   return `${Math.floor(diff / 86400)}d ago`;
 }
 
+// ─── Pagination ───────────────────────────────────────────────────────────────
+function Pagination({ page, totalPages, onChange }) {
+  if (totalPages <= 1) return null;
+  const getPages = () => {
+    const pages = [];
+    if (totalPages <= 7) { for (let i = 1; i <= totalPages; i++) pages.push(i); }
+    else {
+      pages.push(1);
+      if (page > 3) pages.push("...");
+      for (let i = Math.max(2, page - 1); i <= Math.min(totalPages - 1, page + 1); i++) pages.push(i);
+      if (page < totalPages - 2) pages.push("...");
+      pages.push(totalPages);
+    }
+    return pages;
+  };
+  return (
+    <div className="flex items-center justify-center gap-1 py-3">
+      <button onClick={() => onChange(page - 1)} disabled={page === 1}
+        className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 hover:border-green-300 hover:text-green-600 disabled:opacity-30 disabled:cursor-not-allowed transition">
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+      </button>
+      {getPages().map((p, i) => p === "..." ? (
+        <span key={`e${i}`} className="w-8 h-8 flex items-center justify-center text-gray-400 text-[13px]">…</span>
+      ) : (
+        <button key={p} onClick={() => onChange(p)}
+          className={`w-8 h-8 flex items-center justify-center rounded-lg text-[13px] font-bold transition ${p === page ? "bg-gray-950 text-white shadow-sm" : "border border-gray-200 bg-white text-gray-500 hover:border-green-300 hover:text-green-600"}`}>
+          {p}
+        </button>
+      ))}
+      <button onClick={() => onChange(page + 1)} disabled={page === totalPages}
+        className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 hover:border-green-300 hover:text-green-600 disabled:opacity-30 disabled:cursor-not-allowed transition">
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+      </button>
+    </div>
+  );
+}
+
+const PER_PAGE = 10;
+
 function NotificationBell({ userId }) {
   const [open, setOpen] = useState(false);
   const [notifs, setNotifs] = useState([]);
@@ -167,6 +206,7 @@ export default function PharmacyOrders() {
   const [updating, setUpdating] = useState({});
   const [toast, setToast] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [page, setPage] = useState(1);
 
   const showToast = (msg, type = "success") => { setToast({ msg, type }); setTimeout(() => setToast(null), 3000); };
 
@@ -175,7 +215,10 @@ export default function PharmacyOrders() {
     const role = (Array.isArray(stored?.roles) ? stored.roles[0] : stored?.roles || "").toLowerCase().trim();
     if (!stored || role !== "pharmacy") { navigate("/login", { replace: true }); return; }
     setUser(stored); fetchOrders();
-  }, []);
+  }, []); // eslint-disable-line
+
+  // Reset page when filter changes
+  useEffect(() => { setPage(1); }, [filter]);
 
   const fetchOrders = async () => {
     setLoading(true);
@@ -198,6 +241,10 @@ export default function PharmacyOrders() {
   const FILTERS = [{ key: "all", label: "All" }, { key: "pending", label: "Pending" }, { key: "delivered", label: "Delivered" }, { key: "cancalled", label: "Cancelled" }];
   const filtered = filter === "all" ? orders : orders.filter(o => o.orderStatus === filter);
   const totalRevenue = orders.filter(o => o.orderStatus === "delivered").reduce((s, o) => s + (o.totalAmount || 0), 0);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
+  const safePage = Math.min(page, totalPages);
+  const paginated = filtered.slice((safePage - 1) * PER_PAGE, safePage * PER_PAGE);
 
   if (!user) return null;
   if (loading) return <div className="flex min-h-screen items-center justify-center bg-[#f7f8fa]"><div className="text-center"><div className="w-10 h-10 border-[3px] border-green-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" /><p className="text-gray-400 text-sm">Loading orders…</p></div></div>;
@@ -233,7 +280,7 @@ export default function PharmacyOrders() {
                       {["ORDER", "CUSTOMER", "SHIPPING ADDRESS", "ITEMS", "AMOUNT", "STATUS", ""].map(col => <p key={col} className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{col}</p>)}
                     </div>
                     <div className="divide-y divide-gray-50">
-                      {filtered.map(order => {
+                      {paginated.map(order => {
                         const customerName = order.userId?.name || order.customerName || "Customer";
                         return (
                           <div key={order._id}>
@@ -253,7 +300,13 @@ export default function PharmacyOrders() {
                     </div>
                   </div>
                 </div>
-                <div className="px-5 py-3 border-t border-gray-100 bg-gray-50/40"><p className="text-[12px] text-gray-400">{filtered.length} of {orders.length} orders shown</p></div>
+                {/* Pagination footer */}
+                <div className="px-4 sm:px-5 border-t border-gray-100 bg-gray-50/40 rounded-b-2xl">
+                  <Pagination page={safePage} totalPages={totalPages} onChange={setPage} />
+                  <p className="text-[12px] text-gray-400 pb-3 text-center">
+                    Showing {filtered.length === 0 ? 0 : (safePage - 1) * PER_PAGE + 1}–{Math.min(safePage * PER_PAGE, filtered.length)} of {filtered.length} orders
+                  </p>
+                </div>
               </>
             )}
           </div>
