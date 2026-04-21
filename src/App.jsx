@@ -6,6 +6,7 @@ import Signup from "./Pages/auth/Signup";
 import Verify from "./Pages/auth/Verify";
 import Login from "./Pages/auth/Login";
 import Landing from "./Pages/Landing/Landing";
+import { Pagination, usePagination } from "./Pages/Dashboard/Pagination";
 
 
 // Customer User
@@ -47,6 +48,7 @@ function App() {
           <Route path="/signup" element={<Signup />} />
           <Route path="/verify" element={<Verify />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/pagination" element={<Pagination />} />
 
           {/* User Routes */}
           <Route path="/user/dashboard" element={<UserDashboard />} />
