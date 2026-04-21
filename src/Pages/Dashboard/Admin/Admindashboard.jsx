@@ -5,7 +5,7 @@ import { io } from "socket.io-client";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 
-// ── Fix Leaflet broken icons in Vite ──────────────────────────────────────────
+// Leaflet broken icons in Vite 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl:
