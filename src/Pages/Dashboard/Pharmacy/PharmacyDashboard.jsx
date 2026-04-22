@@ -67,14 +67,19 @@ async function fetchOsrmRoute(from, to) {
   return null;
 }
 
-function MainLiveMapPanel({ user, pendingOrder, locationSocketRef }) {
+// ─── Main Live Map Panel ──────────────────────────────────────────────────────
+function MainLiveMapPanel({ user, pendingOrder, locationSocketRef, onManualLocationShare }) {
   const [pharmacyPos, setPharmacyPos] = useState(null);
   const [customerPos, setCustomerPos] = useState(null);
   const [customerOnline, setCustomerOnline] = useState(false);
+  const [pharmacySharing, setPharmacySharing] = useState(false);
   const [route, setRoute] = useState(null);
   const [routeLoading, setRouteLoading] = useState(false);
+  const [geoError, setGeoError] = useState(null);
+  const manualWatchRef = useRef(null);
   const DEFAULT_CENTER = [27.7172, 85.324];
 
+  // Load pharmacy's saved location from DB as initial position
   useEffect(() => {
     if (!user?._id) return;
     api
@@ -88,6 +93,7 @@ function MainLiveMapPanel({ user, pendingOrder, locationSocketRef }) {
       .catch(() => {});
   }, [user]);
 
+  // Load customer's delivery address pin
   useEffect(() => {
     if (!pendingOrder) return;
     const lat = Number(
@@ -105,6 +111,7 @@ function MainLiveMapPanel({ user, pendingOrder, locationSocketRef }) {
 
   const currentSocket = locationSocketRef?.current ?? null;
 
+  // Listen for live customer location updates via socket
   useEffect(() => {
     if (!currentSocket || !pendingOrder) return;
     const onUserLoc = ({ latitude, longitude }) => {
@@ -122,6 +129,7 @@ function MainLiveMapPanel({ user, pendingOrder, locationSocketRef }) {
     };
   }, [currentSocket, pendingOrder]);
 
+  // Intercept pharmacyShareLocation emits to update the local marker
   useEffect(() => {
     if (!currentSocket) return;
     const origEmit = currentSocket.emit.bind(currentSocket);
@@ -139,6 +147,82 @@ function MainLiveMapPanel({ user, pendingOrder, locationSocketRef }) {
       currentSocket.emit = origEmit;
     };
   }, [currentSocket]);
+
+  // Manual location sharing — starts/stops a watchPosition independent of the
+  // auto-watch in PharmacyDashboard (useful when browser blocked auto-prompt)
+  const handleToggleSharing = useCallback(() => {
+    if (pharmacySharing) {
+      // Stop sharing
+      if (manualWatchRef.current != null) {
+        navigator.geolocation.clearWatch(manualWatchRef.current);
+        manualWatchRef.current = null;
+      }
+      setPharmacySharing(false);
+      setGeoError(null);
+      return;
+    }
+
+    if (!navigator.geolocation) {
+      setGeoError("Geolocation is not supported by your browser.");
+      return;
+    }
+
+    setGeoError(null);
+
+    // Ask for permission / start watching
+    manualWatchRef.current = navigator.geolocation.watchPosition(
+      ({ coords: { latitude, longitude } }) => {
+        setPharmacyPos([latitude, longitude]);
+        setPharmacySharing(true);
+        setGeoError(null);
+
+        // Emit via socket if connected
+        if (currentSocket && pendingOrder) {
+          currentSocket.emit("pharmacyShareLocation", {
+            orderId: pendingOrder._id,
+            latitude,
+            longitude,
+            pharmacyName: user?.name,
+          });
+        }
+
+        // Also persist to DB
+        api.put("/auth/update-location", { latitude, longitude }).catch(() => {});
+
+        // Call parent handler if provided (so PharmacyDashboard can track state)
+        onManualLocationShare?.({ latitude, longitude });
+      },
+      (err) => {
+        setPharmacySharing(false);
+        if (err.code === 1) {
+          setGeoError(
+            "Location permission denied. Click the 🔒 icon in your browser's address bar, allow location, then try again.",
+          );
+        } else if (err.code === 2) {
+          setGeoError("Could not determine your location. Try again.");
+        } else {
+          setGeoError("Location request timed out. Try again.");
+        }
+        if (manualWatchRef.current != null) {
+          navigator.geolocation.clearWatch(manualWatchRef.current);
+          manualWatchRef.current = null;
+        }
+      },
+      { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 },
+    );
+
+    // Optimistically mark as sharing (will be confirmed or rolled back by watchPosition callbacks)
+    setPharmacySharing(true);
+  }, [pharmacySharing, currentSocket, pendingOrder, user, onManualLocationShare]);
+
+  // Cleanup manual watch on unmount
+  useEffect(() => {
+    return () => {
+      if (manualWatchRef.current != null) {
+        navigator.geolocation.clearWatch(manualWatchRef.current);
+      }
+    };
+  }, []);
 
   const handleGetRoute = useCallback(async () => {
     if (!pharmacyPos || !customerPos) return;
@@ -177,6 +261,7 @@ function MainLiveMapPanel({ user, pendingOrder, locationSocketRef }) {
 
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-7">
+      {/* Header */}
       <div className="px-4 sm:px-5 py-3.5 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center gap-2 justify-between">
         <div className="flex items-center gap-2.5">
           <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse flex-shrink-0" />
@@ -190,6 +275,8 @@ function MainLiveMapPanel({ user, pendingOrder, locationSocketRef }) {
             </p>
           </div>
         </div>
+
+        {/* Status badges */}
         <div className="flex items-center gap-2 flex-wrap">
           {customerOnline && (
             <span className="flex items-center gap-1.5 text-[11px] font-bold text-blue-600 bg-blue-50 border border-blue-100 px-2.5 py-1 rounded-full">
@@ -197,7 +284,7 @@ function MainLiveMapPanel({ user, pendingOrder, locationSocketRef }) {
               Customer live
             </span>
           )}
-          {pharmacyPos && (
+          {pharmacySharing && (
             <span className="flex items-center gap-1.5 text-[11px] font-bold text-green-700 bg-green-50 border border-green-100 px-2.5 py-1 rounded-full">
               <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
               You're live
@@ -205,6 +292,8 @@ function MainLiveMapPanel({ user, pendingOrder, locationSocketRef }) {
           )}
         </div>
       </div>
+
+      {/* Route info bar */}
       {route && (
         <div className="flex items-center gap-4 px-5 py-2 bg-blue-50 border-b border-blue-100">
           <span className="text-[12px] font-bold text-blue-700">
@@ -222,6 +311,38 @@ function MainLiveMapPanel({ user, pendingOrder, locationSocketRef }) {
           </button>
         </div>
       )}
+
+      {/* Geo error banner */}
+      {geoError && (
+        <div className="flex items-start gap-2.5 px-4 py-3 bg-red-50 border-b border-red-100">
+          <svg
+            className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"
+            />
+          </svg>
+          <p className="text-[11px] text-red-700 font-medium leading-snug">
+            {geoError}
+          </p>
+          <button
+            onClick={() => setGeoError(null)}
+            className="ml-auto text-red-400 hover:text-red-600 flex-shrink-0"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      )}
+
+      {/* Map */}
       <div className="relative">
         <MapContainer
           center={pharmacyPos || DEFAULT_CENTER}
@@ -240,6 +361,9 @@ function MainLiveMapPanel({ user, pendingOrder, locationSocketRef }) {
               <Popup>
                 <div className="text-[13px] font-semibold">
                   🏥 {user?.name || "Your Pharmacy"}
+                  {pharmacySharing && (
+                    <span className="ml-1 text-green-600 text-[11px]">• Live</span>
+                  )}
                 </div>
               </Popup>
             </Marker>
@@ -249,6 +373,9 @@ function MainLiveMapPanel({ user, pendingOrder, locationSocketRef }) {
               <Popup>
                 <div className="text-[13px] font-semibold">
                   📍 {pendingOrder.userId?.name || "Customer"}
+                  {customerOnline && (
+                    <span className="ml-1 text-blue-600 text-[11px]">• Live</span>
+                  )}
                 </div>
               </Popup>
             </Marker>
@@ -266,15 +393,59 @@ function MainLiveMapPanel({ user, pendingOrder, locationSocketRef }) {
           )}
         </MapContainer>
       </div>
+
+      {/* Footer action bar */}
       <div className="px-4 sm:px-5 py-3 bg-gray-950 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
         <p className="text-[11px] text-gray-400">
           {pharmacyPos && customerPos
             ? "Both locations loaded — get the route"
             : pharmacyPos
               ? "Waiting for customer pin…"
-              : "Acquiring GPS…"}
+              : "No GPS yet — share your location below"}
         </p>
-        <div className="flex items-center gap-2">
+
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* ── Manual location share toggle ── */}
+          <button
+            onClick={handleToggleSharing}
+            className={`flex items-center gap-2 text-[12px] font-bold px-4 py-2 rounded-xl transition ${
+              pharmacySharing
+                ? "bg-red-500 hover:bg-red-400 text-white"
+                : "bg-emerald-500 hover:bg-emerald-400 text-white"
+            }`}
+          >
+            {pharmacySharing ? (
+              <>
+                <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
+                Stop Sharing
+              </>
+            ) : (
+              <>
+                <svg
+                  className="w-3.5 h-3.5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                  />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                  />
+                </svg>
+                Share My Location
+              </>
+            )}
+          </button>
+
+          {/* Route buttons */}
           {route && (
             <span className="text-[11px] text-green-400 font-bold">
               Route active ✓
@@ -334,6 +505,7 @@ function MainLiveMapPanel({ user, pendingOrder, locationSocketRef }) {
   );
 }
 
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 const getRole = (stored) => {
   const raw = Array.isArray(stored?.roles) ? stored.roles[0] : stored?.roles;
   return (raw || "").toLowerCase().trim();
@@ -357,6 +529,7 @@ function timeAgo(date) {
   return `${Math.floor(diff / 86400)}d ago`;
 }
 
+// ─── Notification Bell ────────────────────────────────────────────────────────
 function NotificationBell({ userId }) {
   const [open, setOpen] = useState(false);
   const [notifs, setNotifs] = useState([]);
@@ -542,6 +715,7 @@ function NotificationBell({ userId }) {
   );
 }
 
+// ─── Sidebar ──────────────────────────────────────────────────────────────────
 function Sidebar({
   user,
   active,
@@ -613,8 +787,26 @@ function Sidebar({
         </svg>
       ),
     },
-    { key: "payments",  label: "Payments",  path: "/pharmacy/payments",  icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" /></svg> },
-
+    {
+      key: "payments",
+      label: "Payments",
+      path: "/pharmacy/payments",
+      icon: (
+        <svg
+          className="w-[18px] h-[18px]"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={1.75}
+            d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"
+          />
+        </svg>
+      ),
+    },
     {
       key: "reviews",
       label: "Reviews",
@@ -788,6 +980,7 @@ function Sidebar({
   );
 }
 
+// ─── SparkLine ────────────────────────────────────────────────────────────────
 function SparkLine({ data = [3, 5, 2, 8, 6, 9, 7] }) {
   const max = Math.max(...data);
   const min = Math.min(...data);
@@ -815,6 +1008,7 @@ function SparkLine({ data = [3, 5, 2, 8, 6, 9, 7] }) {
   );
 }
 
+// ─── OrderRow ─────────────────────────────────────────────────────────────────
 function OrderRow({ order }) {
   const [expanded, setExpanded] = useState(false);
   const statusMap = {
@@ -951,6 +1145,7 @@ function OrderRow({ order }) {
   );
 }
 
+// ─── AddProductModal ──────────────────────────────────────────────────────────
 function AddProductModal({ onClose, onSuccess }) {
   const EMPTY = {
     productName: "",
@@ -1184,6 +1379,7 @@ function AddProductModal({ onClose, onSuccess }) {
   );
 }
 
+// ─── PharmacyDashboard ────────────────────────────────────────────────────────
 export default function PharmacyDashboard() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
@@ -1230,6 +1426,7 @@ export default function PharmacyDashboard() {
     }
   };
 
+  // Auto-start GPS when there's a pending order (best-effort; user may deny)
   useEffect(() => {
     const pendingOrder = orders.find((o) => o.orderStatus === "pending");
     if (geoWatchRef.current) {
@@ -1241,12 +1438,14 @@ export default function PharmacyDashboard() {
       locationSocketRef.current = null;
     }
     if (!user || !pendingOrder) return;
+
     const socket = io(
       "https://keshab-sigdel-health-haul-backend-production.up.railway.app",
       { query: { userId: user._id, role: "pharmacy" }, withCredentials: true },
     );
     locationSocketRef.current = socket;
     socket.emit("joinOrderRoom", pendingOrder._id);
+
     if (navigator.geolocation) {
       geoWatchRef.current = navigator.geolocation.watchPosition(
         ({ coords: { latitude, longitude } }) => {
@@ -1260,10 +1459,11 @@ export default function PharmacyDashboard() {
             .put("/auth/update-location", { latitude, longitude })
             .catch(() => {});
         },
-        (err) => console.warn("[Pharmacy GPS]", err.message),
+        (err) => console.warn("[Pharmacy GPS auto-watch]", err.message),
         { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 },
       );
     }
+
     return () => {
       if (geoWatchRef.current) {
         navigator.geolocation.clearWatch(geoWatchRef.current);
@@ -1533,6 +1733,12 @@ export default function PharmacyDashboard() {
             user={user}
             pendingOrder={pendingOrder}
             locationSocketRef={locationSocketRef}
+            onManualLocationShare={({ latitude, longitude }) => {
+              // If the auto-watch wasn't running (permission was denied before),
+              // the manual share from the panel is enough — socket emitting is
+              // handled inside MainLiveMapPanel itself.
+              api.put("/auth/update-location", { latitude, longitude }).catch(() => {});
+            }}
           />
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-7">
