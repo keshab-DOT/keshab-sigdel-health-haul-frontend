@@ -24,6 +24,65 @@ function timeAgoN(date) {
   return `${Math.floor(diff / 86400)}d ago`;
 }
 
+/* ─── Pagination ─────────────────────────────────────────────────── */
+const PER_PAGE = 20;
+
+function Pagination({ page, totalPages, onChange }) {
+  if (totalPages <= 1) return null;
+  const getPages = () => {
+    const pages = [];
+    if (totalPages <= 7) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      pages.push(1);
+      if (page > 3) pages.push("...");
+      for (let i = Math.max(2, page - 1); i <= Math.min(totalPages - 1, page + 1); i++) pages.push(i);
+      if (page < totalPages - 2) pages.push("...");
+      pages.push(totalPages);
+    }
+    return pages;
+  };
+  return (
+    <div className="flex items-center justify-center gap-1 py-4">
+      <button
+        onClick={() => onChange(page - 1)}
+        disabled={page === 1}
+        className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 hover:border-green-300 hover:text-green-600 disabled:opacity-30 disabled:cursor-not-allowed transition"
+      >
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+        </svg>
+      </button>
+      {getPages().map((p, i) =>
+        p === "..." ? (
+          <span key={`e${i}`} className="w-8 h-8 flex items-center justify-center text-gray-400 text-[13px]">…</span>
+        ) : (
+          <button
+            key={p}
+            onClick={() => onChange(p)}
+            className={`w-8 h-8 flex items-center justify-center rounded-lg text-[13px] font-bold transition ${
+              p === page
+                ? "bg-gray-950 text-white shadow-sm"
+                : "border border-gray-200 bg-white text-gray-500 hover:border-green-300 hover:text-green-600"
+            }`}
+          >
+            {p}
+          </button>
+        )
+      )}
+      <button
+        onClick={() => onChange(page + 1)}
+        disabled={page === totalPages}
+        className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 hover:border-green-300 hover:text-green-600 disabled:opacity-30 disabled:cursor-not-allowed transition"
+      >
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+        </svg>
+      </button>
+    </div>
+  );
+}
+
 /* ─── Notification Bell ──────────────────────────────────────────── */
 function NotificationBell({ userId }) {
   const [open, setOpen] = useState(false);
@@ -400,7 +459,6 @@ function ReviewModal({ pharmacy, onClose, onSubmitted, currentUserId }) {
         className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-lg max-h-[92vh] flex flex-col overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
         <div className="px-5 sm:px-6 py-4 border-b border-gray-100 flex items-center justify-between flex-shrink-0">
           <div>
             <h3 className="text-[15px] font-black text-gray-900">{pharmacy.name}</h3>
@@ -414,10 +472,7 @@ function ReviewModal({ pharmacy, onClose, onSubmitted, currentUserId }) {
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
         </div>
-
-        {/* Scrollable body */}
         <div className="flex-1 overflow-y-auto">
-          {/* Write review */}
           <div className="px-5 sm:px-6 py-4 border-b border-gray-100 bg-gray-50/50">
             {alreadyReviewed ? (
               <div className="flex items-center gap-2 text-green-700 bg-green-50 border border-green-100 rounded-xl px-3.5 py-2.5">
@@ -453,8 +508,6 @@ function ReviewModal({ pharmacy, onClose, onSubmitted, currentUserId }) {
               </form>
             )}
           </div>
-
-          {/* Reviews list */}
           <div className="px-5 sm:px-6 py-4 space-y-4">
             <p className="text-[13px] font-bold text-gray-800">{totalCount > 0 ? `${totalCount} Review${totalCount !== 1 ? "s" : ""}` : "No reviews yet"}</p>
             {loading ? (
@@ -500,7 +553,6 @@ function ProductCard({ product, onAddToCart, adding, onReviewClick, pharmacyRati
 
   return (
     <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-all duration-200 flex flex-col group">
-      {/* Image */}
       <div className="h-32 sm:h-36 bg-gradient-to-br from-green-50 to-emerald-50 flex items-center justify-center overflow-hidden relative">
         {src ? (
           <img src={src} alt={product.productName} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" onError={(e) => { e.target.style.display = "none"; }} />
@@ -518,13 +570,9 @@ function ProductCard({ product, onAddToCart, adding, onReviewClick, pharmacyRati
           </div>
         )}
       </div>
-
-      {/* Content */}
       <div className="p-3 sm:p-3.5 flex flex-col flex-1">
         <h4 className="font-bold text-gray-800 text-[12px] leading-snug mb-0.5 truncate">{product.productName}</h4>
         <p className="text-[10px] text-gray-400 line-clamp-2 mb-2 flex-1 leading-relaxed">{product.productDescription}</p>
-
-        {/* Pharmacy info */}
         {pharmacy?.name && (
           <div className="mb-2.5 bg-gray-50 border border-gray-100 rounded-lg px-2.5 py-2 space-y-1.5">
             <div className="flex items-center justify-between gap-1">
@@ -552,16 +600,12 @@ function ProductCard({ product, onAddToCart, adding, onReviewClick, pharmacyRati
             )}
           </div>
         )}
-
-        {/* Price + stock */}
         <div className="flex items-center justify-between mb-2.5">
           <p className="text-green-600 font-black text-[13px]">Rs. {product.productPrice?.toLocaleString()}</p>
           <span className={`text-[10px] font-medium px-2 py-0.5 rounded-lg ${outOfStock ? "bg-red-50 text-red-400" : "bg-gray-50 text-gray-400"}`}>
             {outOfStock ? "No stock" : `${product.productTotalStockQuantity} left`}
           </span>
         </div>
-
-        {/* Qty + add to cart */}
         <div className="flex items-center gap-2">
           <div className="flex items-center border border-gray-200 rounded-xl overflow-hidden flex-shrink-0">
             <button
@@ -603,10 +647,13 @@ export default function SearchMedicines() {
   const [stockFilter, setStockFilter] = useState("all");
   const [pharmacyRatings, setPharmacyRatings] = useState({});
   const [reviewModal, setReviewModal] = useState(null);
-  // Mobile: show/hide filters
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [page, setPage] = useState(1);
 
   const showToast = (msg, type = "success") => { setToast({ msg, type }); setTimeout(() => setToast(null), 3000); };
+
+  // Reset to page 1 when search/filter/sort changes
+  useEffect(() => { setPage(1); }, [query, sortBy, stockFilter]);
 
   useEffect(() => {
     const stored = JSON.parse(localStorage.getItem("user"));
@@ -681,6 +728,11 @@ export default function SearchMedicines() {
     return r;
   }, [products, query, sortBy, stockFilter]);
 
+  // Pagination calculations
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
+  const safePage = Math.min(page, totalPages);
+  const paginated = filtered.slice((safePage - 1) * PER_PAGE, safePage * PER_PAGE);
+
   const activeFilterCount = (stockFilter !== "all" ? 1 : 0) + (sortBy !== "newest" ? 1 : 0);
 
   return (
@@ -730,7 +782,6 @@ export default function SearchMedicines() {
 
         {/* Search + filters */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-3 sm:p-3.5 space-y-2.5">
-          {/* Search bar — always visible */}
           <div className="flex items-center gap-2">
             <div className="relative flex-1">
               <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -749,7 +800,6 @@ export default function SearchMedicines() {
                 </button>
               )}
             </div>
-            {/* Filter toggle (mobile only) */}
             <button
               onClick={() => setFiltersOpen((o) => !o)}
               className={`sm:hidden relative flex items-center gap-1.5 border rounded-xl px-3 py-2.5 text-[13px] font-medium transition ${filtersOpen || activeFilterCount > 0 ? "border-green-400 text-green-700 bg-green-50" : "border-gray-200 text-gray-500 bg-gray-50/50"}`}
@@ -765,8 +815,6 @@ export default function SearchMedicines() {
               )}
             </button>
           </div>
-
-          {/* Filter selects — always visible on sm+, collapsible on mobile */}
           <div className={`sm:flex gap-2.5 ${filtersOpen ? "flex flex-col sm:flex-row" : "hidden sm:flex"}`}>
             <select
               value={stockFilter}
@@ -831,17 +879,28 @@ export default function SearchMedicines() {
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2.5 sm:gap-3">
-            {filtered.map((product) => (
-              <ProductCard
-                key={product._id}
-                product={product}
-                onAddToCart={handleAddToCart}
-                adding={adding[product._id]}
-                onReviewClick={setReviewModal}
-                pharmacyRatings={pharmacyRatings}
-              />
-            ))}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            {/* Grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2.5 sm:gap-3 p-3 sm:p-4">
+              {paginated.map((product) => (
+                <ProductCard
+                  key={product._id}
+                  product={product}
+                  onAddToCart={handleAddToCart}
+                  adding={adding[product._id]}
+                  onReviewClick={setReviewModal}
+                  pharmacyRatings={pharmacyRatings}
+                />
+              ))}
+            </div>
+
+            {/* Pagination footer */}
+            <div className="px-4 sm:px-5 border-t border-gray-100 bg-gray-50/40 rounded-b-2xl">
+              <Pagination page={safePage} totalPages={totalPages} onChange={setPage} />
+              <p className="text-[12px] text-gray-400 pb-3 text-center">
+                Showing {filtered.length === 0 ? 0 : (safePage - 1) * PER_PAGE + 1}–{Math.min(safePage * PER_PAGE, filtered.length)} of {filtered.length} product{filtered.length !== 1 ? "s" : ""}
+              </p>
+            </div>
           </div>
         )}
       </main>
