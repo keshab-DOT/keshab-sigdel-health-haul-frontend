@@ -17,6 +17,65 @@ function timeAgoN(date) {
   return `${Math.floor(diff / 86400)}d ago`;
 }
 
+/* ─── Pagination ─────────────────────────────────────────────────── */
+const PER_PAGE = 10;
+
+function Pagination({ page, totalPages, onChange }) {
+  if (totalPages <= 1) return null;
+  const getPages = () => {
+    const pages = [];
+    if (totalPages <= 7) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      pages.push(1);
+      if (page > 3) pages.push("...");
+      for (let i = Math.max(2, page - 1); i <= Math.min(totalPages - 1, page + 1); i++) pages.push(i);
+      if (page < totalPages - 2) pages.push("...");
+      pages.push(totalPages);
+    }
+    return pages;
+  };
+  return (
+    <div className="flex items-center justify-center gap-1 py-3">
+      <button
+        onClick={() => onChange(page - 1)}
+        disabled={page === 1}
+        className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 hover:border-green-300 hover:text-green-600 disabled:opacity-30 disabled:cursor-not-allowed transition"
+      >
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+        </svg>
+      </button>
+      {getPages().map((p, i) =>
+        p === "..." ? (
+          <span key={`e${i}`} className="w-8 h-8 flex items-center justify-center text-gray-400 text-[13px]">…</span>
+        ) : (
+          <button
+            key={p}
+            onClick={() => onChange(p)}
+            className={`w-8 h-8 flex items-center justify-center rounded-lg text-[13px] font-bold transition ${
+              p === page
+                ? "bg-gray-950 text-white shadow-sm"
+                : "border border-gray-200 bg-white text-gray-500 hover:border-green-300 hover:text-green-600"
+            }`}
+          >
+            {p}
+          </button>
+        )
+      )}
+      <button
+        onClick={() => onChange(page + 1)}
+        disabled={page === totalPages}
+        className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 hover:border-green-300 hover:text-green-600 disabled:opacity-30 disabled:cursor-not-allowed transition"
+      >
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+        </svg>
+      </button>
+    </div>
+  );
+}
+
 /* ─── Notification Bell ──────────────────────────────────────────── */
 function NotificationBell({ userId }) {
   const [open, setOpen] = useState(false);
@@ -476,6 +535,10 @@ export default function UserOrderPage() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
   const [expanded, setExpanded] = useState(null);
+  const [page, setPage] = useState(1);
+
+  // Reset to page 1 whenever filter changes
+  useEffect(() => { setPage(1); }, [filter]);
 
   useEffect(() => {
     const stored = JSON.parse(localStorage.getItem("user"));
@@ -502,9 +565,15 @@ export default function UserOrderPage() {
     { key: "delivered", label: "Delivered" },
     { key: "cancelled", label: "Cancelled" },
   ];
+
   const filtered = filter === "all" ? orders : orders.filter((o) => o.orderStatus === filter);
   const currentFilterLabel = FILTERS.find((f) => f.key === filter)?.label || filter;
   const payLabel = { cod: "Cash on Delivery", esewa: "eSewa", khalti: "Khalti" };
+
+  // Pagination calculations
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
+  const safePage = Math.min(page, totalPages);
+  const paginated = filtered.slice((safePage - 1) * PER_PAGE, safePage * PER_PAGE);
 
   if (loading) return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50">
@@ -539,7 +608,7 @@ export default function UserOrderPage() {
           </button>
         </div>
 
-        {/* Stats — 3 cols on sm+, 1 row scroll on mobile */}
+        {/* Stats */}
         <div className="grid grid-cols-3 gap-2.5 sm:gap-3">
           {[
             { label: "Total Orders", count: orders.length, bg: "bg-gray-50", text: "text-gray-900", emoji: "📦" },
@@ -556,7 +625,7 @@ export default function UserOrderPage() {
           ))}
         </div>
 
-        {/* Filter tabs — horizontally scrollable on mobile */}
+        {/* Filter tabs */}
         <div className="flex gap-1.5 overflow-x-auto pb-0.5 -mx-4 sm:mx-0 px-4 sm:px-0 scrollbar-hide">
           {FILTERS.map(({ key, label }) => {
             const count = key === "all" ? orders.length : orders.filter((o) => o.orderStatus === key).length;
@@ -590,16 +659,27 @@ export default function UserOrderPage() {
             )}
           </div>
         ) : (
-          <div className="space-y-2.5">
-            {filtered.map((order) => (
-              <OrderRow
-                key={order._id}
-                order={order}
-                expanded={expanded === order._id}
-                onToggle={() => setExpanded(expanded === order._id ? null : order._id)}
-                payLabel={payLabel}
-              />
-            ))}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            {/* Order cards */}
+            <div className="divide-y divide-gray-50 p-3 sm:p-4 space-y-2.5">
+              {paginated.map((order) => (
+                <OrderRow
+                  key={order._id}
+                  order={order}
+                  expanded={expanded === order._id}
+                  onToggle={() => setExpanded(expanded === order._id ? null : order._id)}
+                  payLabel={payLabel}
+                />
+              ))}
+            </div>
+
+            {/* Pagination footer */}
+            <div className="px-4 sm:px-5 border-t border-gray-100 bg-gray-50/40 rounded-b-2xl">
+              <Pagination page={safePage} totalPages={totalPages} onChange={setPage} />
+              <p className="text-[12px] text-gray-400 pb-3 text-center">
+                Showing {filtered.length === 0 ? 0 : (safePage - 1) * PER_PAGE + 1}–{Math.min(safePage * PER_PAGE, filtered.length)} of {filtered.length} order{filtered.length !== 1 ? "s" : ""}
+              </p>
+            </div>
           </div>
         )}
       </main>
